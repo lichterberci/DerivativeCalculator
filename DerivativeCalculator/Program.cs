@@ -112,6 +112,35 @@ public static class Parser
 
 		return null;
 	}
+
+
+	public static List<Node> HandleNegativeSigns (List<Node> nodes)
+	{
+		for (int i = 0; i < nodes.Count; i++)
+		{
+			Node? prevNode = i > 1 ? nodes[i - 1] : null;
+			Node currentNode = nodes[i];
+
+			if (currentNode is Operator)
+			{
+				if ((currentNode as Operator).type == OperatorType.Sub)
+				{
+					if (
+						prevNode == null 
+						|| prevNode is Operator 
+						|| ((prevNode is Parenthesis) && (prevNode as Parenthesis).isOpeningParinthesis == false)
+					)
+					{
+						// it is a negative sign, so we replace '-' with a '(-1)*'
+						nodes[i] = new Operator(OperatorType.Mult); // add a *
+						nodes.Insert(i, new Constant(-1)); // add a -1 in front of it
+					}
+				}
+			}
+		}
+
+		return nodes;
+	}
 }
 
 public abstract class Node
