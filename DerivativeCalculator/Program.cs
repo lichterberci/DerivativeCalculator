@@ -548,17 +548,22 @@ public class Derivator
 				return new Operator(OperatorType.Mult,
 					new Constant(-1),
 					new Operator(OperatorType.Mult,
-						new Operator(OperatorType.Cos, right),
+						new Operator(OperatorType.Sin, right),
 						DifferentiateTree(right)
 					)
 				);
 			case OperatorType.Tan:
-				return new Operator(OperatorType.Div,
-					new Operator(OperatorType.Pow,
-						new Constant(2),
-						right
-					),
-					new Constant(1)
+				return new Operator(OperatorType.Mult,
+					new Operator(OperatorType.Div,
+						new Operator(OperatorType.Cos,
+							new Operator(OperatorType.Pow,
+								new Constant(2),
+								right
+							)
+						),
+						new Constant(1)
+					), 
+					DifferentiateTree(right)
 				);
 			case OperatorType.Log:
 				return new Operator(OperatorType.Div,
