@@ -5,12 +5,20 @@
 		Console.Write("> ");
 		string input = Console.ReadLine().ToLower().Trim();
 		Console.WriteLine(input);
-		var nodes = Parser.ApplyParentheses(Parser.AddHiddenMultiplications(Parser.ParseToList(input)));
+		var nodes = Parser.ParseToList(input);
+		nodes = Parser.HandleNegativeSigns(nodes);
+		nodes = Parser.AddHiddenMultiplications(nodes);
+		nodes = Parser.ApplyParentheses(nodes);
 		var tree = Parser.MakeTreeFromList(nodes);
 		TreeUtils.PrintTree(tree);
 		Console.WriteLine("-----------------------------------------");
 		TreeNode diffTree = new Derivator('x').DifferentiateTree(tree);
 		TreeUtils.PrintTree(diffTree);
+		Console.WriteLine("-----------------------------------------");
+		diffTree = TreeUtils.Simplify(diffTree);
+		diffTree = TreeUtils.Calculate(diffTree);
+		TreeUtils.PrintTree(diffTree);
+		Console.WriteLine("-----------------------------------------");
 		Console.WriteLine(TreeUtils.CollapseTreeToString(diffTree));
 	}
 }
@@ -43,6 +51,180 @@ public static class TreeUtils
 		else
 		{
 			Console.WriteLine(indentation + root.ToString());
+		}
+	}
+
+	public static TreeNode Simplify(TreeNode root)
+	{
+		if (root is Constant || root is Variable)
+			return root;
+
+		// root is operator
+		Operator op = root as Operator;
+
+		if (Operator.GetNumOperands(op.type) == 1)
+		{
+			op.rightOperand = Simplify(op.rightOperand);
+
+			if ((op.rightOperand is Constant) == false)
+			{
+				return root;
+			}
+		}
+		else
+		{
+			op.rightOperand = Simplify(op.rightOperand);
+			op.leftOperand = Simplify(op.leftOperand);
+
+			if ((op.rightOperand is Constant) == false || (op.leftOperand is Constant == false))
+			{
+				// simplify +0
+				if (op.type == OperatorType.Add)
+				{
+					if (op.leftOperand is Constant)
+						if ((op.leftOperand as Constant).value == 0)
+							return op.rightOperand;
+
+					if (op.rightOperand is Constant)
+						if ((op.rightOperand as Constant).value == 0)
+							return op.leftOperand;
+				}
+				// simplify -0
+				if (op.type == OperatorType.Sub)
+				{
+					if (op.leftOperand is Constant)
+						if ((op.leftOperand as Constant).value == 0)
+							return op.rightOperand;
+
+					if (op.rightOperand is Constant)
+						if ((op.rightOperand as Constant).value == 0)
+							return op.leftOperand;
+				}
+				// simplify *0 and *1
+				if (op.type == OperatorType.Mult)
+				{
+					if (op.leftOperand is Constant)
+						if ((op.leftOperand as Constant).value == 0)
+							return new Constant(0);
+
+					if (op.rightOperand is Constant)
+						if ((op.rightOperand as Constant).value == 0)
+							return new Constant(0);
+
+					if (op.leftOperand is Constant)
+						if ((op.leftOperand as Constant).value == 1)
+							return op.rightOperand;
+
+					if (op.rightOperand is Constant)
+						if ((op.rightOperand as Constant).value == 1)
+							return op.leftOperand;
+				}
+				// simplify exp(a*ln(b)) = a^b
+				if (op.type == OperatorType.Pow)
+				{
+					if (op.leftOperand is Constant)
+						if ((op.leftOperand as Constant) == Constant.E)
+						{
+							var exponent = op.rightOperand;
+							if (exponent is Operator)
+								if ((exponent as Operator).type == OperatorType.Mult)
+								{
+									TreeNode exponentMultRight = (exponent as Operator).rightOperand;
+									TreeNode? exponentMultLeft = (exponent as Operator).leftOperand;
+
+									if (exponentMultRight is Operator)
+										if ((exponentMultRight as Operator).type == OperatorType.Ln)
+										{
+											// we are ready, it is in the form of e^(a*ln(b))
+
+											return new Operator(
+												OperatorType.Pow,
+												exponentMultLeft,
+												exponentMultRight
+											);
+										}
+
+
+									if (exponentMultLeft is Operator)
+										if ((exponentMultLeft as Operator).type == OperatorType.Ln)
+										{
+											// we are ready, it is in the form of e^(a*ln(b))
+
+											return new Operator(
+												OperatorType.Pow,
+												exponentMultRight,
+												(exponentMultLeft as Operator).rightOperand
+											);
+										}
+								}
+						}
+				}
+			}
+		}
+
+		return root;
+	}
+
+	public static TreeNode Calculate (TreeNode root)
+	{
+		if (root is Constant || root is Variable)
+			return root;
+
+		// root is operator
+		Operator op = root as Operator;
+
+		if (Operator.GetNumOperands(op.type) == 1)
+		{
+			op.rightOperand = Calculate(op.rightOperand);
+
+			if ((op.rightOperand is Constant) == false)
+			{
+				return root;
+			}
+		}
+		else
+		{
+			op.rightOperand = Calculate(op.rightOperand);
+			op.leftOperand = Calculate(op.leftOperand);
+
+			if ((op.rightOperand is Constant) == false || (op.leftOperand is Constant == false))
+			{
+				return root;
+			}
+		}
+
+		// it can be calculated
+
+		Constant right = op.rightOperand as Constant;
+		Constant? left = op.leftOperand as Constant;
+
+		double rightValue = right.value;
+		double? leftValue = left?.value;
+
+		switch (op.type)
+		{
+			case OperatorType.Add:
+				return new Constant(rightValue + (double)leftValue);
+			case OperatorType.Sub:
+				return new Constant((double)leftValue - rightValue);
+			case OperatorType.Mult:
+				return new Constant((double)leftValue * rightValue);
+			case OperatorType.Div:
+				return new Constant((double)leftValue / rightValue);
+			case OperatorType.Pow:
+				return new Constant(Math.Pow((double)leftValue, rightValue));
+			case OperatorType.Sin:
+				return new Constant(Math.Sin(rightValue));
+			case OperatorType.Cos:
+				return new Constant(Math.Cos(rightValue));
+			case OperatorType.Tan:
+				return new Constant(Math.Tan(rightValue));
+			case OperatorType.Log:
+				return new Constant(Math.Log10(rightValue));
+			case OperatorType.Ln:
+				return new Constant(Math.Log(rightValue));
+			default:
+				throw new ArgumentException("Operator type unhandled!");
 		}
 	}
 
@@ -263,6 +445,34 @@ public static class Parser
 			return op;
 		}
 	}
+
+	public static List<Node> HandleNegativeSigns(List<Node> nodes)
+	{
+		for (int i = 0; i < nodes.Count; i++)
+		{
+			Node? prevNode = i > 1 ? nodes[i - 1] : null;
+			Node currentNode = nodes[i];
+
+			if (currentNode is Operator)
+			{
+				if ((currentNode as Operator).type == OperatorType.Sub)
+				{
+					if (
+						prevNode == null
+						|| prevNode is Operator
+						|| ((prevNode is Parenthesis) && (prevNode as Parenthesis).isOpeningParinthesis == false)
+					)
+					{
+						// it is a negative sign, so we replace '-' with a '(-1)*'
+						nodes[i] = new Operator(OperatorType.Mult); // add a *
+						nodes.Insert(i, new Constant(-1)); // add a -1 in front of it
+					}
+				}
+			}
+		}
+
+		return nodes;
+	}
 }
 
 public class Derivator
@@ -290,9 +500,9 @@ public class Derivator
 		switch (type)
 		{
 			case OperatorType.Add:
-				return new Operator(OperatorType.Add, right, left);
+				return new Operator(OperatorType.Add, DifferentiateTree(right), DifferentiateTree(left));
 			case OperatorType.Sub:
-				return new Operator(OperatorType.Sub, right, left);
+				return new Operator(OperatorType.Sub, DifferentiateTree(right), DifferentiateTree(left));
 			case OperatorType.Mult:
 				return new Operator(OperatorType.Add,
 					new Operator(OperatorType.Mult, DifferentiateTree(right), left),
@@ -369,35 +579,6 @@ public class Derivator
 			default:
 				throw new ArgumentException("Operator has invalid type!");
 		}
-	}
-
-
-	public static List<Node> HandleNegativeSigns (List<Node> nodes)
-	{
-		for (int i = 0; i < nodes.Count; i++)
-		{
-			Node? prevNode = i > 1 ? nodes[i - 1] : null;
-			Node currentNode = nodes[i];
-
-			if (currentNode is Operator)
-			{
-				if ((currentNode as Operator).type == OperatorType.Sub)
-				{
-					if (
-						prevNode == null 
-						|| prevNode is Operator 
-						|| ((prevNode is Parenthesis) && (prevNode as Parenthesis).isOpeningParinthesis == false)
-					)
-					{
-						// it is a negative sign, so we replace '-' with a '(-1)*'
-						nodes[i] = new Operator(OperatorType.Mult); // add a *
-						nodes.Insert(i, new Constant(-1)); // add a -1 in front of it
-					}
-				}
-			}
-		}
-
-		return nodes;
 	}
 }
 
