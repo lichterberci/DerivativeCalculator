@@ -42,14 +42,14 @@ public partial class Program
 		} 
 		catch
 		{
-			Console.WriteLine("An error occurder while differentiating!");
+			Console.WriteLine("An error occured while differentiating!");
 			return;
 		}
 
-		Console.WriteLine("Steps:");
+		Console.WriteLine("");
 		for (int i = 0; i < derivator.steps.Count; i++)
 		{
-			Console.WriteLine($"Step {i + 1}: {derivator.steps[i]}");
+			Console.WriteLine($"Step {i + 1}: {derivator.steps[i]}\n");
 		}
 
 	}
@@ -628,8 +628,11 @@ public class Derivator
 		{
 			numStapsTaken = 0;
 			maxSteps++;
+
 			prevTree = TreeUtils.CopyTree(diffTree);
+
 			diffTree = DifferentiateTree(root);
+
 			prettyTree = TreeUtils.Simplify(diffTree);
 			prettyTree = TreeUtils.Calculate(prettyTree);
 			prettyTree = TreeUtils.Simplify(prettyTree);
