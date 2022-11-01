@@ -1,25 +1,57 @@
-﻿public partial class Program
+﻿using System.Linq.Expressions;
+using System.Text.RegularExpressions;
+
+public partial class Program
 {
 	public static void Main ()
 	{
 		Console.Write("> ");
 		string input = Console.ReadLine().ToLower().Trim();
-		Console.WriteLine(input);
-		var nodes = Parser.ParseToList(input);
-		nodes = Parser.HandleNegativeSigns(nodes);
-		nodes = Parser.AddHiddenMultiplications(nodes);
-		nodes = Parser.ApplyParentheses(nodes);
-		var tree = Parser.MakeTreeFromList(nodes);
-		TreeUtils.PrintTree(tree);
-		Console.WriteLine("-----------------------------------------");
-		TreeNode diffTree = new Derivator('x').DifferentiateTree(tree);
-		TreeUtils.PrintTree(diffTree);
-		Console.WriteLine("-----------------------------------------");
-		diffTree = TreeUtils.Simplify(diffTree);
-		diffTree = TreeUtils.Calculate(diffTree);
-		TreeUtils.PrintTree(diffTree);
-		Console.WriteLine("-----------------------------------------");
-		Console.WriteLine(TreeUtils.CollapseTreeToString(diffTree));
+
+		char varToDifferentiate = 'x';
+		if (Regex.IsMatch(input, "^d/d([a-d]|[f-z]|[A-D]|[F-Z])"))
+		{
+			varToDifferentiate = input[3];
+			input = input.Substring(4);
+		}
+
+		List<Node> nodes;
+
+		try
+		{
+			nodes = Parser.ParseToList(input);
+			nodes = Parser.ReplaceVarEWithConstE(nodes);
+			nodes = Parser.HandleNegativeSigns(nodes);
+			nodes = Parser.AddHiddenMultiplications(nodes);
+			nodes = Parser.ApplyParentheses(nodes);
+		} 
+		catch (Exception e)
+		{
+			Console.WriteLine("Parsing error!");
+			return;
+		}
+
+		TreeNode tree;
+		Derivator derivator;
+
+		try
+		{
+			tree = Parser.MakeTreeFromList(nodes);
+			derivator = new Derivator(varToDifferentiate);
+			TreeNode diffTree = derivator.DifferentiateWithStepsRecorded(tree);
+		} 
+		catch
+		{
+			Console.WriteLine("An error occurder while differentiating!");
+			return;
+		}
+
+		Console.WriteLine("Steps:");
+		for (int i = 0; i < derivator.steps.Count; i++)
+		{
+			Console.WriteLine($"Step {i + 1}: {derivator.steps[i]}");
+		}
+
 	}
 }
 
@@ -56,7 +88,7 @@ public static class TreeUtils
 
 	public static TreeNode Simplify(TreeNode root)
 	{
-		if (root is Constant || root is Variable)
+		if (root is Constant || root is Variable || root is DerivativeSymbol)
 			return root;
 
 		// root is operator
@@ -119,6 +151,13 @@ public static class TreeUtils
 						if ((op.rightOperand as Constant).value == 1)
 							return op.leftOperand;
 				}
+				// simplify x^1
+				if (op.type == OperatorType.Pow)
+				{
+					if (op.rightOperand is Constant)
+						if ((op.rightOperand as Constant).value == 1)
+							return op.leftOperand;
+				}
 				// simplify exp(a*ln(b)) = a^b
 				if (op.type == OperatorType.Pow)
 				{
@@ -167,7 +206,7 @@ public static class TreeUtils
 
 	public static TreeNode Calculate (TreeNode root)
 	{
-		if (root is Constant || root is Variable)
+		if (root is Constant || root is Variable || root is DerivativeSymbol)
 			return root;
 
 		// root is operator
@@ -228,7 +267,7 @@ public static class TreeUtils
 		}
 	}
 
-	public static string CollapseTreeToString(TreeNode root)
+	public static string CollapseTreeToString(TreeNode root, int depth = 0)
 	{
 		if (root == null) return "";
 
@@ -236,18 +275,26 @@ public static class TreeUtils
 		{
 			string result = "";
 
-			result += '(';
+			if (depth > 0)
+				result += '(';
 
 			if ((root as Operator).leftOperand != null)
 			{
-				result += CollapseTreeToString((root as Operator).leftOperand);
+				result += CollapseTreeToString((root as Operator).leftOperand, depth + 1);
+				result += ' ';
 			}
 
 			result += root.ToShortString();
 
-			result += CollapseTreeToString((root as Operator).rightOperand);
+			if ((root as Operator).leftOperand != null)
+			{
+				result += ' ';
+			}
+			result += CollapseTreeToString((root as Operator).rightOperand, depth + 1);
 
-			result += ')';
+
+			if (depth > 0)
+				result += ')';
 
 			return result;
 		}
@@ -255,6 +302,53 @@ public static class TreeUtils
 		{
 			return root.ToShortString();
 		}
+	}
+
+	public static bool AreTreesEqual (TreeNode a, TreeNode b)
+	{
+		if (a == null && b == null) return true;
+
+		if (a == null || b == null) return false;
+
+		if (a.GetType() != b.GetType()) return false;
+
+		if (a is Constant) return (a as Constant).value == (b as Constant).value;
+		if (a is Variable) return (a as Variable).name == (b as Variable).name;
+
+		if (a is Operator)
+		{
+			if ((a as Operator).type != (b as Operator).type) return false;
+
+			return AreTreesEqual((a as Operator).leftOperand, (b as Operator).leftOperand) && AreTreesEqual((a as Operator).rightOperand, (b as Operator).rightOperand);
+		}
+
+		if (a is DerivativeSymbol)
+		{
+			if ((a as DerivativeSymbol).varToDifferentiate != (b as DerivativeSymbol).varToDifferentiate) return false;
+
+			return AreTreesEqual((a as DerivativeSymbol).expression, (b as DerivativeSymbol).expression);
+		}
+
+		throw new ArgumentException($"Unexpected argument type: {a.GetType()}, {b.GetType()}");
+	}
+
+	public static TreeNode CopyTree (TreeNode root)
+	{
+		if (root is null) return null;
+		if (root is Constant) return new Constant((root as Constant).value);
+		if (root is Variable) return new Variable((root as Variable).name);
+		if (root is Operator) return new Operator(
+			(root as Operator).type, 
+			CopyTree((root as Operator).rightOperand), 
+			CopyTree((root as Operator).leftOperand), 
+			(root as Operator).prioirty
+		);
+		if (root is DerivativeSymbol) return new DerivativeSymbol(
+			CopyTree((root as DerivativeSymbol).expression),
+			(root as DerivativeSymbol).varToDifferentiate
+		);
+
+		throw new ArgumentException($"Unexpected argument type: {root.GetType()}");
 	}
 }
 
@@ -333,6 +427,18 @@ public static class Parser
 					isInNumber = true;
 		}
 
+		return nodes;
+	}
+
+	public static List<Node> ReplaceVarEWithConstE (List<Node> nodes)
+	{
+		for (int i = 0; i < nodes.Count; i++)
+		{
+			Node node = nodes[i];
+			if (node is Variable)
+				if ((node as Variable).name == 'e' || (node as Variable).name == 'E')
+					nodes[i] = Constant.E;
+		}
 		return nodes;
 	}
 
@@ -478,9 +584,63 @@ public static class Parser
 public class Derivator
 {
 	public readonly char varToDifferentiate;
+	public List<string> steps { get; private set; }
+
+	private int numStapsTaken = 0;
+	private int maxSteps = 0;
+
 	public Derivator(char varToDifferentiate)
 	{
 		this.varToDifferentiate = varToDifferentiate;
+		steps = new List<string>();
+	}
+
+	private bool IsExpressionConstant (TreeNode root)
+	{
+		if (root is null)
+			return true;
+
+		if (root is Constant)
+			return true;
+
+		if (root is Variable)
+			return (root as Variable).name != varToDifferentiate;
+
+		return IsExpressionConstant((root as Operator).rightOperand) && IsExpressionConstant((root as Operator).leftOperand);
+	}
+
+	public TreeNode DifferentiateWithStepsRecorded (TreeNode root)
+	{
+		TreeNode diffTree = root;
+		TreeNode prevTree = null;
+		TreeNode prettyTree = null;
+
+		maxSteps = 0;
+
+		// initial step
+		steps.Add(
+			TreeUtils.CollapseTreeToString(
+				TreeUtils.Simplify(TreeUtils.Calculate(TreeUtils.Simplify(new DerivativeSymbol(root, varToDifferentiate))))
+			)	
+		);
+
+		while (TreeUtils.AreTreesEqual(prevTree, diffTree) == false)
+		{
+			numStapsTaken = 0;
+			maxSteps++;
+			prevTree = TreeUtils.CopyTree(diffTree);
+			diffTree = DifferentiateTree(root);
+			prettyTree = TreeUtils.Simplify(diffTree);
+			prettyTree = TreeUtils.Calculate(prettyTree);
+			prettyTree = TreeUtils.Simplify(prettyTree);
+			steps.Add(TreeUtils.CollapseTreeToString(prettyTree));
+		}
+
+		// last 2 steps are the same
+		if (steps.Count >= 2)
+			steps.RemoveAt(steps.Count - 1);
+
+		return diffTree;
 	}
 
 	public TreeNode DifferentiateTree (TreeNode root)
@@ -491,11 +651,17 @@ public class Derivator
 		if (root is Constant)
 			return new Constant(0);
 
+		if (IsExpressionConstant(root))
+			return new Constant(0);
+
 		Operator op = root as Operator;
 
 		var type = op.type;
 		TreeNode right = op.rightOperand;
 		TreeNode left = op.leftOperand;
+
+		if (numStapsTaken++ >= maxSteps)
+			return new DerivativeSymbol(root, varToDifferentiate);
 
 		switch (type)
 		{
@@ -519,7 +685,55 @@ public class Derivator
 						new Operator(OperatorType.Mult, right, DifferentiateTree(left))
 					)
 				);
-			case OperatorType.Pow: // (A^B)' = (exp(B*ln(A)))' = exp(B*ln(A)) * (B*ln(A))'
+			case OperatorType.Pow:
+
+				// we want to break down these to 3 cases:
+				// 1) f(x)^c --> c*(f(x)^(c-1))*f'(x)
+				// 2) c^f(x) --> ln(c)*(x^c)*f'(x)
+				// 3) f(x)^g(x) --> (A^B)' = (exp(B*ln(A)))' = exp(B*ln(A)) * (B*ln(A))'
+
+				bool rightIsConst = IsExpressionConstant(right);
+				bool leftIsConst = IsExpressionConstant(left);
+
+				if (leftIsConst && rightIsConst)
+					return root;
+
+				// 1) x^c --> c*x^(c-1)
+				if (rightIsConst)
+				{
+					return new Operator(OperatorType.Mult,
+						DifferentiateTree(left),
+						new Operator(OperatorType.Mult,
+							new Operator(OperatorType.Pow,
+								new Operator(OperatorType.Sub,
+									new Constant(1),
+									right
+								),
+								left
+							),
+							right
+						)
+					);
+				}
+
+				// 2) c^x --> ln(c)*c^x
+				if (leftIsConst)
+				{
+					return new Operator(OperatorType.Mult,
+						DifferentiateTree(right),
+						new Operator(OperatorType.Mult,
+							new Operator(OperatorType.Pow,
+								right,
+								left
+							),
+							new Operator(OperatorType.Ln,
+								left
+							)
+						)
+					);
+				}
+
+				// (A^B)' = (exp(B*ln(A)))' = exp(B*ln(A)) * (B*ln(A))'
 				return new Operator(OperatorType.Mult,
 					new Operator(OperatorType.Pow,
 						new Operator(OperatorType.Mult,
@@ -622,6 +836,23 @@ public abstract class TreeNode : Node
 	public virtual string ToShortString () { return "Unimplemented!"; }
 }
 
+public sealed class DerivativeSymbol : TreeNode
+{
+	public TreeNode expression;
+	public readonly char varToDifferentiate;
+
+	public DerivativeSymbol(TreeNode expression, char varToDifferentiate)
+	{
+		this.expression = expression;
+		this.varToDifferentiate = varToDifferentiate;
+	}
+
+	public override string ToShortString()
+	{
+		return $"d/d{varToDifferentiate}({TreeUtils.CollapseTreeToString(expression)})";
+	}
+}
+
 public sealed class Constant : TreeNode
 {
 	public static readonly Constant E = new Constant(Math.E);
@@ -633,7 +864,7 @@ public sealed class Constant : TreeNode
 
 	public override string ToShortString()
 	{
-		return value.ToString();
+		return value == Math.E ? "e" : value.ToString();
 	}
 
 	public override string ToString()
@@ -672,7 +903,7 @@ public sealed class Operator : TreeNode
 	public TreeNode rightOperand;
 	public TreeNode? leftOperand;
 
-	public Operator(OperatorType type, TreeNode rightOperand, TreeNode? leftOperand = null)
+	public Operator(OperatorType type, TreeNode rightOperand, TreeNode? leftOperand = null, int priority = 0)
 	{
 		this.type = type;
 		this.rightOperand = rightOperand;
