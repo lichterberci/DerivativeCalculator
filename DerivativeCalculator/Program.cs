@@ -867,12 +867,12 @@ public sealed class Constant : TreeNode
 
 	public override string ToShortString()
 	{
-		return value == Math.E ? "e" : value.ToString();
+		return value == Math.E ? "e" : value.ToString("0.###");
 	}
 
 	public override string ToString()
 	{
-		return $"Constant({value})";
+		return $"Constant({value.ToString("0.###")})";
 	}
 }
 
