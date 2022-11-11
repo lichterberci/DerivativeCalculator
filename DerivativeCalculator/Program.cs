@@ -40,9 +40,10 @@ public partial class Program
 			derivator = new Derivator(varToDifferentiate);
 			TreeNode diffTree = derivator.DifferentiateWithStepsRecorded(tree);
 		} 
-		catch
+		catch (Exception e)
 		{
-			Console.WriteLine("An error occured while differentiating!");
+			Console.WriteLine($"An error occured while differentiating! ({e.Message})" +
+				$"{e.StackTrace}");
 			return;
 		}
 
@@ -454,16 +455,12 @@ public static class Parser
 					(prevNode is Operator) == false
 					&& (currentNode is Parenthesis)
 					&& ((currentNode as Parenthesis).isOpeningParinthesis)
+					&& (((prevNode is Parenthesis) && (prevNode as Parenthesis).isOpeningParinthesis) == false)
 				)
 				|| (
 					(prevNode is Operator) == false
-					&& ((prevNode is Parenthesis) && (prevNode as Parenthesis).isOpeningParinthesis) == false // prenode can be ')' but not '('
-					&& (currentNode is Variable)
-				)
-				|| (
-					(prevNode is Operator) == false
-					&& ((prevNode is Parenthesis) && (prevNode as Parenthesis).isOpeningParinthesis) == false // prenode can be ')' but not '('
-					&& (currentNode is Constant)
+					&& ((prevNode is Parenthesis) && (prevNode as Parenthesis).isOpeningParinthesis == false) // prenode can be ')' but not '('
+					&& ((currentNode is Variable) || (currentNode is Constant))
 				)
 			)
 			{
