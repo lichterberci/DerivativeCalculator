@@ -952,7 +952,7 @@ public sealed class Operator : TreeNode
 				return 3;
 			case OperatorType.Log: // base 10
 				return 3;
-			case OperatorType.Ln: // base 10
+			case OperatorType.Ln: // base e
 				return 3;
 			default:
 				return 1;
