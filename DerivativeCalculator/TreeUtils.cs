@@ -20,7 +20,7 @@ namespace DerivativeCalculator
 
 			if (root is Operator op)
 			{
-				if (Operator.GetNumOperands(op.type) == 1)
+				if (op.numOperands == 1)
 				{
 					Console.WriteLine(indentation + root.ToString());
 					PrintTree(op.operand1, depth + 1);
@@ -44,20 +44,29 @@ namespace DerivativeCalculator
 			// root is operator
 			Operator op = root as Operator;
 
-			if (Operator.GetNumOperands(op.type) == 1)
+			if (op.numOperands == 1)
 			{
 				op.operand1 = SimplifyAssociatives(op.operand1);
 
 				return root;
 			}
 
-			if (Operator.AssociativeIndex(op.type) == -1)
+			if (op.associativeIndex == -1)
 				return root;
 
-			throw new NotImplementedException();
+			// we are at a + or *
+
+			if (op.operand1 is Operator op1 && op1.associativeIndex == op.associativeIndex)
+			{
+				// we can switch
+
+				throw new NotImplementedException();
+			}
+
+			return root;
 		}
 
-		public static TreeNode SimplifyIdentities(TreeNode root)
+		public static TreeNode SimplifyWithPatterns(TreeNode root)
 		{
 			if (root is Constant || root is Variable || root is DerivativeSymbol)
 				return root;
@@ -65,9 +74,9 @@ namespace DerivativeCalculator
 			// root is operator
 			Operator op = root as Operator;
 
-			if (Operator.GetNumOperands(op.type) == 1)
+			if (op.numOperands == 1)
 			{
-				op.operand1 = SimplifyIdentities(op.operand1);
+				op.operand1 = SimplifyWithPatterns(op.operand1);
 
 				// TODO: add sin, cos, tan, etc. simplifications
 
@@ -75,12 +84,12 @@ namespace DerivativeCalculator
 			}
 			else
 			{
-				op.operand1 = SimplifyIdentities(op.operand1);
-				op.operand2 = SimplifyIdentities(op.operand2);
+				op.operand1 = SimplifyWithPatterns(op.operand1);
+				op.operand2 = SimplifyWithPatterns(op.operand2);
 
 				if ((op.operand1 is Constant) == false || (op.operand2 is Constant == false))
 				{
-					// simplify +0
+					// simplify +0 and f(x) + f(x) = 2f(x)
 					if (op.type == OperatorType.Add)
 					{
 						if (op.operand1 is Constant c1)
@@ -90,15 +99,22 @@ namespace DerivativeCalculator
 						if (op.operand2 is Constant c2)
 							if (c2.value == 0)
 								return op.operand1;
+						if (AreTreesEqual(op.operand1, op.operand2))
+							return new Operator(OperatorType.Mult,
+								new Constant(2),
+								op.operand1
+							);
 					}
-					// simplify -0
+					// simplify -0 and f(x) - f(x) = 0
 					if (op.type == OperatorType.Sub)
 					{
 						if (op.operand2 is Constant c2)
 							if (c2.value == 0)
 								return op.operand1;
+						if (AreTreesEqual(op.operand1, op.operand2))
+							return new Constant(0);
 					}
-					// simplify *0 and *1
+					// simplify *0 and *1 and f(x)*f(x) and x*x^A
 					if (op.type == OperatorType.Mult)
 					{
 						if (op.operand1 is Constant c1)
@@ -115,6 +131,52 @@ namespace DerivativeCalculator
 								return new Constant(0);
 							if (c2.value == 1)
 								return op.operand1;
+						}
+
+						if (AreTreesEqual(op.operand1, op.operand2))
+						{
+							return new Operator(OperatorType.Pow,
+								op.operand1,
+								new Constant(2)
+							);
+						}
+
+						if (op.operand1 is Variable v1)
+						{
+							if (op.operand2 is Operator op2 && op2.type == OperatorType.Pow)
+							{
+								if (op2.operand1 is Variable op2base && op2base.name == v1.name)
+								{
+									// x * x ^ A
+									// --> x ^ (A + 1)
+									return new Operator(OperatorType.Pow,
+										v1,
+										new Operator(OperatorType.Add,
+											op2.operand2,
+											new Constant(1)
+										)
+									);
+								}
+							}
+						}
+
+						if (op.operand2 is Variable v2)
+						{
+							if (op.operand1 is Operator op1 && op1.type == OperatorType.Pow)
+							{
+								if (op1.operand1 is Variable op1base && op1base.name == v2.name)
+								{
+									// x * x ^ A
+									// --> x ^ (A + 1)
+									return new Operator(OperatorType.Pow,
+										v2,
+										new Operator(OperatorType.Add,
+											op1.operand2,
+											new Constant(1)
+										)
+									);
+								}
+							}
 						}
 					}
 					// simplify x^1
@@ -180,7 +242,7 @@ namespace DerivativeCalculator
 			// root is operator
 			Operator op = root as Operator;
 
-			if (Operator.GetNumOperands(op.type) == 1)
+			if (op.numOperands == 1)
 			{
 				op.operand1 = Calculate(op.operand1);
 
@@ -250,6 +312,62 @@ namespace DerivativeCalculator
 			}
 		}
 
+		public static bool IsTreeCalculatable (TreeNode root)
+		{
+			if (root is Constant)
+				return true;
+
+			if (root is Variable || root is DerivativeSymbol)
+				return false;
+
+			Operator op = root as Operator;
+
+			if (op.numOperands == 1)
+				return IsTreeCalculatable(op.operand1);
+			else
+				return IsTreeCalculatable(op.operand1) && IsTreeCalculatable(op.operand2);
+		}
+
+		public static bool IsThereConstantInAssociativeSubtree (TreeNode root, int associativeIndex)
+		{
+			if (root is Constant)
+				return true;
+
+			if (root is Variable || root is DerivativeSymbol)
+				return false;
+
+			Operator op = root as Operator;
+
+			if (op.numOperands == 1)
+				return false;
+			
+			if (op.associativeIndex != associativeIndex)
+				return false;
+
+			return IsThereConstantInAssociativeSubtree(op.operand1, associativeIndex) 
+				|| IsThereConstantInAssociativeSubtree(op.operand2, associativeIndex);	
+		}
+
+		public static bool IsThereGivenVarInAssociativeSubtree (TreeNode root, int associativeIndex, char varName)
+		{
+			if (root is Variable var)
+				return var.name == varName;
+
+			if (root is Constant || root is DerivativeSymbol)
+				return false;
+
+			Operator op = root as Operator;
+
+			if (op.numOperands == 1)
+				return false;
+
+			if (op.associativeIndex != associativeIndex)
+				return false;
+
+			return IsThereGivenVarInAssociativeSubtree(op.operand1, associativeIndex, varName)
+				|| IsThereGivenVarInAssociativeSubtree(op.operand2, associativeIndex, varName);
+		}
+
 		public static string CollapseTreeToString(TreeNode root, int depth = 0)
 		{
 			if (root == null) return "";
@@ -261,7 +379,7 @@ namespace DerivativeCalculator
 				if (depth > 0)
 					result += '(';
 
-				if (Operator.GetNumOperands(op.type) == 1)
+				if (op.numOperands == 1)
 				{
 					result += root.ToShortString();
 					result += CollapseTreeToString(op.operand1, depth + 1);

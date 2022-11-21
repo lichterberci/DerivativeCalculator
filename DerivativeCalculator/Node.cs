@@ -162,6 +162,14 @@ namespace DerivativeCalculator
 			}
 		}
 
+		public int basePriority
+		{
+			get
+			{
+				return GetBasePriority(this.type);
+			}
+		}
+
 		public static int GetNumOperands(OperatorType _type)
 		{
 			switch (_type)
@@ -189,6 +197,12 @@ namespace DerivativeCalculator
 				default:
 					return 2;
 			}
+		}
+
+		public int numOperands { 
+			get { 
+				return GetNumOperands(this.type); 
+			} 
 		}
 
 		public static string GetStringForType(OperatorType _type)
@@ -220,6 +234,11 @@ namespace DerivativeCalculator
 			}
 		}
 
+		public string GetTypeString ()
+		{
+			return GetStringForType(this.type);
+		}
+
 		public static OperatorType? ParseFromString(string str)
 		{
 			foreach (var op in Enum.GetValues(typeof(OperatorType)).Cast<OperatorType>())
@@ -237,14 +256,18 @@ namespace DerivativeCalculator
 			{
 				case OperatorType.Add:
 					return 1;
-				case OperatorType.Sub:
-					return 1;
 				case OperatorType.Mult:
-					return 2;
-				case OperatorType.Div:
 					return 2;
 				default:
 					return -1;
+			}
+		}
+
+		public int associativeIndex 
+		{	
+			get
+			{
+				return AssociativeIndex(this.type);
 			}
 		}
 	}

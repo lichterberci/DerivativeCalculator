@@ -118,7 +118,7 @@ namespace DerivativeCalculator
 						&& (
 							(currentNode is Variable) 
 							|| (currentNode is Constant) 
-							|| (currentNode is Operator op) && Operator.GetNumOperands(op.type) == 1)
+							|| (currentNode is Operator op) && op.numOperands == 1)
 					)
 					|| (
 						// 2x
@@ -202,7 +202,7 @@ namespace DerivativeCalculator
 			List<Node> leftList = new List<Node>(nodes.Where((node, i) => i < minOpIndex));
 			List<Node> rightList = new List<Node>(nodes.Where((node, i) => i > minOpIndex));
 
-			if (Operator.GetNumOperands(op.type) == 1)
+			if (op.numOperands == 1)
 			{
 				if (rightList.Count == 0)
 				{

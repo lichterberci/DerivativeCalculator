@@ -46,7 +46,7 @@ namespace DerivativeCalculator
 			// initial step
 			steps.Add(
 				TreeUtils.CollapseTreeToString(
-					TreeUtils.SimplifyIdentities(TreeUtils.Calculate(TreeUtils.SimplifyIdentities(new DerivativeSymbol(root, varToDifferentiate))))
+					TreeUtils.SimplifyWithPatterns(TreeUtils.Calculate(TreeUtils.SimplifyWithPatterns(new DerivativeSymbol(root, varToDifferentiate))))
 				)
 			);
 
@@ -59,9 +59,9 @@ namespace DerivativeCalculator
 
 				diffTree = DifferentiateTree(root);
 
-				prettyTree = TreeUtils.SimplifyIdentities(diffTree);
+				prettyTree = TreeUtils.SimplifyWithPatterns(diffTree);
 				prettyTree = TreeUtils.Calculate(prettyTree);
-				prettyTree = TreeUtils.SimplifyIdentities(prettyTree);
+				prettyTree = TreeUtils.SimplifyWithPatterns(prettyTree);
 				steps.Add(TreeUtils.CollapseTreeToString(prettyTree));
 			}
 
@@ -89,6 +89,9 @@ namespace DerivativeCalculator
 			TreeNode left = op.operand1;
 			TreeNode right = op.operand2;
 
+			bool leftIsConst = IsExpressionConstant(left);
+			bool rightIsConst = IsExpressionConstant(right);
+
 			if (numStapsTaken++ >= maxSteps)
 				return new DerivativeSymbol(root, varToDifferentiate);
 
@@ -99,6 +102,20 @@ namespace DerivativeCalculator
 				case OperatorType.Sub:
 					return new Operator(OperatorType.Sub, DifferentiateTree(left), DifferentiateTree(right));
 				case OperatorType.Mult:
+					if (leftIsConst)
+					{
+						return new Operator(OperatorType.Mult,
+							left,
+							DifferentiateTree(right)
+						);
+					}
+					if (rightIsConst)
+					{
+						return new Operator(OperatorType.Mult,
+							DifferentiateTree(left),
+							right
+						);
+					}
 					return new Operator(OperatorType.Add,
 						new Operator(OperatorType.Mult, left, DifferentiateTree(right)),
 						new Operator(OperatorType.Mult, DifferentiateTree(left), right)
@@ -119,10 +136,7 @@ namespace DerivativeCalculator
 					// we want to break down these to 3 cases:
 					// 1) f(x)^c --> c*(f(x)^(c-1))*f'(x)
 					// 2) c^f(x) --> ln(c)*(x^c)*f'(x)
-					// 3) f(x)^g(x) --> (A^B)' = (exp(B*ln(A)))' = exp(B*ln(A)) * (B*ln(A))'
-
-					bool leftIsConst = IsExpressionConstant(left);
-					bool rightIsConst = IsExpressionConstant(right);
+					// 3) f(x)^g(x) --> (A^B)' = (exp(B*ln(A)))' = exp(B*ln(A)) * (B*ln(A
 
 					if (leftIsConst && rightIsConst)
 						return root;
