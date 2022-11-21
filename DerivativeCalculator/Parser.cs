@@ -33,7 +33,7 @@ namespace DerivativeCalculator
 					   char.IsWhiteSpace(c) // if there is a space / enter
 					|| ((char.IsDigit(c) || c == ',') ^ isInNumber) // if we are starting / ending a number
 					|| (tmp.Length == 1 && char.IsLetter(tmp[0]) && !char.IsLetter(c)) // if we are in var, but it is closed
-					|| Parenthesis.IsParenthesis(c) // nuber, var, etc followed by a '(' or ')'
+					|| Parenthesis.IsParenthesis(c) // number, var, etc followed by a '(' or ')'
 					|| ((tmp.Length > 0) && Parenthesis.IsParenthesis(tmp[0])) // if next is parenthesis
 					|| (Operator.ParseFromString(tmp) != null) // if we have collected an operator
 				)
@@ -89,8 +89,8 @@ namespace DerivativeCalculator
 			for (int i = 0; i < nodes.Count; i++)
 			{
 				Node node = nodes[i];
-				if (node is Variable)
-					if ((node as Variable).name == 'e' || (node as Variable).name == 'E')
+				if (node is Variable var)
+					if (var.name == 'e' || var.name == 'E')
 						nodes[i] = Constant.E;
 			}
 			return nodes;
@@ -112,10 +112,13 @@ namespace DerivativeCalculator
 						&& (((prevNode is Parenthesis) && (prevNode as Parenthesis).isOpeningParinthesis) == false)
 					)
 					|| (
-						// )x, )2, but not )) or )+
+						// )x, )2, )sin, but not )) or )+
 						(prevNode is Operator) == false
 						&& ((prevNode is Parenthesis) && (prevNode as Parenthesis).isOpeningParinthesis == false) // prevnode can be ')' but not '('
-						&& ((currentNode is Variable) || (currentNode is Constant))
+						&& (
+							(currentNode is Variable) 
+							|| (currentNode is Constant) 
+							|| (currentNode is Operator op) && Operator.GetNumOperands(op.type) == 1)
 					)
 					|| (
 						// 2x
@@ -147,9 +150,9 @@ namespace DerivativeCalculator
 			{
 				Node node = nodes[i];
 
-				if (node is Parenthesis)
+				if (node is Parenthesis par)
 				{
-					if ((node as Parenthesis).isOpeningParinthesis)
+					if (par.isOpeningParinthesis)
 						priorityOffset += 10;
 					else
 						priorityOffset -= 10;
@@ -176,11 +179,11 @@ namespace DerivativeCalculator
 			for (int i = nodes.Count - 1; i >= 0; i--)
 			{
 				Node node = nodes[i];
-				if (node is Operator)
+				if (node is Operator nodeOp)
 				{
-					if ((node as Operator).prioirty < minOpPriority)
+					if (nodeOp.prioirty < minOpPriority)
 					{
-						minOpPriority = (node as Operator).prioirty;
+						minOpPriority = nodeOp.prioirty;
 						minOpIndex = i;
 					}
 				}
@@ -201,13 +204,28 @@ namespace DerivativeCalculator
 
 			if (Operator.GetNumOperands(op.type) == 1)
 			{
-				op.rightOperand = MakeTreeFromList(rightList);
+				if (rightList.Count == 0)
+				{
+					Console.WriteLine($"Parsing error: {op} has no operand!");
+					return null;
+				}
+				op.operand1 = MakeTreeFromList(rightList);
 				return op;
 			}
 			else
 			{
-				op.rightOperand = MakeTreeFromList(rightList);
-				op.leftOperand = MakeTreeFromList(leftList);
+				if (leftList.Count == 0)
+				{
+					Console.WriteLine($"Parsing error: {op} has no left operand!");
+					return null;
+				}
+				if (rightList.Count == 0)
+				{
+					Console.WriteLine($"Parsing error: {op} has no right operand!");
+					return null;
+				}
+				op.operand1 = MakeTreeFromList(leftList);
+				op.operand2 = MakeTreeFromList(rightList);
 				return op;
 			}
 		}
@@ -216,12 +234,12 @@ namespace DerivativeCalculator
 		{
 			for (int i = 0; i < nodes.Count; i++)
 			{
-				Node? prevNode = i > 1 ? nodes[i - 1] : null;
+				Node? prevNode = i > 0 ? nodes[i - 1] : null;
 				Node currentNode = nodes[i];
 
-				if (currentNode is Operator)
+				if (currentNode is Operator op)
 				{
-					if ((currentNode as Operator).type == OperatorType.Sub)
+					if (op.type == OperatorType.Sub)
 					{
 						if (
 							prevNode == null
@@ -230,7 +248,7 @@ namespace DerivativeCalculator
 						)
 						{
 							// it is a negative sign, so we replace '-' with a '(-1)*'
-							nodes[i] = new Operator(OperatorType.Mult); // add a *
+							nodes[i] = new Operator(OperatorType.Mult, 1); // add a *
 							nodes.Insert(i, new Constant(-1)); // add a -1 in front of it
 						}
 					}

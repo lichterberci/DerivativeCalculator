@@ -18,16 +18,17 @@ namespace DerivativeCalculator
 				indentation += "\t";
 			}
 
-			if (root is Operator)
+			if (root is Operator op)
 			{
-				if ((root as Operator).leftOperand != null)
+				if (Operator.GetNumOperands(op.type) == 1)
 				{
-					PrintTree((root as Operator).leftOperand as TreeNode, depth + 1);
+					Console.WriteLine(indentation + root.ToString());
+					PrintTree(op.operand1, depth + 1);
 				}
 
+				PrintTree(op.operand1, depth + 1);
 				Console.WriteLine(indentation + root.ToString());
-
-				PrintTree((root as Operator).rightOperand as TreeNode, depth + 1);
+				PrintTree(op.operand2, depth + 1);
 			}
 			else
 			{
@@ -35,7 +36,7 @@ namespace DerivativeCalculator
 			}
 		}
 
-		public static TreeNode SimplifyCommutatives (TreeNode root)
+		public static TreeNode SimplifyAssociatives (TreeNode root)
 		{
 			if (root is Constant || root is Variable || root is DerivativeSymbol)
 				return root;
@@ -45,12 +46,12 @@ namespace DerivativeCalculator
 
 			if (Operator.GetNumOperands(op.type) == 1)
 			{
-				op.rightOperand = SimplifyCommutatives(op.rightOperand);
+				op.operand1 = SimplifyAssociatives(op.operand1);
 
 				return root;
 			}
 
-			if (Operator.CommutativeIndex(op.type) == -1)
+			if (Operator.AssociativeIndex(op.type) == -1)
 				return root;
 
 			throw new NotImplementedException();
@@ -66,103 +67,100 @@ namespace DerivativeCalculator
 
 			if (Operator.GetNumOperands(op.type) == 1)
 			{
-				op.rightOperand = SimplifyIdentities(op.rightOperand);
+				op.operand1 = SimplifyIdentities(op.operand1);
 
-				if ((op.rightOperand is Constant) == false)
-				{
-					return root;
-				}
+				// TODO: add sin, cos, tan, etc. simplifications
+
+				return root;
 			}
 			else
 			{
-				op.rightOperand = SimplifyIdentities(op.rightOperand);
-				op.leftOperand = SimplifyIdentities(op.leftOperand);
+				op.operand1 = SimplifyIdentities(op.operand1);
+				op.operand2 = SimplifyIdentities(op.operand2);
 
-				if ((op.rightOperand is Constant) == false || (op.leftOperand is Constant == false))
+				if ((op.operand1 is Constant) == false || (op.operand2 is Constant == false))
 				{
 					// simplify +0
 					if (op.type == OperatorType.Add)
 					{
-						if (op.leftOperand is Constant)
-							if ((op.leftOperand as Constant).value == 0)
-								return op.rightOperand;
+						if (op.operand1 is Constant c1)
+							if (c1.value == 0)
+								return op.operand2;
 
-						if (op.rightOperand is Constant)
-							if ((op.rightOperand as Constant).value == 0)
-								return op.leftOperand;
+						if (op.operand2 is Constant c2)
+							if (c2.value == 0)
+								return op.operand1;
 					}
 					// simplify -0
 					if (op.type == OperatorType.Sub)
 					{
-						if (op.leftOperand is Constant)
-							if ((op.leftOperand as Constant).value == 0)
-								return op.rightOperand;
-
-						if (op.rightOperand is Constant)
-							if ((op.rightOperand as Constant).value == 0)
-								return op.leftOperand;
+						if (op.operand2 is Constant c2)
+							if (c2.value == 0)
+								return op.operand1;
 					}
 					// simplify *0 and *1
 					if (op.type == OperatorType.Mult)
 					{
-						if (op.leftOperand is Constant)
-							if ((op.leftOperand as Constant).value == 0)
+						if (op.operand1 is Constant c1)
+						{
+							if (c1.value == 0)
 								return new Constant(0);
+							if (c1.value == 1)
+								return op.operand2;
+						}
 
-						if (op.rightOperand is Constant)
-							if ((op.rightOperand as Constant).value == 0)
+						if (op.operand2 is Constant c2)
+						{
+							if (c2.value == 0)
 								return new Constant(0);
-
-						if (op.leftOperand is Constant)
-							if ((op.leftOperand as Constant).value == 1)
-								return op.rightOperand;
-
-						if (op.rightOperand is Constant)
-							if ((op.rightOperand as Constant).value == 1)
-								return op.leftOperand;
+							if (c2.value == 1)
+								return op.operand1;
+						}
 					}
 					// simplify x^1
 					if (op.type == OperatorType.Pow)
 					{
-						if (op.rightOperand is Constant)
-							if ((op.rightOperand as Constant).value == 1)
-								return op.leftOperand;
+						if (op.operand2 is Constant c2)
+						{
+							if (c2.value == 1)
+								return op.operand1;
+							if (c2.value == 0)
+								return new Constant(1);
+						}
 					}
 					// simplify exp(a*ln(b)) = a^b
 					if (op.type == OperatorType.Pow)
 					{
-						if (op.leftOperand is Constant)
-							if ((op.leftOperand as Constant) == Constant.E)
+						if (op.operand1 is Constant c1)
+							if (c1 == Constant.E)
 							{
-								var exponent = op.rightOperand;
-								if (exponent is Operator)
-									if ((exponent as Operator).type == OperatorType.Mult)
+								var exponent = op.operand2;
+								if (exponent is Operator operatorInExponent)
+									if (operatorInExponent.type == OperatorType.Mult)
 									{
-										TreeNode exponentMultRight = (exponent as Operator).rightOperand;
-										TreeNode? exponentMultLeft = (exponent as Operator).leftOperand;
+										TreeNode? exponentMultLeft = operatorInExponent.operand1;
+										TreeNode exponentMultRight = operatorInExponent.operand2;
 
-										if (exponentMultRight is Operator)
-											if ((exponentMultRight as Operator).type == OperatorType.Ln)
+										if (exponentMultRight is Operator exponentMultRightOp)
+											if (exponentMultRightOp.type == OperatorType.Ln)
 											{
 												// we are ready, it is in the form of e^(a*ln(b))
 
-												return new Operator(
-													OperatorType.Pow,
-													exponentMultLeft,
-													exponentMultRight
+												return new Operator(OperatorType.Pow,
+													exponentMultRightOp.operand1,
+													exponentMultLeft
 												);
 											}
 
 
-										if (exponentMultLeft is Operator)
-											if ((exponentMultLeft as Operator).type == OperatorType.Ln)
+										if (exponentMultLeft is Operator exponentMultLeftOp)
+											if (exponentMultLeftOp.type == OperatorType.Ln)
 											{
-												// we are ready, it is in the form of e^(a*ln(b))
+												// we are ready, it is in the form of e^(ln(a)*b)
 
-												return new Operator(
-													OperatorType.Pow,
-													exponentMultRight,
-													(exponentMultLeft as Operator).rightOperand
+												return new Operator(OperatorType.Pow,
+													exponentMultLeftOp.operand1,
+													exponentMultRight
 												);
 											}
 									}
@@ -184,19 +182,19 @@ namespace DerivativeCalculator
 
 			if (Operator.GetNumOperands(op.type) == 1)
 			{
-				op.rightOperand = Calculate(op.rightOperand);
+				op.operand1 = Calculate(op.operand1);
 
-				if ((op.rightOperand is Constant) == false)
+				if ((op.operand1 is Constant) == false)
 				{
 					return root;
 				}
 			}
 			else
 			{
-				op.rightOperand = Calculate(op.rightOperand);
-				op.leftOperand = Calculate(op.leftOperand);
+				op.operand1 = Calculate(op.operand1);
+				op.operand2 = Calculate(op.operand2);
 
-				if ((op.rightOperand is Constant) == false || (op.leftOperand is Constant == false))
+				if ((op.operand1 is Constant) == false || (op.operand2 is Constant == false))
 				{
 					return root;
 				}
@@ -204,32 +202,32 @@ namespace DerivativeCalculator
 
 			// it can be calculated
 
-			Constant right = op.rightOperand as Constant;
-			Constant? left = op.leftOperand as Constant;
+			Constant? left = op.operand1 as Constant;
+			Constant right = op.operand2 as Constant;
 
 			double rightValue = right.value;
-			double? leftValue = left?.value;
+			double leftValue = left?.value ?? 0;
 
 			switch (op.type)
 			{
 				case OperatorType.Add:
-					return new Constant(rightValue + (double)leftValue);
+					return new Constant(leftValue + rightValue);
 				case OperatorType.Sub:
-					return new Constant((double)leftValue - rightValue);
+					return new Constant(leftValue - rightValue);
 				case OperatorType.Mult:
-					return new Constant((double)leftValue * rightValue);
+					return new Constant(leftValue * rightValue);
 				case OperatorType.Div:
-					return new Constant((double)leftValue / rightValue);
+					return new Constant(leftValue / rightValue);
 				case OperatorType.Pow:
-					return new Constant(Math.Pow((double)leftValue, rightValue));
+					return new Constant(Math.Pow(leftValue, rightValue));
 				case OperatorType.Sin:
 					if (calculateIrrationals)
-						return new Constant(Math.Sin(rightValue));
+						return new Constant(Math.Sin(leftValue));
 					else
 						return root;
 				case OperatorType.Cos:
 					if (calculateIrrationals)
-						return new Constant(Math.Cos(rightValue));
+						return new Constant(Math.Cos(leftValue));
 					else
 						return root;
 				case OperatorType.Tan:
@@ -239,12 +237,12 @@ namespace DerivativeCalculator
 						return root;
 				case OperatorType.Log:
 					if (calculateIrrationals)
-						return new Constant(Math.Log10(rightValue));
+						return new Constant(Math.Log10(leftValue));
 					else
 						return root;
 				case OperatorType.Ln:
 					if (calculateIrrationals)
-						return new Constant(Math.Log(rightValue));
+						return new Constant(Math.Log(leftValue));
 					else
 						return root;
 				default:
@@ -256,27 +254,26 @@ namespace DerivativeCalculator
 		{
 			if (root == null) return "";
 
-			if (root is Operator)
+			if (root is Operator op)
 			{
 				string result = "";
 
 				if (depth > 0)
 					result += '(';
 
-				if ((root as Operator).leftOperand != null)
+				if (Operator.GetNumOperands(op.type) == 1)
 				{
-					result += CollapseTreeToString((root as Operator).leftOperand, depth + 1);
-					result += ' ';
+					result += root.ToShortString();
+					result += CollapseTreeToString(op.operand1, depth + 1);
 				}
-
-				result += root.ToShortString();
-
-				if ((root as Operator).leftOperand != null)
+				else
 				{
+					result += CollapseTreeToString(op.operand1, depth + 1);
 					result += ' ';
+					result += root.ToShortString();
+					result += ' ';
+					result += CollapseTreeToString(op.operand2, depth + 1);
 				}
-				result += CollapseTreeToString((root as Operator).rightOperand, depth + 1);
-
 
 				if (depth > 0)
 					result += ')';
@@ -297,40 +294,41 @@ namespace DerivativeCalculator
 
 			if (a.GetType() != b.GetType()) return false;
 
-			if (a is Constant) return (a as Constant).value == (b as Constant).value;
-			if (a is Variable) return (a as Variable).name == (b as Variable).name;
+			if (a is Constant aConst && b is Constant bConst) return aConst.value == bConst.value;
+			if (a is Variable aVar && b is Variable bVar) return aVar.name == bVar.name;
 
-			if (a is Operator)
+			if (a is Operator aOp && b is Operator bOp)
 			{
-				if ((a as Operator).type != (b as Operator).type) return false;
+				if (aOp.type != bOp.type) return false;
 
-				return AreTreesEqual((a as Operator).leftOperand, (b as Operator).leftOperand) && AreTreesEqual((a as Operator).rightOperand, (b as Operator).rightOperand);
+				return AreTreesEqual(aOp.operand1, bOp.operand1) && AreTreesEqual(aOp.operand2, bOp.operand2);
 			}
 
-			if (a is DerivativeSymbol)
+			if (a is DerivativeSymbol aDer && b is DerivativeSymbol bDer)
 			{
-				if ((a as DerivativeSymbol).varToDifferentiate != (b as DerivativeSymbol).varToDifferentiate) return false;
+				if (aDer.varToDifferentiate != bDer.varToDifferentiate) return false;
 
-				return AreTreesEqual((a as DerivativeSymbol).expression, (b as DerivativeSymbol).expression);
+				return AreTreesEqual(aDer.expression, bDer.expression);
 			}
 
-			throw new ArgumentException($"Unexpected argument type: {a.GetType()}, {b.GetType()}");
+			// their types are different
+			return false;
 		}
 
 		public static TreeNode CopyTree(TreeNode root)
 		{
 			if (root is null) return null;
-			if (root is Constant) return new Constant((root as Constant).value);
-			if (root is Variable) return new Variable((root as Variable).name);
-			if (root is Operator) return new Operator(
-				(root as Operator).type,
-				CopyTree((root as Operator).rightOperand),
-				CopyTree((root as Operator).leftOperand),
-				(root as Operator).prioirty
+			if (root is Constant c) return new Constant(c.value);
+			if (root is Variable v) return new Variable(v.name);
+			if (root is Operator op) return new Operator(
+				op.type,
+				CopyTree(op.operand1),
+				CopyTree(op.operand2),
+				op.prioirty
 			);
-			if (root is DerivativeSymbol) return new DerivativeSymbol(
-				CopyTree((root as DerivativeSymbol).expression),
-				(root as DerivativeSymbol).varToDifferentiate
+			if (root is DerivativeSymbol d) return new DerivativeSymbol(
+				CopyTree(d.expression),
+				d.varToDifferentiate
 			);
 
 			throw new ArgumentException($"Unexpected argument type: {root.GetType()}");

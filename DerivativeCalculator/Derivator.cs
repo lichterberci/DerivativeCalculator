@@ -32,7 +32,7 @@ namespace DerivativeCalculator
 			if (root is Variable)
 				return (root as Variable).name != varToDifferentiate;
 
-			return IsExpressionConstant((root as Operator).rightOperand) && IsExpressionConstant((root as Operator).leftOperand);
+			return IsExpressionConstant((root as Operator).operand1) && IsExpressionConstant((root as Operator).operand2);
 		}
 
 		public TreeNode DifferentiateWithStepsRecorded(TreeNode root)
@@ -86,8 +86,8 @@ namespace DerivativeCalculator
 			Operator op = root as Operator;
 
 			var type = op.type;
-			TreeNode right = op.rightOperand;
-			TreeNode left = op.leftOperand;
+			TreeNode left = op.operand1;
+			TreeNode right = op.operand2;
 
 			if (numStapsTaken++ >= maxSteps)
 				return new DerivativeSymbol(root, varToDifferentiate);
@@ -95,23 +95,23 @@ namespace DerivativeCalculator
 			switch (type)
 			{
 				case OperatorType.Add:
-					return new Operator(OperatorType.Add, DifferentiateTree(right), DifferentiateTree(left));
+					return new Operator(OperatorType.Add, DifferentiateTree(left), DifferentiateTree(right));
 				case OperatorType.Sub:
-					return new Operator(OperatorType.Sub, DifferentiateTree(right), DifferentiateTree(left));
+					return new Operator(OperatorType.Sub, DifferentiateTree(left), DifferentiateTree(right));
 				case OperatorType.Mult:
 					return new Operator(OperatorType.Add,
-						new Operator(OperatorType.Mult, DifferentiateTree(right), left),
-						new Operator(OperatorType.Mult, right, DifferentiateTree(left))
+						new Operator(OperatorType.Mult, left, DifferentiateTree(right)),
+						new Operator(OperatorType.Mult, DifferentiateTree(left), right)
 					);
 				case OperatorType.Div:
 					return new Operator(OperatorType.Div,
-						new Operator(OperatorType.Pow,
-							new Constant(2),
-							right
-						),
 						new Operator(OperatorType.Sub,
-							new Operator(OperatorType.Mult, DifferentiateTree(right), left),
-							new Operator(OperatorType.Mult, right, DifferentiateTree(left))
+							new Operator(OperatorType.Mult, DifferentiateTree(left), right),
+							new Operator(OperatorType.Mult, left, DifferentiateTree(right))
+						),
+						new Operator(OperatorType.Pow,
+							right,
+							new Constant(2)
 						)
 					);
 				case OperatorType.Pow:
@@ -121,8 +121,8 @@ namespace DerivativeCalculator
 					// 2) c^f(x) --> ln(c)*(x^c)*f'(x)
 					// 3) f(x)^g(x) --> (A^B)' = (exp(B*ln(A)))' = exp(B*ln(A)) * (B*ln(A))'
 
-					bool rightIsConst = IsExpressionConstant(right);
 					bool leftIsConst = IsExpressionConstant(left);
+					bool rightIsConst = IsExpressionConstant(right);
 
 					if (leftIsConst && rightIsConst)
 						return root;
@@ -131,17 +131,17 @@ namespace DerivativeCalculator
 					if (rightIsConst)
 					{
 						return new Operator(OperatorType.Mult,
-							DifferentiateTree(left),
 							new Operator(OperatorType.Mult,
+								right,
 								new Operator(OperatorType.Pow,
+									left,
 									new Operator(OperatorType.Sub,
-										new Constant(1),
-										right
-									),
-									left
-								),
-								right
-							)
+										right,
+										new Constant(1)
+									)
+								)
+							),
+							DifferentiateTree(left)
 						);
 					}
 
@@ -149,29 +149,29 @@ namespace DerivativeCalculator
 					if (leftIsConst)
 					{
 						return new Operator(OperatorType.Mult,
-							DifferentiateTree(right),
 							new Operator(OperatorType.Mult,
 								new Operator(OperatorType.Pow,
-									right,
-									left
+									left,
+									right
 								),
 								new Operator(OperatorType.Ln,
 									left
 								)
-							)
+							),
+							DifferentiateTree(right)
 						);
 					}
 
 					// (A^B)' = (exp(B*ln(A)))' = exp(B*ln(A)) * (B*ln(A))'
 					return new Operator(OperatorType.Mult,
 						new Operator(OperatorType.Pow,
+							Constant.E,
 							new Operator(OperatorType.Mult,
 								right,
 								new Operator(OperatorType.Ln,
 									left
 								)
-							),
-							Constant.E
+							)
 						),
 						DifferentiateTree(
 							new Operator(OperatorType.Mult,
@@ -184,45 +184,45 @@ namespace DerivativeCalculator
 					);
 				case OperatorType.Sin:
 					return new Operator(OperatorType.Mult,
-						new Operator(OperatorType.Cos, right),
-						DifferentiateTree(right)
+						new Operator(OperatorType.Cos, left),
+						DifferentiateTree(left)
 					);
 				case OperatorType.Cos:
 					return new Operator(OperatorType.Mult,
 						new Constant(-1),
 						new Operator(OperatorType.Mult,
-							new Operator(OperatorType.Sin, right),
-							DifferentiateTree(right)
+							new Operator(OperatorType.Sin, left),
+							DifferentiateTree(left)
 						)
 					);
 				case OperatorType.Tan:
 					return new Operator(OperatorType.Mult,
 						new Operator(OperatorType.Div,
+							new Constant(1),
 							new Operator(OperatorType.Cos,
 								new Operator(OperatorType.Pow,
-									new Constant(2),
-									right
+									right,
+									new Constant(2)
 								)
-							),
-							new Constant(1)
+							)
 						),
 						DifferentiateTree(right)
 					);
 				case OperatorType.Log:
 					return new Operator(OperatorType.Div,
+						new Constant(1),
 						new Operator(OperatorType.Mult,
-							right,
-							new Constant((Math.Log(10)))
-						),
-						new Constant(1)
+							left,
+							new Constant(Math.Log(10))
+						)
 					);
 				case OperatorType.Ln:
 					return new Operator(OperatorType.Mult,
 						new Operator(OperatorType.Div,
-							right,
-							new Constant(1)
+							new Constant(1),
+							left
 						),
-						DifferentiateTree(right)
+						DifferentiateTree(left)
 					);
 				default:
 					throw new ArgumentException("Operator has invalid type!");

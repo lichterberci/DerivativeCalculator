@@ -106,23 +106,23 @@ namespace DerivativeCalculator
 	{
 		public int prioirty;
 		public OperatorType type;
-		public TreeNode rightOperand;
-		public TreeNode? leftOperand;
+		public TreeNode operand1;
+		public TreeNode? operand2;
 
-		public Operator(OperatorType type, TreeNode rightOperand, TreeNode? leftOperand = null, int priority = 0)
+		public Operator(OperatorType type, TreeNode operand1, TreeNode? operand2 = null, int priority = 0)
 		{
 			this.type = type;
-			this.rightOperand = rightOperand;
-			this.leftOperand = leftOperand;
-			this.prioirty = -1;
+			this.operand1 = operand1;
+			this.operand2 = operand2;
+			this.prioirty = priority;
 		}
 
-		public Operator(OperatorType _type, int prioirtyOffset = 0)
+		public Operator(OperatorType _type, int priorityOffset = 0)
 		{
 			this.type = _type;
-			this.prioirty = GetBasePriority(_type) + prioirtyOffset;
-			this.rightOperand = Node.NULL_TREENODE;
-			this.leftOperand = null;
+			this.prioirty = GetBasePriority(_type) + priorityOffset;
+			this.operand1 = Node.NULL_TREENODE;
+			this.operand2 = null;
 		}
 		public override string ToShortString()
 		{
@@ -231,7 +231,7 @@ namespace DerivativeCalculator
 			return null;
 		}
 
-		public static int CommutativeIndex (OperatorType type)
+		public static int AssociativeIndex (OperatorType type)
 		{
 			switch (type)
 			{

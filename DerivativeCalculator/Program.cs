@@ -23,16 +23,32 @@ public partial class Program
 		}
 
 		List<Node> nodes;
+		TreeNode tree;
 
 		try
 		{
 			nodes = Parser.ParseToList(input);
 			//nodes.ForEach(n => Console.WriteLine(n));
 			nodes = Parser.ReplaceVarEWithConstE(nodes);
-			nodes = Parser.HandleNegativeSigns(nodes);
-			nodes = Parser.AddHiddenMultiplications(nodes);
 			//nodes.ForEach(n => Console.WriteLine(n));
+			nodes = Parser.HandleNegativeSigns(nodes);
+			//nodes.ForEach(n => Console.WriteLine(n));
+			nodes = Parser.AddHiddenMultiplications(nodes);
 			nodes = Parser.ApplyParentheses(nodes);
+
+			if (nodes.Count == 0)
+			{
+				Console.WriteLine("Input is empty, or the parser is unable to parse it!");
+				return;
+			}
+
+			tree = Parser.MakeTreeFromList(nodes);
+
+			if (tree == null)
+			{
+				Console.WriteLine("Parsing error: tree is empty!");
+				return;
+			}
 		} 
 		catch (Exception e)
 		{
@@ -40,12 +56,10 @@ public partial class Program
 			return;
 		}
 
-		TreeNode tree;
 		Derivator derivator;
 
 		try
 		{
-			tree = Parser.MakeTreeFromList(nodes);
 			derivator = new Derivator(varToDifferentiate);
 			TreeNode diffTree = derivator.DifferentiateWithStepsRecorded(tree);
 		} 
