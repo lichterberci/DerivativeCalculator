@@ -25,10 +25,12 @@ namespace DerivativeCalculator
 					Console.WriteLine(indentation + root.ToString());
 					PrintTree(op.operand1, depth + 1);
 				}
-
-				PrintTree(op.operand1, depth + 1);
-				Console.WriteLine(indentation + root.ToString());
-				PrintTree(op.operand2, depth + 1);
+				else
+				{
+					PrintTree(op.operand1, depth + 1);
+					Console.WriteLine(indentation + root.ToString());
+					PrintTree(op.operand2, depth + 1);
+				}
 			}
 			else
 			{

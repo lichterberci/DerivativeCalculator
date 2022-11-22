@@ -215,12 +215,12 @@ namespace DerivativeCalculator
 							new Constant(1),
 							new Operator(OperatorType.Cos,
 								new Operator(OperatorType.Pow,
-									right,
+									left,
 									new Constant(2)
 								)
 							)
 						),
-						DifferentiateTree(right)
+						DifferentiateTree(left)
 					);
 				case OperatorType.Log:
 					return new Operator(OperatorType.Div,
