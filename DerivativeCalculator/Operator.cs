@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.AccessControl;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -180,6 +181,54 @@ namespace DerivativeCalculator
 			{
 				return AssociativeIndex(this.type);
 			}
+		}
+	}
+
+	public sealed class Addition : Operator
+	{
+		public Addition(TreeNode? left = null, TreeNode? right = null) : base(OperatorType.Add, left, right)
+		{
+
+		}
+
+		public override TreeNode Eval ()
+		{
+			var left = operand1.Eval();
+			var right = operand2.Eval();
+
+			if (left is Constant l && right is Constant r)
+				return new Constant(l.value + r.value);
+			else
+				return this;
+		}
+
+		public override TreeNode Diff(char varToDiff)
+		{
+			return new Addition(operand1.Diff(varToDiff), operand2.Diff(varToDiff));
+		}
+	}
+
+	public sealed class Subtraction : Operator
+	{
+		public Subtraction(TreeNode? left = null, TreeNode? right = null) : base(OperatorType.Sub, left, right)
+		{
+
+		}
+
+		public override TreeNode Eval()
+		{
+			var left = operand1.Eval();
+			var right = operand2.Eval();
+
+			if (left is Constant l && right is Constant r)
+				return new Constant(l.value - r.value);
+			else
+				return this;
+		}
+
+		public override TreeNode Diff(char varToDiff)
+		{
+			return new Subtraction(operand1.Diff(varToDiff), operand2.Diff(varToDiff));
 		}
 	}
 

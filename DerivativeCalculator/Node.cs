@@ -40,6 +40,8 @@ namespace DerivativeCalculator
 	public abstract class TreeNode : Node
 	{
 		public virtual string ToPrettyString() { return "Unimplemented!"; }
+		public virtual TreeNode Eval() => throw new NotImplementedException();
+		public virtual TreeNode Diff(char varToDiff) => throw new NotImplementedException();
 	}
 
 	public sealed class DerivativeSymbol : TreeNode
@@ -56,6 +58,16 @@ namespace DerivativeCalculator
 		public override string ToPrettyString()
 		{
 			return $"d/d{varToDifferentiate}({TreeUtils.CollapseTreeToString(expression)})";
+		}
+
+		public override TreeNode Eval()
+		{
+			return this;
+		}
+
+		public override TreeNode Diff(char varToDiff)
+		{
+			return expression.Diff(varToDiff);
 		}
 	}
 
@@ -77,6 +89,16 @@ namespace DerivativeCalculator
 		{
 			return $"Constant({value.ToString("0.###")})";
 		}
+
+		public override TreeNode Eval()
+		{
+			return this;
+		}
+
+		public override TreeNode Diff(char varToDiff)
+		{
+			return new Constant(0);
+		}
 	}
 
 	public sealed class Variable : TreeNode
@@ -94,6 +116,16 @@ namespace DerivativeCalculator
 		public override string ToString()
 		{
 			return $"Var({name})";
+		}
+
+		public override TreeNode Eval()
+		{
+			return this;
+		}
+
+		public override TreeNode Diff(char varToDiff)
+		{
+			return new Constant(varToDiff == name ? 1 : 0);
 		}
 	}
 }
