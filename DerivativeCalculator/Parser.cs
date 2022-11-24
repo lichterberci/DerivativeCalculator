@@ -72,14 +72,11 @@ namespace DerivativeCalculator
 							}
 							else
 							{
-								// not 1 length var, not operator, so either a product
-								// eg.: xyz = x*y*z
-								// or a product of variables and an operator
-								// eg.: xysin
+								// every combination of xyz, xsinx, etc. will be treated as a product!!
 
 								while (tmp.Length > 0)
 								{
-									type = Operator.ParseFromString(tmp);
+									type = Operator.ParseFromString(tmp[0].ToString());
 
 									if (type == null)
 									{
@@ -89,7 +86,7 @@ namespace DerivativeCalculator
 									else
 									{
 										nodes.Add(new Operator((OperatorType)type));
-										tmp = "";
+										tmp = tmp.Substring(1);
 									}
 								}
 							}
@@ -128,20 +125,22 @@ namespace DerivativeCalculator
 
 				if (
 					(
-						// x(, 2(, but not (( or +(
-						(prevNode is Operator) == false
-						&& (currentNode is Parenthesis)
-						&& ((currentNode as Parenthesis).isOpeningParinthesis)
-						&& (((prevNode is Parenthesis) && (prevNode as Parenthesis).isOpeningParinthesis) == false)
+						// )(, x(, 2(, but not (( or +(
+						(
+							prevNode is Parenthesis { isOpeningParinthesis: false }
+							|| prevNode is Variable
+							|| prevNode is Constant
+						)
+						&& currentNode is Parenthesis { isOpeningParinthesis: true }
 					)
 					|| (
 						// )x, )2, )sin, but not )) or )+
-						(prevNode is Operator) == false
-						&& ((prevNode is Parenthesis) && (prevNode as Parenthesis).isOpeningParinthesis == false) // prevnode can be ')' but not '('
+						prevNode is Parenthesis { isOpeningParinthesis: false } // prevnode can be ')' but not '('
 						&& (
-							(currentNode is Variable) 
-							|| (currentNode is Constant) 
-							|| (currentNode is Operator op) && op.numOperands == 1)
+							currentNode is Variable
+							|| currentNode is Constant 
+							|| currentNode is Operator { numOperands: 1 }
+						)
 					)
 					|| (
 						// 2x
