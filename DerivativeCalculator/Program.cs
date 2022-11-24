@@ -105,7 +105,7 @@ namespace DerivativeCalculator {
 			try
 			{
 				nodes = Parser.ParseToList(input);
-				nodes.ForEach(n => Console.WriteLine(n));
+				//nodes.ForEach(n => Console.WriteLine(n));
 				nodes = Parser.ReplaceVarEWithConstE(nodes);
 				//nodes.ForEach(n => Console.WriteLine(n));
 				nodes = Parser.HandleNegativeSigns(nodes);

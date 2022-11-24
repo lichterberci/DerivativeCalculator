@@ -325,7 +325,7 @@ namespace DerivativeCalculator
 			if (operand2.IsConstant(varToDiff))
 			{
 				return new Mult(
-					operand1,
+					operand2,
 					new Pow(
 						operand1,
 						new Sub(
