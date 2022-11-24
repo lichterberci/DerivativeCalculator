@@ -70,6 +70,29 @@ namespace DerivativeCalculator
 									tmp = "";
 								}
 							}
+							else
+							{
+								// not 1 length var, not operator, so either a product
+								// eg.: xyz = x*y*z
+								// or a product of variables and an operator
+								// eg.: xysin
+
+								while (tmp.Length > 0)
+								{
+									type = Operator.ParseFromString(tmp);
+
+									if (type == null)
+									{
+										nodes.Add(new Variable(tmp[0]));
+										tmp = tmp.Substring(1);
+									}
+									else
+									{
+										nodes.Add(new Operator((OperatorType)type));
+										tmp = "";
+									}
+								}
+							}
 						}
 					}
 				}
@@ -127,6 +150,20 @@ namespace DerivativeCalculator
 					|| (
 						// x2
 						prevNode is Variable && currentNode is Constant
+					)
+					|| (
+						// xy
+						prevNode is Variable && currentNode is Variable
+					)
+					|| (
+						// xsin, 2sin, )sin
+						(
+							prevNode is Variable 
+							|| prevNode is Constant
+							|| prevNode is Parenthesis { isOpeningParinthesis: false }
+						) && (
+							currentNode is Operator { numOperands: 1 }
+						)
 					)
 				)
 				{

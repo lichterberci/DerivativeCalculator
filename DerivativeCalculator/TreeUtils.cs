@@ -266,11 +266,11 @@ namespace DerivativeCalculator
 
 			// it can be calculated
 
-			Constant? left = op.operand1 as Constant;
-			Constant right = op.operand2 as Constant;
+			Constant left = op.operand1 as Constant;
+			Constant? right = op.operand2 as Constant;
 
-			double rightValue = right.value;
-			double leftValue = left?.value ?? 0;
+			double leftValue = left.value;
+			double rightValue = right?.value ?? 0;
 
 			switch (op.type)
 			{
@@ -296,7 +296,7 @@ namespace DerivativeCalculator
 						return root;
 				case OperatorType.Tan:
 					if (calculateIrrationals)
-						return new Constant(Math.Tan(rightValue));
+						return new Constant(Math.Tan(leftValue));
 					else
 						return root;
 				case OperatorType.Log:
@@ -383,14 +383,14 @@ namespace DerivativeCalculator
 
 				if (op.numOperands == 1)
 				{
-					result += root.ToShortString();
+					result += root.ToPrettyString();
 					result += CollapseTreeToString(op.operand1, depth + 1);
 				}
 				else
 				{
 					result += CollapseTreeToString(op.operand1, depth + 1);
 					result += ' ';
-					result += root.ToShortString();
+					result += root.ToPrettyString();
 					result += ' ';
 					result += CollapseTreeToString(op.operand2, depth + 1);
 				}
@@ -402,7 +402,7 @@ namespace DerivativeCalculator
 			}
 			else
 			{
-				return root.ToShortString();
+				return root.ToPrettyString();
 			}
 		}
 
