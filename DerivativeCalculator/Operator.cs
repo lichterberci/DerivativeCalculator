@@ -184,54 +184,6 @@ namespace DerivativeCalculator
 		}
 	}
 
-	public sealed class Addition : Operator
-	{
-		public Addition(TreeNode? left = null, TreeNode? right = null) : base(OperatorType.Add, left, right)
-		{
-
-		}
-
-		public override TreeNode Eval ()
-		{
-			var left = operand1.Eval();
-			var right = operand2.Eval();
-
-			if (left is Constant l && right is Constant r)
-				return new Constant(l.value + r.value);
-			else
-				return this;
-		}
-
-		public override TreeNode Diff(char varToDiff)
-		{
-			return new Addition(operand1.Diff(varToDiff), operand2.Diff(varToDiff));
-		}
-	}
-
-	public sealed class Subtraction : Operator
-	{
-		public Subtraction(TreeNode? left = null, TreeNode? right = null) : base(OperatorType.Sub, left, right)
-		{
-
-		}
-
-		public override TreeNode Eval()
-		{
-			var left = operand1.Eval();
-			var right = operand2.Eval();
-
-			if (left is Constant l && right is Constant r)
-				return new Constant(l.value - r.value);
-			else
-				return this;
-		}
-
-		public override TreeNode Diff(char varToDiff)
-		{
-			return new Subtraction(operand1.Diff(varToDiff), operand2.Diff(varToDiff));
-		}
-	}
-
 	public class AssociativeOperator : Operator
 	{
 		List<TreeNode> operandList;
@@ -276,6 +228,136 @@ namespace DerivativeCalculator
 			head.operand2 = _operandList.First();
 
 			return result;
+		}
+	}
+
+	public sealed class Add : Operator
+	{
+		public Add(TreeNode? left = null, TreeNode? right = null) : base(OperatorType.Add, left, right)
+		{
+
+		}
+
+		public override TreeNode Eval ()
+		{
+			var left = operand1.Eval();
+			var right = operand2.Eval();
+
+			if (left is Constant l && right is Constant r)
+				return new Constant(l.value + r.value);
+			else
+				return this;
+		}
+
+		public override TreeNode Diff(char varToDiff)
+		{
+			return new Add(operand1.Diff(varToDiff), operand2.Diff(varToDiff));
+		}
+	}
+
+	public sealed class Sub : Operator
+	{
+		public Sub(TreeNode? left = null, TreeNode? right = null) : base(OperatorType.Sub, left, right)
+		{
+
+		}
+
+		public override TreeNode Eval()
+		{
+			var left = operand1.Eval();
+			var right = operand2.Eval();
+
+			if (left is Constant l && right is Constant r)
+				return new Constant(l.value - r.value);
+			else
+				return this;
+		}
+
+		public override TreeNode Diff(char varToDiff)
+		{
+			return new Sub(operand1.Diff(varToDiff), operand2.Diff(varToDiff));
+		}
+	}
+
+	public sealed class Mult : Operator
+	{
+		public Mult(TreeNode? left = null, TreeNode? right = null) : base(OperatorType.Mult, left, right)
+		{
+
+		}
+
+		public override TreeNode Eval()
+		{
+			var left = operand1.Eval();
+			var right = operand2.Eval();
+
+			if (left is Constant l && right is Constant r)
+				return new Constant(l.value * r.value);
+			else
+				return this;
+		}
+
+		public override TreeNode Diff(char varToDiff)
+		{
+			return new Add(
+				new Mult(operand1.Diff(varToDiff), operand2),
+				new Mult(operand1, operand2.Diff(varToDiff))
+			);
+		}
+	}
+
+	public sealed class Division : Operator
+	{
+		public Division(TreeNode? left = null, TreeNode? right = null) : base(OperatorType.Div, left, right)
+		{
+
+		}
+
+		public override TreeNode Eval()
+		{
+			var left = operand1.Eval();
+			var right = operand2.Eval();
+
+			if (left is Constant l && right is Constant r)
+				return new Constant(l.value / r.value);
+			else
+				return this;
+		}
+
+		public override TreeNode Diff(char varToDiff)
+		{
+			return new Division(
+				new Sub(
+					new Mult(operand1.Diff(varToDiff), operand2),
+					new Mult(operand1, operand2.Diff(varToDiff))
+				),
+				new Pow (operand2, new Constant(2))
+			);
+		}
+	}
+
+	public sealed class Pow : Operator
+	{
+		public Pow(TreeNode? left = null, TreeNode? right = null) : base(OperatorType.Pow, left, right)
+		{
+
+		}
+
+		public override TreeNode Eval()
+		{
+			var left = operand1.Eval();
+			var right = operand2.Eval();
+
+			if (left is Constant l && right is Constant r)
+				return new Constant(Math.Pow(l.value, r.value));
+			else
+				return this;
+		}
+
+		public override TreeNode Diff(char varToDiff)
+		{
+			/// break down into 3 cases
+			return this;
 		}
 	}
 }
