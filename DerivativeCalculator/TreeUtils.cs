@@ -8,6 +8,23 @@ namespace DerivativeCalculator
 {
 	public static class TreeUtils
 	{
+		public static bool IsExpressionConstant(TreeNode root, char varToDiff)
+		{
+			if (root is null)
+				return true;
+
+			if (root is Constant)
+				return true;
+
+			if (root is Variable)
+				return (root as Variable).name != varToDiff;
+
+			if (root is DerivativeSymbol)
+				return false;
+
+			return IsExpressionConstant((root as Operator).operand1, varToDiff) && IsExpressionConstant((root as Operator).operand2, varToDiff);
+		}
+
 		public static void PrintTree(TreeNode root, int depth = 0)
 		{
 			if (root == null) return;
@@ -70,171 +87,176 @@ namespace DerivativeCalculator
 
 		public static TreeNode SimplifyWithPatterns(TreeNode root)
 		{
-			if (root is Constant || root is Variable || root is DerivativeSymbol)
-				return root;
-
-			// root is operator
-			Operator op = root as Operator;
-
-			if (op.numOperands == 1)
-			{
-				op.operand1 = SimplifyWithPatterns(op.operand1);
-
-				// TODO: add sin, cos, tan, etc. simplifications
-
-				return root;
-			}
-			else
-			{
-				op.operand1 = SimplifyWithPatterns(op.operand1);
-				op.operand2 = SimplifyWithPatterns(op.operand2);
-
-				if ((op.operand1 is Constant) == false || (op.operand2 is Constant == false))
-				{
-					// simplify +0 and f(x) + f(x) = 2f(x)
-					if (op.type == OperatorType.Add)
-					{
-						if (op.operand1 is Constant c1)
-							if (c1.value == 0)
-								return op.operand2;
-
-						if (op.operand2 is Constant c2)
-							if (c2.value == 0)
-								return op.operand1;
-						if (AreTreesEqual(op.operand1, op.operand2))
-							return new Operator(OperatorType.Mult,
-								new Constant(2),
-								op.operand1
-							);
-					}
-					// simplify -0 and f(x) - f(x) = 0
-					if (op.type == OperatorType.Sub)
-					{
-						if (op.operand2 is Constant c2)
-							if (c2.value == 0)
-								return op.operand1;
-						if (AreTreesEqual(op.operand1, op.operand2))
-							return new Constant(0);
-					}
-					// simplify *0 and *1 and f(x)*f(x) and x*x^A
-					if (op.type == OperatorType.Mult)
-					{
-						if (op.operand1 is Constant c1)
-						{
-							if (c1.value == 0)
-								return new Constant(0);
-							if (c1.value == 1)
-								return op.operand2;
-						}
-
-						if (op.operand2 is Constant c2)
-						{
-							if (c2.value == 0)
-								return new Constant(0);
-							if (c2.value == 1)
-								return op.operand1;
-						}
-
-						if (AreTreesEqual(op.operand1, op.operand2))
-						{
-							return new Operator(OperatorType.Pow,
-								op.operand1,
-								new Constant(2)
-							);
-						}
-
-						if (op.operand1 is Variable v1)
-						{
-							if (op.operand2 is Operator op2 && op2.type == OperatorType.Pow)
-							{
-								if (op2.operand1 is Variable op2base && op2base.name == v1.name)
-								{
-									// x * x ^ A
-									// --> x ^ (A + 1)
-									return new Operator(OperatorType.Pow,
-										v1,
-										new Operator(OperatorType.Add,
-											op2.operand2,
-											new Constant(1)
-										)
-									);
-								}
-							}
-						}
-
-						if (op.operand2 is Variable v2)
-						{
-							if (op.operand1 is Operator op1 && op1.type == OperatorType.Pow)
-							{
-								if (op1.operand1 is Variable op1base && op1base.name == v2.name)
-								{
-									// x * x ^ A
-									// --> x ^ (A + 1)
-									return new Operator(OperatorType.Pow,
-										v2,
-										new Operator(OperatorType.Add,
-											op1.operand2,
-											new Constant(1)
-										)
-									);
-								}
-							}
-						}
-					}
-					// simplify x^1
-					if (op.type == OperatorType.Pow)
-					{
-						if (op.operand2 is Constant c2)
-						{
-							if (c2.value == 1)
-								return op.operand1;
-							if (c2.value == 0)
-								return new Constant(1);
-						}
-					}
-					// simplify exp(a*ln(b)) = a^b
-					if (op.type == OperatorType.Pow)
-					{
-						if (op.operand1 is Constant c1)
-							if (c1 == Constant.E)
-							{
-								var exponent = op.operand2;
-								if (exponent is Operator operatorInExponent)
-									if (operatorInExponent.type == OperatorType.Mult)
-									{
-										TreeNode? exponentMultLeft = operatorInExponent.operand1;
-										TreeNode exponentMultRight = operatorInExponent.operand2;
-
-										if (exponentMultRight is Operator exponentMultRightOp)
-											if (exponentMultRightOp.type == OperatorType.Ln)
-											{
-												// we are ready, it is in the form of e^(a*ln(b))
-
-												return new Operator(OperatorType.Pow,
-													exponentMultRightOp.operand1,
-													exponentMultLeft
-												);
-											}
-
-
-										if (exponentMultLeft is Operator exponentMultLeftOp)
-											if (exponentMultLeftOp.type == OperatorType.Ln)
-											{
-												// we are ready, it is in the form of e^(ln(a)*b)
-
-												return new Operator(OperatorType.Pow,
-													exponentMultLeftOp.operand1,
-													exponentMultRight
-												);
-											}
-									}
-							}
-					}
-				}
-			}
-
-			return root;
+			return root.Simplify();
 		}
+
+		//public static TreeNode SimplifyWithPatterns(TreeNode root)
+		//{
+		//	if (root is Constant || root is Variable || root is DerivativeSymbol)
+		//		return root;
+
+		//	// root is operator
+		//	Operator op = root as Operator;
+
+		//	if (op.numOperands == 1)
+		//	{
+		//		op.operand1 = SimplifyWithPatterns(op.operand1);
+
+		//		// TODO: add sin, cos, tan, etc. simplifications
+
+		//		return root;
+		//	}
+		//	else
+		//	{
+		//		op.operand1 = SimplifyWithPatterns(op.operand1);
+		//		op.operand2 = SimplifyWithPatterns(op.operand2);
+
+		//		//if ((op.operand1 is Constant) == false || (op.operand2 is Constant == false))
+		//		//{
+		//		//	// simplify +0 and f(x) + f(x) = 2f(x)
+		//		//	if (op.type == OperatorType.Add)
+		//		//	{
+		//		//		if (op.operand1 is Constant c1)
+		//		//			if (c1.value == 0)
+		//		//				return op.operand2;
+
+		//		//		if (op.operand2 is Constant c2)
+		//		//			if (c2.value == 0)
+		//		//				return op.operand1;
+		//		//		if (AreTreesEqual(op.operand1, op.operand2))
+		//		//			return new Operator(OperatorType.Mult,
+		//		//				new Constant(2),
+		//		//				op.operand1
+		//		//			);
+		//		//	}
+		//		//	// simplify -0 and f(x) - f(x) = 0
+		//		//	if (op.type == OperatorType.Sub)
+		//		//	{
+		//		//		if (op.operand2 is Constant c2)
+		//		//			if (c2.value == 0)
+		//		//				return op.operand1;
+		//		//		if (AreTreesEqual(op.operand1, op.operand2))
+		//		//			return new Constant(0);
+		//		//	}
+		//		//	// simplify *0 and *1 and f(x)*f(x) and x*x^A
+		//		//	if (op.type == OperatorType.Mult)
+		//		//	{
+		//		//		if (op.operand1 is Constant c1)
+		//		//		{
+		//		//			if (c1.value == 0)
+		//		//				return new Constant(0);
+		//		//			if (c1.value == 1)
+		//		//				return op.operand2;
+		//		//		}
+
+		//		//		if (op.operand2 is Constant c2)
+		//		//		{
+		//		//			if (c2.value == 0)
+		//		//				return new Constant(0);
+		//		//			if (c2.value == 1)
+		//		//				return op.operand1;
+		//		//		}
+
+		//		//		if (AreTreesEqual(op.operand1, op.operand2))
+		//		//		{
+		//		//			return new Operator(OperatorType.Pow,
+		//		//				op.operand1,
+		//		//				new Constant(2)
+		//		//			);
+		//		//		}
+
+		//		//		if (op.operand1 is Variable v1)
+		//		//		{
+		//		//			if (op.operand2 is Operator op2 && op2.type == OperatorType.Pow)
+		//		//			{
+		//		//				if (op2.operand1 is Variable op2base && op2base.name == v1.name)
+		//		//				{
+		//		//					// x * x ^ A
+		//		//					// --> x ^ (A + 1)
+		//		//					return new Operator(OperatorType.Pow,
+		//		//						v1,
+		//		//						new Operator(OperatorType.Add,
+		//		//							op2.operand2,
+		//		//							new Constant(1)
+		//		//						)
+		//		//					);
+		//		//				}
+		//		//			}
+		//		//		}
+
+		//		//		if (op.operand2 is Variable v2)
+		//		//		{
+		//		//			if (op.operand1 is Operator op1 && op1.type == OperatorType.Pow)
+		//		//			{
+		//		//				if (op1.operand1 is Variable op1base && op1base.name == v2.name)
+		//		//				{
+		//		//					// x * x ^ A
+		//		//					// --> x ^ (A + 1)
+		//		//					return new Operator(OperatorType.Pow,
+		//		//						v2,
+		//		//						new Operator(OperatorType.Add,
+		//		//							op1.operand2,
+		//		//							new Constant(1)
+		//		//						)
+		//		//					);
+		//		//				}
+		//		//			}
+		//		//		}
+		//		//	}
+		//		//	// simplify x^1
+		//		//	if (op.type == OperatorType.Pow)
+		//		//	{
+		//		//		if (op.operand2 is Constant c2)
+		//		//		{
+		//		//			if (c2.value == 1)
+		//		//				return op.operand1;
+		//		//			if (c2.value == 0)
+		//		//				return new Constant(1);
+		//		//		}
+		//		//	}
+		//		//	// simplify exp(a*ln(b)) = a^b
+		//		//	if (op.type == OperatorType.Pow)
+		//		//	{
+		//		//		if (op.operand1 is Constant c1)
+		//		//			if (c1 == Constant.E)
+		//		//			{
+		//		//				var exponent = op.operand2;
+		//		//				if (exponent is Operator operatorInExponent)
+		//		//					if (operatorInExponent.type == OperatorType.Mult)
+		//		//					{
+		//		//						TreeNode? exponentMultLeft = operatorInExponent.operand1;
+		//		//						TreeNode exponentMultRight = operatorInExponent.operand2;
+
+		//		//						if (exponentMultRight is Operator exponentMultRightOp)
+		//		//							if (exponentMultRightOp.type == OperatorType.Ln)
+		//		//							{
+		//		//								// we are ready, it is in the form of e^(a*ln(b))
+
+		//		//								return new Operator(OperatorType.Pow,
+		//		//									exponentMultRightOp.operand1,
+		//		//									exponentMultLeft
+		//		//								);
+		//		//							}
+
+
+		//		//						if (exponentMultLeft is Operator exponentMultLeftOp)
+		//		//							if (exponentMultLeftOp.type == OperatorType.Ln)
+		//		//							{
+		//		//								// we are ready, it is in the form of e^(ln(a)*b)
+
+		//		//								return new Operator(OperatorType.Pow,
+		//		//									exponentMultLeftOp.operand1,
+		//		//									exponentMultRight
+		//		//								);
+		//		//							}
+		//		//					}
+		//		//			}
+		//		//	}
+		//		//}
+		//	}
+
+		//	return root;
+		//}
 
 		public static TreeNode Calculate(TreeNode root, bool calculateIrrationals = false)
 		{
@@ -440,7 +462,7 @@ namespace DerivativeCalculator
 			if (root is null) return null;
 			if (root is Constant c) return new Constant(c.value);
 			if (root is Variable v) return new Variable(v.name);
-			if (root is Operator op) return new Operator(
+			if (root is Operator op) return Operator.GetClassInstanceFromType(
 				op.type,
 				CopyTree(op.operand1),
 				CopyTree(op.operand2),

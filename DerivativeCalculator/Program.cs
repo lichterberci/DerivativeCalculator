@@ -72,12 +72,9 @@ namespace DerivativeCalculator {
 				return "";
 			}
 
-			Derivator derivator;
-
 			try
 			{
-				derivator = new Derivator(varToDifferentiate);
-				TreeNode diffTree = derivator.DifferentiateWithStepsRecorded(tree);
+				TreeNode diffTree = Differentiator.DifferentiateWithStepsRecorded(tree, varToDifferentiate);
 			}
 			catch (Exception e)
 			{
@@ -87,7 +84,7 @@ namespace DerivativeCalculator {
 			}
 
 
-			return derivator.steps.Last();
+			return Differentiator.steps.Last();
 		}
 
 		public static void DifferentiateFromConsole()
@@ -136,12 +133,9 @@ namespace DerivativeCalculator {
 				return;
 			}
 
-			Derivator derivator;
-
 			try
 			{
-				derivator = new Derivator(varToDifferentiate);
-				TreeNode diffTree = derivator.DifferentiateWithStepsRecorded(tree);
+				TreeNode diffTree = Differentiator.DifferentiateWithStepsRecorded(tree, varToDifferentiate);
 			}
 			catch (Exception e)
 			{
@@ -151,9 +145,9 @@ namespace DerivativeCalculator {
 			}
 
 			Console.WriteLine("");
-			for (int i = 0; i < derivator.steps.Count; i++)
+			for (int i = 0; i < Differentiator.steps.Count; i++)
 			{
-				Console.WriteLine($"Step {i + 1}: {derivator.steps[i]}\n");
+				Console.WriteLine($"Step {i + 1}: {Differentiator.steps[i]}\n");
 			}
 
 		}

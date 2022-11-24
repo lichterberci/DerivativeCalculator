@@ -52,7 +52,7 @@ namespace DerivativeCalculator
 
 						if (type != null)
 						{
-							nodes.Add(new Operator((OperatorType)type));
+							nodes.Add(Operator.GetClassInstanceFromType((OperatorType)type));
 							tmp = "";
 						}
 						else
@@ -85,7 +85,7 @@ namespace DerivativeCalculator
 									}
 									else
 									{
-										nodes.Add(new Operator((OperatorType)type));
+										nodes.Add(Operator.GetClassInstanceFromType((OperatorType)type));
 										tmp = tmp.Substring(1);
 									}
 								}
@@ -166,7 +166,7 @@ namespace DerivativeCalculator
 					)
 				)
 				{
-					nodes.Insert(i, new Operator(OperatorType.Mult));
+					nodes.Insert(i, new Mult());
 				}
 			}
 
@@ -284,7 +284,7 @@ namespace DerivativeCalculator
 						)
 						{
 							// it is a negative sign, so we replace '-' with a '(-1)*'
-							nodes[i] = new Operator(OperatorType.Mult, 1); // add a *
+							nodes[i] = new Mult(); // add a *
 							nodes.Insert(i, new Constant(-1)); // add a -1 in front of it
 						}
 					}

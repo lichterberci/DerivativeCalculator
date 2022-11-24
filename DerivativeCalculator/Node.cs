@@ -42,6 +42,8 @@ namespace DerivativeCalculator
 		public virtual string ToPrettyString() { return "Unimplemented!"; }
 		public virtual TreeNode Eval() => throw new NotImplementedException();
 		public virtual TreeNode Diff(char varToDiff) => throw new NotImplementedException();
+		public bool IsConstant (char varToDiff) => TreeUtils.IsExpressionConstant(this, varToDiff);
+		public virtual TreeNode Simplify() => this;
 	}
 
 	public sealed class DerivativeSymbol : TreeNode

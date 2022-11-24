@@ -1,6 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Security.AccessControl;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,7 +14,7 @@ namespace DerivativeCalculator
 		Add, Sub, Mult, Div, Pow, Sin, Cos, Tan, Log, Ln
 	}
 
-	public class Operator : TreeNode
+	public abstract class Operator : TreeNode
 	{
 		public int prioirty;
 		public OperatorType type;
@@ -26,7 +28,6 @@ namespace DerivativeCalculator
 			this.operand2 = operand2;
 			this.prioirty = priority ?? Operator.GetBasePriority(type);
 		}
-
 		public Operator(OperatorType _type, int priorityOffset = 0)
 		{
 			this.type = _type;
@@ -42,7 +43,34 @@ namespace DerivativeCalculator
 		{
 			return $"Operator({GetStringForType(type)}, priority = {prioirty})";
 		}
-
+		public static Operator GetClassInstanceFromType (OperatorType _type, TreeNode? operand1 = null, TreeNode? operand2 = null, int? priority = null)
+		{
+			switch (_type)
+			{
+				case OperatorType.Add:
+					return new Add(operand1, operand2, priority);
+				case OperatorType.Sub:
+					return new Sub(operand1, operand2, priority);
+				case OperatorType.Mult:
+					return new Mult(operand1, operand2, priority);
+				case OperatorType.Div:
+					return new Div(operand1, operand2, priority);
+				case OperatorType.Pow:
+					return new Pow(operand1, operand2, priority);
+				case OperatorType.Sin:
+					return new Sin(operand1, priority);
+				case OperatorType.Cos:
+					return new Cos(operand1, priority);
+				case OperatorType.Tan:
+					return new Tan(operand1, priority);
+				case OperatorType.Log: // base 10
+					return new Log(operand1, priority);
+				case OperatorType.Ln: // base e
+					return new Ln(operand1, priority);
+				default:
+					throw new ArgumentException($"Type {_type} is not handled!");
+			}
+		}
 		public static int GetBasePriority(OperatorType _type)
 		{
 			switch (_type)
@@ -71,7 +99,6 @@ namespace DerivativeCalculator
 					return 1;
 			}
 		}
-
 		public int basePriority
 		{
 			get
@@ -79,7 +106,6 @@ namespace DerivativeCalculator
 				return GetBasePriority(this.type);
 			}
 		}
-
 		public static int GetNumOperands(OperatorType _type)
 		{
 			switch (_type)
@@ -108,7 +134,6 @@ namespace DerivativeCalculator
 					return 2;
 			}
 		}
-
 		public int numOperands
 		{
 			get
@@ -116,7 +141,6 @@ namespace DerivativeCalculator
 				return GetNumOperands(this.type);
 			}
 		}
-
 		public static string GetStringForType(OperatorType _type)
 		{
 			switch (_type)
@@ -145,12 +169,10 @@ namespace DerivativeCalculator
 					return "UNKNOWN_OPERATOR";
 			}
 		}
-
 		public string GetTypeString()
 		{
 			return GetStringForType(this.type);
 		}
-
 		public static OperatorType? ParseFromString(string str)
 		{
 			foreach (var op in Enum.GetValues(typeof(OperatorType)).Cast<OperatorType>())
@@ -161,82 +183,11 @@ namespace DerivativeCalculator
 
 			return null;
 		}
-
-		public static int AssociativeIndex(OperatorType type)
-		{
-			switch (type)
-			{
-				case OperatorType.Add:
-					return 1;
-				case OperatorType.Mult:
-					return 2;
-				default:
-					return -1;
-			}
-		}
-
-		public int associativeIndex
-		{
-			get
-			{
-				return AssociativeIndex(this.type);
-			}
-		}
-	}
-
-	public class AssociativeOperator : Operator
-	{
-		List<TreeNode> operandList;
-
-		public AssociativeOperator(OperatorType type, List<TreeNode> operandList) : base(type, null, null)
-		{
-			if (Operator.AssociativeIndex(type) == -1)
-				throw new ArgumentException($"Operator type '{GetStringForType(type)}' is not associative!");
-			this.operandList = operandList;
-		}
-
-		public TreeNode? BuildBackBinaryTree()
-		{
-			if (operandList.Count == 0)
-				return null;
-
-			if (operandList.Count == 1)
-				return operandList.First();
-
-			Operator result = new Operator(type, null, null);
-			Operator head = result;
-			List<TreeNode> _operandList = operandList;
-
-			while (_operandList.Count > 1)
-			{
-				if (head.operand1 == null)
-				{
-					TreeNode a = _operandList.First();
-					_operandList.Remove(a);
-
-					head.operand1 = a;
-				}
-
-				if (_operandList.Count > 1)
-				{
-					// there are still 2 or more operands --> we need to insert an operator
-					head.operand2 = new Operator(type, null, null);
-					head = head.operand2 as Operator;
-				}
-			}
-
-			head.operand2 = _operandList.First();
-
-			return result;
-		}
 	}
 
 	public sealed class Add : Operator
 	{
-		public Add(TreeNode? left = null, TreeNode? right = null) : base(OperatorType.Add, left, right)
-		{
-
-		}
+		public Add(TreeNode? left = null, TreeNode? right = null, int? priority = null) : base(OperatorType.Add, left, right, priority) { }
 
 		public override TreeNode Eval ()
 		{
@@ -253,14 +204,16 @@ namespace DerivativeCalculator
 		{
 			return new Add(operand1.Diff(varToDiff), operand2.Diff(varToDiff));
 		}
+
+		public override TreeNode Simplify()
+		{
+			return base.Simplify();
+		}
 	}
 
 	public sealed class Sub : Operator
 	{
-		public Sub(TreeNode? left = null, TreeNode? right = null) : base(OperatorType.Sub, left, right)
-		{
-
-		}
+		public Sub(TreeNode? left = null, TreeNode? right = null, int? priority = null) : base(OperatorType.Sub, left, right, priority) { }
 
 		public override TreeNode Eval()
 		{
@@ -281,10 +234,7 @@ namespace DerivativeCalculator
 
 	public sealed class Mult : Operator
 	{
-		public Mult(TreeNode? left = null, TreeNode? right = null) : base(OperatorType.Mult, left, right)
-		{
-
-		}
+		public Mult(TreeNode? left = null, TreeNode? right = null, int? priority = null) : base(OperatorType.Mult, left, right, priority) { }
 
 		public override TreeNode Eval()
 		{
@@ -299,6 +249,12 @@ namespace DerivativeCalculator
 
 		public override TreeNode Diff(char varToDiff)
 		{
+			if (operand1.IsConstant(varToDiff))
+				return new Mult(operand1, operand2.Diff(varToDiff));
+
+			if (operand2.IsConstant(varToDiff))
+				return new Mult(operand2, operand1.Diff(varToDiff));
+
 			return new Add(
 				new Mult(operand1.Diff(varToDiff), operand2),
 				new Mult(operand1, operand2.Diff(varToDiff))
@@ -306,13 +262,10 @@ namespace DerivativeCalculator
 		}
 	}
 
-	public sealed class Division : Operator
+	public sealed class Div : Operator
 	{
-		public Division(TreeNode? left = null, TreeNode? right = null) : base(OperatorType.Div, left, right)
-		{
-
-		}
-
+		public Div(TreeNode? left = null, TreeNode? right = null, int? priority = null) : base(OperatorType.Div, left, right, priority) { }
+		
 		public override TreeNode Eval()
 		{
 			var left = operand1.Eval();
@@ -326,7 +279,10 @@ namespace DerivativeCalculator
 
 		public override TreeNode Diff(char varToDiff)
 		{
-			return new Division(
+			if (operand2.IsConstant(varToDiff))
+				return new Div(operand1.Diff(varToDiff), operand2);
+
+			return new Div(
 				new Sub(
 					new Mult(operand1.Diff(varToDiff), operand2),
 					new Mult(operand1, operand2.Diff(varToDiff))
@@ -338,10 +294,7 @@ namespace DerivativeCalculator
 
 	public sealed class Pow : Operator
 	{
-		public Pow(TreeNode? left = null, TreeNode? right = null) : base(OperatorType.Pow, left, right)
-		{
-
-		}
+		public Pow(TreeNode? left = null, TreeNode? right = null, int? priority = null) : base(OperatorType.Pow, left, right, priority) { }
 
 		public override TreeNode Eval()
 		{
@@ -356,8 +309,171 @@ namespace DerivativeCalculator
 
 		public override TreeNode Diff(char varToDiff)
 		{
-			/// break down into 3 cases
-			return this;
+			// c^f(x) --> ln(c)*c^f(x)*f'(x)
+			if (operand1.IsConstant(varToDiff))
+			{
+				return new Mult(
+					new Mult(
+						new Ln(operand1),
+						new Pow(operand1, operand2)
+					),
+					operand2.Diff(varToDiff)
+				);
+			}
+
+			// x^c --> c*x^c-1
+			if (operand2.IsConstant(varToDiff))
+			{
+				return new Mult(
+					operand1,
+					new Pow(
+						operand1,
+						new Sub(
+							operand2, 
+							new Constant(1)
+						)
+					)
+				);
+			}
+
+			// (A^B)' = (exp(B*ln(A)))' = exp(B*ln(A)) * (B*ln(A))'
+			return new Mult(
+				new Pow(
+					Constant.E,
+					new Mult(
+						operand2,
+						new Ln(operand1)
+					)
+				),
+				new Mult(
+					operand2,
+					 new Ln(operand1)
+			   ).Diff(varToDiff)
+			);
+		}
+	}
+
+	public sealed class Sin : Operator
+	{
+		public Sin(TreeNode? operand = null, int? priority = null) : base(OperatorType.Sin, operand, null, priority) { }
+
+		public override TreeNode Eval()
+		{
+			var operand = operand1.Eval();
+
+			if (operand is Constant c)
+				return new Constant(Math.Sin(c.value));
+			else
+				return this;
+		}
+
+		public override TreeNode Diff(char varToDiff)
+		{
+			return new Mult(
+				new Cos(operand1),
+				operand1.Diff(varToDiff)
+			);
+		}
+	}
+
+	public sealed class Cos : Operator
+	{
+		public Cos(TreeNode? operand = null, int? priority = null) : base(OperatorType.Cos, operand, null, priority) { }
+
+		public override TreeNode Eval()
+		{
+			var operand = operand1.Eval();
+
+			if (operand is Constant c)
+				return new Constant(Math.Cos(c.value));
+			else
+				return this;
+		}
+
+		public override TreeNode Diff(char varToDiff)
+		{
+			return new Mult(
+				new Mult(
+					new Constant(-1),
+					new Sin(operand1)
+				),
+				operand1.Diff(varToDiff)
+			);
+		}
+	}
+
+	public sealed class Tan : Operator
+	{
+		public Tan(TreeNode? operand = null, int? priority = null) : base(OperatorType.Tan, operand, null, priority) { }
+
+		public override TreeNode Eval()
+		{
+			var operand = operand1.Eval();
+
+			if (operand is Constant c)
+				return new Constant(Math.Tan(c.value));
+			else
+				return this;
+		}
+
+		public override TreeNode Diff(char varToDiff)
+		{
+			return new Div(
+				operand1.Diff(varToDiff),
+				new Pow(
+					new Cos(operand1),
+					new Constant(2)
+				)
+			);
+		}
+	}
+
+	public sealed class Ln : Operator
+	{
+		public Ln(TreeNode? operand = null, int? priority = null) : base(OperatorType.Ln, operand, null, priority) { }
+
+		public override TreeNode Eval()
+		{
+			var operand = operand1.Eval();
+
+			if (operand is Constant c)
+				return new Constant(Math.Log(c.value));
+			else
+				return this;
+		}
+
+		public override TreeNode Diff(char varToDiff)
+		{
+			return new Div(
+				operand1.Diff(varToDiff),
+				operand1
+			);
+		}
+	}
+
+	public sealed class Log : Operator
+	{
+		public Log(TreeNode? operand = null, int? priority = null) : base(OperatorType.Log, operand, null, priority) { }
+
+		public override TreeNode Eval()
+		{
+			var operand = operand1.Eval();
+
+			if (operand is Constant c)
+				return new Constant(Math.Log10(c.value));
+			else
+				return this;
+		}
+
+		public override TreeNode Diff(char varToDiff)
+		{
+			return new Div(
+				operand1.Diff(varToDiff),
+				new Mult(
+					new Constant(Math.Log(10)),
+					operand1
+				)
+			);
 		}
 	}
 }
