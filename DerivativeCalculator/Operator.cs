@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Net.Http.Headers;
 using System.Reflection.Metadata.Ecma335;
 using System.Security.AccessControl;
 using System.Text;
@@ -183,6 +184,40 @@ namespace DerivativeCalculator
 
 			return null;
 		}
+		public static bool IsOperatorTypeCommutative (OperatorType type)
+		{
+			switch (type)
+			{
+				case OperatorType.Add:
+					return true;
+				case OperatorType.Sub:
+					return false;
+				case OperatorType.Mult:
+					return true;
+				case OperatorType.Div:
+					return false;
+				case OperatorType.Pow:
+					return false;
+				case OperatorType.Sin:
+					return false;
+				case OperatorType.Cos:
+					return false;
+				case OperatorType.Tan:
+					return false;
+				case OperatorType.Log:
+					return false;
+				case OperatorType.Ln:
+					return false;
+				default:
+					return false;
+			}
+		}		
+		public bool isCommutative { 
+			get
+			{
+				return IsOperatorTypeCommutative(this.type);
+			} 
+		}
 	}
 
 	public sealed class Add : Operator
@@ -191,10 +226,10 @@ namespace DerivativeCalculator
 
 		public override TreeNode Eval ()
 		{
-			var left = operand1.Eval();
-			var right = operand2.Eval();
+			operand1 = operand1.Eval();
+			operand2 = operand2.Eval();
 
-			if (left is Constant l && right is Constant r)
+			if (operand1 is Constant l && operand2 is Constant r)
 				return new Constant(l.value + r.value);
 			else
 				return this;
@@ -207,7 +242,162 @@ namespace DerivativeCalculator
 
 		public override TreeNode Simplify()
 		{
-			return base.Simplify();
+
+			operand1 = operand1.Simplify();
+			operand2 = operand2.Simplify();
+
+			// associative things
+
+			var operands = TreeUtils.GetAssociativeOperands(this, type);
+
+			Console.WriteLine(TreeUtils.CollapseTreeToString(this));
+			Console.WriteLine($"--> {operands.Count}");
+
+			if (operands.Count > 2)
+			{
+				var coefficientDict = new Dictionary<TreeNode, TreeNode>();
+
+				for (int i = 0; i < operands.Count; i++)
+				{
+					var node = operands[i];
+					bool isNew = true;
+
+					foreach (var key in coefficientDict.Keys)
+					{
+						Console.WriteLine($"node: {TreeUtils.CollapseTreeToString(node)} key: {TreeUtils.CollapseTreeToString(key)}");
+
+						// x + x ---> 2x
+						if (TreeUtils.AreTreesEqual(node, key))
+						{
+							Console.WriteLine("x+x=2x");
+							coefficientDict[key] = new Constant(2);
+							isNew = false;
+							break;
+						}
+
+						// a + c*a ---> (c+1)*a
+						{
+							(bool isMatch, var wildcards) = TreeUtils.MatchPattern(node,
+								  new Mult(
+										 new Wildcard('c'),
+										 new Wildcard('a')
+										 ));
+
+							if (isMatch && TreeUtils.AreTreesEqual(wildcards['a'], node))
+							{
+								Console.WriteLine("a+ca=(c+1)a");
+								coefficientDict[key] = new Add(
+											wildcards['c'],
+											new Constant(1)
+										);
+								isNew = false;
+								break;
+							}
+						}
+					}
+
+					if (isNew == false)
+						continue;
+
+					// new entry
+					Console.WriteLine("new");
+					if (node is Constant c)
+						coefficientDict[new Constant(1)] = node;
+					else
+						coefficientDict[node] = new Constant(1);
+				}
+
+				// build back the tree
+
+				Operator head = this;
+
+				while (coefficientDict.Keys.Count >= 2)
+				{
+					var key = coefficientDict.Keys.First(); // a (from c*a)
+					var coeff = coefficientDict[key]; // c (from c*a)
+
+					Console.WriteLine($"key: {TreeUtils.CollapseTreeToString(key)}");
+					Console.WriteLine($"coeff: {TreeUtils.CollapseTreeToString(coeff)}"); 
+
+					if (coeff is Constant { value: 1 })
+					{
+						head.operand1 = key;
+					}
+					else
+					{
+						head.operand1 = new Mult(
+								coeff,
+								key
+							);
+					}
+
+					coefficientDict.Remove(key);
+
+					if (coefficientDict.Keys.Count == 1)
+					{
+						var key2 = coefficientDict.Keys.First(); // a (from c*a)
+						var coeff2 = coefficientDict[key2]; // c (from c*a)
+						Console.WriteLine($"key: {TreeUtils.CollapseTreeToString(key2)}");
+						Console.WriteLine($"coeff: {TreeUtils.CollapseTreeToString(coeff2)}");
+
+						if (coeff2 is Constant { value: 1 })
+						{
+							head.operand2 = key2;
+						}
+						else
+						{
+							head.operand2 = new Mult(
+									coeff2,
+									key2
+								);
+						}
+
+						coefficientDict.Remove(key);
+					}
+
+					if (coefficientDict.Keys.Count >= 2)
+					{
+						head.operand2 = new Add(null, null);
+						head = head.operand2 as Operator;
+					}
+				}
+
+				// we are finished
+			}
+
+			// a + a = 2a
+			{
+				(bool isMatch, var wildcards) = TreeUtils.MatchPattern(this, 
+					  new Add(
+							 new Wildcard('a'),
+							 new Wildcard('a')
+							 ));
+
+				if (isMatch)
+					return new Mult(
+						 new Constant(2),
+						 wildcards['a']
+					);
+			}
+			// c*a + a = (c+1)*a
+			{
+				(bool isMatch, var wildcards) = TreeUtils.MatchPattern(this,
+					  new Add(
+						  new Mult(
+								new Wildcard('c'),
+								new Wildcard('a')
+								),
+							new Wildcard('a')
+						));
+
+				if (isMatch)
+					return new Mult(
+						 new Add(wildcards['c'], new Constant(1)),
+						 wildcards['a']
+					);
+			}
+
+			return this;
 		}
 	}
 
@@ -217,10 +407,10 @@ namespace DerivativeCalculator
 
 		public override TreeNode Eval()
 		{
-			var left = operand1.Eval();
-			var right = operand2.Eval();
+			operand1 = operand1.Eval();
+			operand2 = operand2.Eval();
 
-			if (left is Constant l && right is Constant r)
+			if (operand1 is Constant l && operand2 is Constant r)
 				return new Constant(l.value - r.value);
 			else
 				return this;
@@ -238,10 +428,10 @@ namespace DerivativeCalculator
 
 		public override TreeNode Eval()
 		{
-			var left = operand1.Eval();
-			var right = operand2.Eval();
+			operand1 = operand1.Eval();
+			operand2 = operand2.Eval();
 
-			if (left is Constant l && right is Constant r)
+			if (operand1 is Constant l && operand2 is Constant r)
 				return new Constant(l.value * r.value);
 			else
 				return this;
@@ -268,10 +458,10 @@ namespace DerivativeCalculator
 		
 		public override TreeNode Eval()
 		{
-			var left = operand1.Eval();
-			var right = operand2.Eval();
+			operand1 = operand1.Eval();
+			operand2 = operand2.Eval();
 
-			if (left is Constant l && right is Constant r)
+			if (operand1 is Constant l && operand2 is Constant r)
 				return new Constant(l.value / r.value);
 			else
 				return this;
@@ -298,10 +488,10 @@ namespace DerivativeCalculator
 
 		public override TreeNode Eval()
 		{
-			var left = operand1.Eval();
-			var right = operand2.Eval();
+			operand1 = operand1.Eval();
+			operand2 = operand2.Eval();
 
-			if (left is Constant l && right is Constant r)
+			if (operand1 is Constant l && operand2 is Constant r)
 				return new Constant(Math.Pow(l.value, r.value));
 			else
 				return this;
@@ -348,7 +538,7 @@ namespace DerivativeCalculator
 				new Mult(
 					operand2,
 					 new Ln(operand1)
-			   ).Diff(varToDiff)
+				).Diff(varToDiff)
 			);
 		}
 	}
@@ -359,9 +549,9 @@ namespace DerivativeCalculator
 
 		public override TreeNode Eval()
 		{
-			var operand = operand1.Eval();
+			operand1 = operand1.Eval();
 
-			if (operand is Constant c)
+			if (operand1 is Constant c)
 				return new Constant(Math.Sin(c.value));
 			else
 				return this;
@@ -382,9 +572,9 @@ namespace DerivativeCalculator
 
 		public override TreeNode Eval()
 		{
-			var operand = operand1.Eval();
+			operand1 = operand1.Eval();
 
-			if (operand is Constant c)
+			if (operand1 is Constant c)
 				return new Constant(Math.Cos(c.value));
 			else
 				return this;
@@ -408,9 +598,9 @@ namespace DerivativeCalculator
 
 		public override TreeNode Eval()
 		{
-			var operand = operand1.Eval();
+			operand1 = operand1.Eval();
 
-			if (operand is Constant c)
+			if (operand1 is Constant c)
 				return new Constant(Math.Tan(c.value));
 			else
 				return this;
@@ -434,9 +624,9 @@ namespace DerivativeCalculator
 
 		public override TreeNode Eval()
 		{
-			var operand = operand1.Eval();
+			operand1 = operand1.Eval();
 
-			if (operand is Constant c)
+			if (operand1 is Constant c)
 				return new Constant(Math.Log(c.value));
 			else
 				return this;
@@ -457,9 +647,9 @@ namespace DerivativeCalculator
 
 		public override TreeNode Eval()
 		{
-			var operand = operand1.Eval();
+			operand1 = operand1.Eval();
 
-			if (operand is Constant c)
+			if (operand1 is Constant c)
 				return new Constant(Math.Log10(c.value));
 			else
 				return this;

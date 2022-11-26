@@ -47,9 +47,7 @@ namespace DerivativeCalculator
 
 				diffTree = root.Diff(varToDiff);
 
-				prettyTree = TreeUtils.SimplifyWithPatterns(diffTree);
-				prettyTree = TreeUtils.Calculate(prettyTree);
-				prettyTree = TreeUtils.SimplifyWithPatterns(prettyTree);
+				prettyTree = diffTree.Eval().Simplify().Eval().Simplify();
 				steps.Add(TreeUtils.CollapseTreeToString(prettyTree));
 			}
 

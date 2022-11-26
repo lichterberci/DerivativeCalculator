@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection.Emit;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -142,6 +143,11 @@ namespace DerivativeCalculator
 				return AreTreesEqual(aDer.expression, bDer.expression);
 			}
 
+			if (a is Wildcard w1 && b is Wildcard w2)
+			{
+				return w1.name == w2.name;
+			}
+
 			// their types are different
 			return false;
 		}
@@ -161,8 +167,131 @@ namespace DerivativeCalculator
 				CopyTree(d.expression),
 				d.varToDifferentiate
 			);
+			if (root is Wildcard w) return new Wildcard(w.name);
 
 			throw new ArgumentException($"Unexpected argument type: {root.GetType()}");
+		}
+	
+		public static (bool, Dictionary<char, TreeNode>?) MatchPattern (TreeNode tree, TreeNode? pattern)
+		{
+			if (pattern is null && tree is null)
+				return (true, null);
+			if (pattern is null || tree is null)
+				return (false, null);
+
+			if (pattern is Wildcard w)
+			{
+				if (tree is not null)
+					if (w.name is not null)
+						return (true, new Dictionary<char, TreeNode>() { { (char)w.name, tree } });
+					else
+						return (true, null);
+				return (false, null);
+			}
+
+			if (pattern.GetType() != tree.GetType())
+				return (false, null);
+
+			if (pattern is Constant c1 && tree is Constant c2)
+				return (c1.value == c2.value, null);
+
+			if (pattern is Variable v1 && tree is Variable v2)
+				return (v1.name == v2.name, null);
+
+			if (pattern is DerivativeSymbol d1 && tree is DerivativeSymbol d2)
+				return (d1.expression == d2.expression, null);
+
+			if (tree is not Operator || pattern is not Operator)
+				throw new ArgumentException("Unhandled type");
+
+			var treeOp = tree as Operator;
+			var patternOp = pattern as Operator;
+
+			(bool operand1Match, Dictionary<char, TreeNode>? operand1Wildcards) = MatchPattern(treeOp.operand1, patternOp.operand1);
+			(bool operand2Match, Dictionary<char, TreeNode>? operand2Wildcards) = MatchPattern(treeOp.operand2, patternOp.operand2);
+
+			if (operand1Match == false || operand2Match == false)
+			{
+				// it is either a miss, or we mixed up the order of a commutative operator's operands
+
+				if (treeOp.isCommutative == false)
+					return (false, null);
+
+				(operand1Match, operand1Wildcards) = MatchPattern(treeOp.operand2, patternOp.operand1);
+				(operand2Match, operand2Wildcards) = MatchPattern(treeOp.operand1, patternOp.operand2);
+
+				if (operand1Match == false || operand2Match == false)
+					return (false, null); // well, we tried...
+			}
+
+			var zippedDict = new Dictionary<char, TreeNode>();
+
+			if (operand1Wildcards is null && operand2Wildcards is null)
+				return (true, null);
+			if (operand1Wildcards is null)
+				return (true, operand2Wildcards);
+			if (operand2Wildcards is null)
+				return (true, operand1Wildcards);
+
+			foreach (var key in operand1Wildcards.Keys.Concat(operand2Wildcards.Keys).Distinct())
+			{
+				if (operand1Wildcards.ContainsKey(key) && operand2Wildcards.ContainsKey(key))
+				{
+					(bool doMatch, _) = MatchPattern(operand1Wildcards[key], operand2Wildcards[key]);
+
+					if (doMatch == false)
+						return (false, null);
+
+					zippedDict.Add(key, operand1Wildcards[key]);
+				}
+				else if (operand1Wildcards.ContainsKey(key))
+					zippedDict.Add(key, operand1Wildcards[key]);
+				else if (operand2Wildcards.ContainsKey(key))
+					zippedDict.Add(key, operand2Wildcards[key]);
+			}
+
+			return (true, zippedDict);
+		}
+	
+		public static TreeNode GetSimplestForm (TreeNode tree)
+		{
+			TreeNode prevTree;
+			TreeNode resultTree = tree;
+
+			do
+			{
+				prevTree = resultTree;
+				resultTree = CopyTree(prevTree).Eval().Simplify();
+
+				Console.WriteLine("---------prev----------");
+				PrintTree(prevTree);
+				Console.WriteLine("--------result---------");
+				PrintTree(resultTree);
+
+			} while (AreTreesEqual(resultTree, prevTree) == false);
+
+			return resultTree;
+		}
+	
+		public static List<TreeNode> GetAssociativeOperands(TreeNode root, OperatorType type)
+		{
+			if (root is null)
+				return new List<TreeNode> { root };
+
+			if (root is not Operator)
+				return new List<TreeNode> { root };
+
+			Operator op = root as Operator;
+
+			if (op.type != type)
+				return new List<TreeNode> { root };
+
+			var leftList = GetAssociativeOperands(op.operand1, type);
+			var rightList = GetAssociativeOperands(op.operand2, type);
+
+			leftList.AddRange(rightList);
+
+			return leftList;
 		}
 	}
 

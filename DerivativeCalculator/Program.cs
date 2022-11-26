@@ -21,7 +21,9 @@ public partial class Program
 
 		//TreeUtils.PrintTree(tree);
 
-		Manager.DifferentiateFromConsole();
+		Manager.DifferentiateFromConsole(false);
+
+
 	}
 }
 
@@ -87,7 +89,7 @@ namespace DerivativeCalculator {
 			return Differentiator.steps.Last();
 		}
 
-		public static void DifferentiateFromConsole()
+		public static void DifferentiateFromConsole(bool withSteps = true)
 		{
 			Console.Write("> ");
 			string input = Console.ReadLine().ToLower().Trim();
@@ -133,9 +135,14 @@ namespace DerivativeCalculator {
 				return;
 			}
 
+			TreeNode diffTree;
+
 			try
 			{
-				TreeNode diffTree = Differentiator.DifferentiateWithStepsRecorded(tree, varToDifferentiate);
+				if (withSteps)
+					diffTree = Differentiator.DifferentiateWithStepsRecorded(tree, varToDifferentiate);
+				else
+					diffTree = Differentiator.Differentiate(tree, varToDifferentiate);
 			}
 			catch (Exception e)
 			{
@@ -144,12 +151,21 @@ namespace DerivativeCalculator {
 				return;
 			}
 
-			Console.WriteLine("");
-			for (int i = 0; i < Differentiator.steps.Count; i++)
+			if (withSteps)
 			{
-				Console.WriteLine($"Step {i + 1}: {Differentiator.steps[i]}\n");
-			}
+				Console.WriteLine("");
+				for (int i = 0; i < Differentiator.steps.Count; i++)
+				{
+					Console.WriteLine($"Step {i + 1}: {Differentiator.steps[i]}\n");
+				}
+			} 
+			else
+			{
+				diffTree = TreeUtils.GetSimplestForm(diffTree);
 
+				Console.Write("> ");
+				Console.WriteLine(TreeUtils.CollapseTreeToString(diffTree));
+			}
 		}
 	} 
 }

@@ -130,4 +130,34 @@ namespace DerivativeCalculator
 			return new Constant(varToDiff == name ? 1 : 0);
 		}
 	}
+
+	public class Wildcard : TreeNode
+	{
+		public char? name { get; private set; }
+
+		public Wildcard(char? name)
+		{
+			this.name = name;
+		}
+		public override TreeNode Diff(char varToDiff)
+		{
+			return base.Diff(varToDiff);
+		}
+		public override TreeNode Eval()
+		{
+			return base.Eval();
+		}
+		public override TreeNode Simplify()
+		{
+			return base.Simplify();
+		}
+		public override string ToPrettyString()
+		{
+			return "%%";
+		}
+		public override string ToString()
+		{
+			return $"Wildcard({name})";
+		}
+	}
 }
