@@ -231,7 +231,9 @@ namespace DerivativeCalculator
 			var zippedDict = new Dictionary<char, TreeNode>();
 
 			if (operand1Wildcards is null && operand2Wildcards is null)
+			{
 				return true;
+			}
 			if (operand1Wildcards is null)
 			{
 				wildcards = operand2Wildcards;
