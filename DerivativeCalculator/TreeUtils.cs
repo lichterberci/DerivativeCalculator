@@ -172,34 +172,37 @@ namespace DerivativeCalculator
 			throw new ArgumentException($"Unexpected argument type: {root.GetType()}");
 		}
 	
-		public static (bool, Dictionary<char, TreeNode>?) MatchPattern (TreeNode tree, TreeNode? pattern)
+		public static bool MatchPattern (TreeNode tree, TreeNode? pattern, out Dictionary<char, TreeNode?> wildcards)
 		{
+			wildcards = null;
+
 			if (pattern is null && tree is null)
-				return (true, null);
+				return true;
 			if (pattern is null || tree is null)
-				return (false, null);
+				return false;
 
 			if (pattern is Wildcard w)
 			{
 				if (tree is not null)
+				{
 					if (w.name is not null)
-						return (true, new Dictionary<char, TreeNode>() { { (char)w.name, tree } });
-					else
-						return (true, null);
-				return (false, null);
+						wildcards = new Dictionary<char, TreeNode>() { { (char)w.name, tree } };
+					return true;
+				}
+				return false;
 			}
 
 			if (pattern.GetType() != tree.GetType())
-				return (false, null);
+				return false;
 
 			if (pattern is Constant c1 && tree is Constant c2)
-				return (c1.value == c2.value, null);
+				return c1.value == c2.value;
 
 			if (pattern is Variable v1 && tree is Variable v2)
-				return (v1.name == v2.name, null);
+				return v1.name == v2.name;
 
 			if (pattern is DerivativeSymbol d1 && tree is DerivativeSymbol d2)
-				return (d1.expression == d2.expression, null);
+				return d1.expression == d2.expression;
 
 			if (tree is not Operator || pattern is not Operator)
 				throw new ArgumentException("Unhandled type");
@@ -207,40 +210,47 @@ namespace DerivativeCalculator
 			var treeOp = tree as Operator;
 			var patternOp = pattern as Operator;
 
-			(bool operand1Match, Dictionary<char, TreeNode>? operand1Wildcards) = MatchPattern(treeOp.operand1, patternOp.operand1);
-			(bool operand2Match, Dictionary<char, TreeNode>? operand2Wildcards) = MatchPattern(treeOp.operand2, patternOp.operand2);
+			Dictionary<char, TreeNode>? operand1Wildcards, operand2Wildcards;
+			bool operand1Match = MatchPattern(treeOp.operand1, patternOp.operand1, out operand1Wildcards);
+			bool operand2Match = MatchPattern(treeOp.operand2, patternOp.operand2, out operand2Wildcards);
 
 			if (operand1Match == false || operand2Match == false)
 			{
 				// it is either a miss, or we mixed up the order of a commutative operator's operands
 
 				if (treeOp.isCommutative == false)
-					return (false, null);
+					return false;
 
-				(operand1Match, operand1Wildcards) = MatchPattern(treeOp.operand2, patternOp.operand1);
-				(operand2Match, operand2Wildcards) = MatchPattern(treeOp.operand1, patternOp.operand2);
+				operand1Match = MatchPattern(treeOp.operand2, patternOp.operand1, out operand1Wildcards);
+				operand2Match = MatchPattern(treeOp.operand1, patternOp.operand2, out operand2Wildcards);
 
 				if (operand1Match == false || operand2Match == false)
-					return (false, null); // well, we tried...
+					return false; // well, we tried...
 			}
 
 			var zippedDict = new Dictionary<char, TreeNode>();
 
 			if (operand1Wildcards is null && operand2Wildcards is null)
-				return (true, null);
+				return true;
 			if (operand1Wildcards is null)
-				return (true, operand2Wildcards);
+			{
+				wildcards = operand2Wildcards;
+				return true;
+			}
 			if (operand2Wildcards is null)
-				return (true, operand1Wildcards);
+			{
+				wildcards = operand1Wildcards;
+				return true;
+			}
 
 			foreach (var key in operand1Wildcards.Keys.Concat(operand2Wildcards.Keys).Distinct())
 			{
 				if (operand1Wildcards.ContainsKey(key) && operand2Wildcards.ContainsKey(key))
 				{
-					(bool doMatch, _) = MatchPattern(operand1Wildcards[key], operand2Wildcards[key]);
+					bool doMatch = MatchPattern(operand1Wildcards[key], operand2Wildcards[key], out _);
 
 					if (doMatch == false)
-						return (false, null);
+						return false;
 
 					zippedDict.Add(key, operand1Wildcards[key]);
 				}
@@ -250,7 +260,8 @@ namespace DerivativeCalculator
 					zippedDict.Add(key, operand2Wildcards[key]);
 			}
 
-			return (true, zippedDict);
+			wildcards = zippedDict;
+			return true;
 		}
 	
 		public static TreeNode GetSimplestForm (TreeNode tree)

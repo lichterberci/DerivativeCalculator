@@ -253,40 +253,44 @@ namespace DerivativeCalculator
 			Console.WriteLine(TreeUtils.CollapseTreeToString(this));
 			Console.WriteLine($"--> {operands.Count}");
 
-			if (operands.Count > 2)
+			Dictionary<char, TreeNode> wildcards;
+
+			if (operands.Count >= 2)
 			{
 				var coefficientDict = new Dictionary<TreeNode, TreeNode>();
 
-				for (int i = 0; i < operands.Count; i++)
+				foreach (var node in operands)
 				{
-					var node = operands[i];
 					bool isNew = true;
 
-					foreach (var key in coefficientDict.Keys)
+					foreach (var otherNode in coefficientDict.Keys)
 					{
-						Console.WriteLine($"node: {TreeUtils.CollapseTreeToString(node)} key: {TreeUtils.CollapseTreeToString(key)}");
+						Console.WriteLine($"node: {TreeUtils.CollapseTreeToString(node)} key: {TreeUtils.CollapseTreeToString(otherNode)}");
 
 						// x + x ---> 2x
-						if (TreeUtils.AreTreesEqual(node, key))
+						if (TreeUtils.MatchPattern(node, otherNode, out _))
 						{
 							Console.WriteLine("x+x=2x");
-							coefficientDict[key] = new Constant(2);
+							coefficientDict[otherNode] = new Constant(2);
 							isNew = false;
 							break;
 						}
 
 						// a + c*a ---> (c+1)*a
 						{
-							(bool isMatch, var wildcards) = TreeUtils.MatchPattern(node,
-								  new Mult(
-										 new Wildcard('c'),
-										 new Wildcard('a')
-										 ));
+							bool isMatch = TreeUtils.MatchPattern(
+									node,
+									new Mult(
+											new Wildcard('c'),
+											new Wildcard('a')
+											),
+									out wildcards
+							);
 
-							if (isMatch && TreeUtils.AreTreesEqual(wildcards['a'], node))
+							if (isMatch && TreeUtils.MatchPattern(wildcards['a'], node, out _))
 							{
 								Console.WriteLine("a+ca=(c+1)a");
-								coefficientDict[key] = new Add(
+								coefficientDict[otherNode] = new Add(
 											wildcards['c'],
 											new Constant(1)
 										);
@@ -366,35 +370,42 @@ namespace DerivativeCalculator
 			}
 
 			// a + a = 2a
-			{
-				(bool isMatch, var wildcards) = TreeUtils.MatchPattern(this, 
-					  new Add(
-							 new Wildcard('a'),
-							 new Wildcard('a')
-							 ));
-
-				if (isMatch)
-					return new Mult(
-						 new Constant(2),
-						 wildcards['a']
-					);
-			}
-			// c*a + a = (c+1)*a
-			{
-				(bool isMatch, var wildcards) = TreeUtils.MatchPattern(this,
-					  new Add(
-						  new Mult(
-								new Wildcard('c'),
-								new Wildcard('a')
-								),
+			if (
+				TreeUtils.MatchPattern(
+					this,
+					new Add(
+							new Wildcard('a'),
 							new Wildcard('a')
-						));
+							), 
+					out wildcards
+				)
+			)
+			{
+				return new Mult(
+						new Constant(2),
+						wildcards['a']
+				);
+			}
 
-				if (isMatch)
-					return new Mult(
-						 new Add(wildcards['c'], new Constant(1)),
-						 wildcards['a']
-					);
+			// c*a + a = (c+1)*a
+			if (
+				TreeUtils.MatchPattern(
+					this,
+					new Add(
+							  new Mult(
+									new Wildcard('c'),
+									new Wildcard('a')
+									),
+								new Wildcard('a')
+							),
+					out wildcards
+				)
+			)
+			{
+				return new Mult(
+					 new Add(wildcards['c'], new Constant(1)),
+					 wildcards['a']
+				);
 			}
 
 			return this;
