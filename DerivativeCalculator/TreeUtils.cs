@@ -276,10 +276,10 @@ namespace DerivativeCalculator
 				prevTree = resultTree;
 				resultTree = CopyTree(prevTree).Eval().Simplify();
 
-				Console.WriteLine("---------prev----------");
-				PrintTree(prevTree);
-				Console.WriteLine("--------result---------");
-				PrintTree(resultTree);
+				//Console.WriteLine("---------prev----------");
+				//PrintTree(prevTree);
+				//Console.WriteLine("--------result---------");
+				//PrintTree(resultTree);
 
 			} while (AreTreesEqual(resultTree, prevTree) == false);
 

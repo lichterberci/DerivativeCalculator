@@ -8,6 +8,7 @@ namespace DerivativeCalculatorWebsite.Pages
 {
 	public class IndexModel : PageModel
 	{
+
 		private readonly ILogger<IndexModel> _logger;
 
 		public IndexModel(ILogger<IndexModel> logger)
@@ -29,7 +30,7 @@ namespace DerivativeCalculatorWebsite.Pages
 
 			ViewData["DerivativeInput"] = input;
 
-			string output = Manager.DifferentiateString(input);
+			string output = DerivativeCalculator.DerivativeManager.DifferentiateString(input);
 
 			ViewData["DerivativeOutput"] = output;
 		}

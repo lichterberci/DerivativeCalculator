@@ -11,10 +11,39 @@
 <div class="text-center">
     <h1 class="display-4">Welcome</h1>
     <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-    <p>@ViewData["DerivativeInput"]</p>
     <p>@ViewData["DerivativeOutput"]</p>
     <p>
-        When \(a \ne 0\), there are two solutions to \(ax^2 + bx + c = 0\) and they are
+        When \(a \ne 0\), there are two fasz to \(ax^2 + bx + c = 0\) and they are
         $$x = {-b \pm \sqrt{b^2-4ac} \over 2a}.$$
     </p>
+
+    <p>
+        Add meg mit szeretnél lederiválni Tasi Masinak.
+    </p>
+
+    <form method="post">
+        <fieldset> 
+            <label for="DerivateInput">f(x) = </label>
+            <input type="text" name="DerivateInput" value="" />
+            <div>
+                <label>&nbsp;</label>s
+                <input type="submit" value="Deriváljunk!" class="submit" />
+            </div>
+        </fieldset>
+    </form>
+
+    @{
+        if (HttpMethods.IsPost(Request.Method))
+        {
+
+            string input = Request.Form["DerivateInput"];
+
+            string DerivativeOutput = DerivativeCalculator.DerivativeManager.DifferentiateString(input);
+
+            <text>
+                Eredmény: $$ @DerivativeOutput $$
+            </text>
+        }
+    }
+
 </div>
