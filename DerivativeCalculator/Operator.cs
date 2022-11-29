@@ -304,6 +304,25 @@ namespace DerivativeCalculator
 							break;
 						}
 
+						// c*a + a ---> (c+1)*a
+						if (TreeUtils.MatchPattern(
+							otherNode,
+							new Mult(
+								new Wildcard('c'),
+								node
+							),
+							out wildcards
+						))
+						{
+							coefficientDict.Remove(otherNode);
+							coefficientDict[node] = new Add(
+										wildcards['c'],
+										new Constant(1)
+									);
+							addToDict = false;
+							break;
+						}
+
 						// c*a + d*a ---> (c+d)*a
 						if (TreeUtils.MatchPattern(
 							node,
@@ -546,6 +565,26 @@ namespace DerivativeCalculator
 						))
 						{
 							powerDict[otherNode] = new Add(
+										wildcards['c'],
+										powerDict[otherNode]
+									);
+							addToDict = false;
+							break;
+						}
+
+						//   node     othernode
+						//     a   *     a^c   ---> a^(c+1)
+						if (TreeUtils.MatchPattern(
+							otherNode,
+							new Pow(
+								node,
+								new Wildcard('c')
+							),
+							out wildcards
+						))
+						{
+							powerDict.Remove(otherNode);
+							powerDict[node] = new Add(
 										wildcards['c'],
 										new Constant(1)
 									);
