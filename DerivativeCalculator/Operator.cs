@@ -221,6 +221,29 @@ namespace DerivativeCalculator
 				return IsOperatorTypeCommutative(this.type);
 			} 
 		}
+		public static OperatorType? GetInverse (OperatorType type)
+		{
+			switch (type)
+			{
+				case OperatorType.Add:
+					return OperatorType.Sub;
+				case OperatorType.Sub:
+					return OperatorType.Add;
+				case OperatorType.Mult:
+					return OperatorType.Div;
+				case OperatorType.Div:
+					return OperatorType.Mult;
+				default:
+					return null;
+			}
+		}
+		public OperatorType? inverseType
+		{
+			get
+			{
+				return GetInverse(this.type);
+			}
+		}
 	}
 
 	public sealed class Add : Operator
@@ -243,14 +266,17 @@ namespace DerivativeCalculator
 			return new Add(operand1.Diff(varToDiff), operand2.Diff(varToDiff));
 		}
 
-		public override TreeNode Simplify()
+		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
 		{
-			operand1 = operand1.Simplify();
-			operand2 = operand2.Simplify();
+			if (skipSimplificationOfChildren == false)
+			{
+				operand1 = operand1.Simplify();
+				operand2 = operand2.Simplify();
+			}
 
 			// associative things
 
-			var operands = TreeUtils.GetAssociativeOperands(this, type);
+			var operands = TreeUtils.GetAssociativeOperands(this, type, inverseType);
 
 			Dictionary<char, TreeNode> wildcards;
 
@@ -258,126 +284,133 @@ namespace DerivativeCalculator
 			{
 				var coefficientDict = new Dictionary<TreeNode, TreeNode>();
 
-				foreach (var node in operands)
+				foreach ((var node, bool isNodeInverse) in operands)
 				{
 					bool addToDict = true;
 
 					foreach (var otherNode in coefficientDict.Keys)
 					{
-						// +0 --> just skip
-						if (TreeUtils.MatchPattern(
-							node.Eval(),
-							new Constant(0),
-							out wildcards
-						))
-						{
-							addToDict = false;
-							break;
-						}
+						if (isNodeInverse == false) 
+						{ 
+							// +0 --> just skip
+							if (TreeUtils.MatchPattern(
+								node.Eval(),
+								new Constant(0),
+								out wildcards
+							))
+							{
+								addToDict = false;
+								break;
+							}
 
-						// x + x ---> 2x
-						if (TreeUtils.MatchPattern(node, otherNode, out _))
-						{
-							coefficientDict[otherNode] = new Add(
-								  coefficientDict[otherNode],
-									new Constant(1)
-								);
-							addToDict = false;
-							break;
-						}
-
-						// a + c*a ---> (c+1)*a
-						if (TreeUtils.MatchPattern(
-							node,
-							new Mult(
-								new Wildcard('c'),
-								otherNode
-							),
-							out wildcards
-						))
-						{
-							coefficientDict[otherNode] = new Add(
-										wildcards['c'],
-										coefficientDict[otherNode]
-									);
-							addToDict = false;
-							break;
-						}
-
-						// c*a + a ---> (c+1)*a
-						if (TreeUtils.MatchPattern(
-							otherNode,
-							new Mult(
-								new Wildcard('c'),
-								node
-							),
-							out wildcards
-						))
-						{
-							coefficientDict.Remove(otherNode);
-							coefficientDict[node] = new Add(
-										wildcards['c'],
+							// x + x ---> 2x
+							if (TreeUtils.MatchPattern(node, otherNode, out _))
+							{
+								coefficientDict[otherNode] = new Add(
+									  coefficientDict[otherNode],
 										new Constant(1)
 									);
-							addToDict = false;
-							break;
-						}
+								addToDict = false;
+								break;
+							}
 
-						// c*a + d*a ---> (c+d)*a
-						if (TreeUtils.MatchPattern(
-							node,
-							new Mult(
-								new Wildcard('a'),
-								new Wildcard('b')
-							),
-							out wildcards
-						))
-						{
-							TreeNode a = wildcards['a'];
-							TreeNode b = wildcards['b'];
+							// a + c*a ---> (c+1)*a
+							if (TreeUtils.MatchPattern(
+								node,
+								new Mult(
+									new Wildcard('c'),
+									otherNode
+								),
+								out wildcards
+							))
+							{
+								coefficientDict[otherNode] = new Add(
+											wildcards['c'],
+											coefficientDict[otherNode]
+										);
+								addToDict = false;
+								break;
+							}
 
+							// c*a + a ---> (c+1)*a
 							if (TreeUtils.MatchPattern(
 								otherNode,
 								new Mult(
 									new Wildcard('c'),
-									new Wildcard('d')
-									),
-								out wildcards)
-							)
+									node
+								),
+								out wildcards
+							))
 							{
-								TreeNode c = wildcards['c'];
-								TreeNode d = wildcards['d'];
-
-								// eg.: a == c --> a(b+d)
-								bool ac = TreeUtils.MatchPattern(a, c, out _);
-								bool ad = TreeUtils.MatchPattern(a, d, out _);
-								bool bc = TreeUtils.MatchPattern(b, c, out _);
-								bool bd = TreeUtils.MatchPattern(b, d, out _);
-
-								(TreeNode? key, TreeNode? value1, TreeNode? value2) = (
-									ac ? (a, b, d) :
-									ad ? (a, b, c) :
-									bc ? (b, a, d) :
-									bd ? (b, a, c) :
-									(null, null, null)
-								);
-
-								if (key is not null && value1 is not null && value2 is not null)
-								{
-									coefficientDict.Remove(otherNode);
-
-									if (coefficientDict.ContainsKey(key) == false)
-										coefficientDict[key] = new Add(value1, value2);
-									else
-										coefficientDict[key] = new Add(
-											coefficientDict[key],
-											new Add(value1, value2)
+								coefficientDict.Remove(otherNode);
+								coefficientDict[node] = new Add(
+											wildcards['c'],
+											new Constant(1)
 										);
+								addToDict = false;
+								break;
+							}
 
-									addToDict = false;
-									break;
+							// c*a + d*a ---> (c+d)*a
+							if (TreeUtils.MatchPattern(
+								node,
+								new Mult(
+									new Wildcard('a'),
+									new Wildcard('b')
+								),
+								out wildcards
+							))
+							{
+								TreeNode a = wildcards['a'];
+								TreeNode b = wildcards['b'];
+
+								if (TreeUtils.MatchPattern(
+									otherNode,
+									new Mult(
+										new Wildcard('c'),
+										new Wildcard('d')
+										),
+									out wildcards)
+								)
+								{
+									TreeNode c = wildcards['c'];
+									TreeNode d = wildcards['d'];
+
+									// eg.: a == c --> a(b+d)
+									bool ac = TreeUtils.MatchPattern(a, c, out _);
+									bool ad = TreeUtils.MatchPattern(a, d, out _);
+									bool bc = TreeUtils.MatchPattern(b, c, out _);
+									bool bd = TreeUtils.MatchPattern(b, d, out _);
+
+									(TreeNode? key, TreeNode? value1, TreeNode? value2) = (
+										ac ? (a, b, d) :
+										ad ? (a, b, c) :
+										bc ? (b, a, d) :
+										bd ? (b, a, c) :
+										(null, null, null)
+									);
+
+									if (key is not null && value1 is not null && value2 is not null)
+									{
+										coefficientDict.Remove(otherNode);
+
+										if (coefficientDict.ContainsKey(key) == false)
+											coefficientDict[key] = new Add(value1, value2);
+										else
+											coefficientDict[key] = new Add(
+												coefficientDict[key],
+												new Add(value1, value2)
+											);
+
+										addToDict = false;
+										break;
+									}
 								}
 							}
+						}
+						else
+						{
+							// it is an inverse
 						}
 					}
 
@@ -385,27 +418,49 @@ namespace DerivativeCalculator
 						continue;
 
 					// new entry
-					if (node is Constant)
-						coefficientDict[new Constant(1)] = node;
+					if (node is Constant constant)
+						coefficientDict[new Constant(1)] = isNodeInverse ? node : new Constant(-constant.value);
 					else
-						coefficientDict[node] = new Constant(1);
+						coefficientDict[node] = new Constant(isNodeInverse ? -1 : 1);
 				}
+
+				if (coefficientDict.Keys.Count == 0)
+					return new Constant(0);
 
 				// if we have managed to simplify to a single expression
 				if (coefficientDict.Keys.Count == 1)
 					return new Mult(
-						coefficientDict.Keys.First(),
-						coefficientDict.Values.First()
+						coefficientDict.Keys.Last(),
+						coefficientDict.Values.Last()
 					);
 
-				// build back the tree
-				Operator head = new Add(null, null);
-				Operator root = head;
+				// we build 2 trees: one for the additions and one for the subtractions (both with the + operator in them)
+				// then we just subtract the subtraction tree from the addition tree
+				// everything that has a negative coefficient, goes in the subtraction tree,
+				// everythnig else into the addition tree
 
-				while (coefficientDict.Keys.Count >= 2)
+				var additionList = new List<(TreeNode, TreeNode)>();
+				var subtractionList = new List<(TreeNode, TreeNode)>();
+
+				foreach ((var key, var coeff) in coefficientDict)
 				{
-					var key = coefficientDict.Keys.First(); // a (from c*a)
-					var coeff = coefficientDict[key]; // c (from c*a) 
+					if (coeff.Eval() is Constant { value: < 0 })
+					{
+						subtractionList.Add((key, coeff));
+					}
+					else
+					{
+						additionList.Add((key, coeff));
+					}
+				}
+
+				Operator head = new Add(null, null);
+
+				TreeNode additionRoot = head;
+
+				while (additionList.Count >= 2)
+				{
+					(var key, var coeff) = additionList.Last();
 
 					if (coeff is Constant { value: 1 })
 					{
@@ -419,12 +474,11 @@ namespace DerivativeCalculator
 							);
 					}
 
-					coefficientDict.Remove(key);
+					additionList.Remove((key, coeff));
 
-					if (coefficientDict.Keys.Count == 1)
+					if (additionList.Count == 1)
 					{
-						var key2 = coefficientDict.Keys.First(); // a (from c*a)
-						var coeff2 = coefficientDict[key2]; // c (from c*a)
+						(var key2, var coeff2) = additionList.Last();
 
 						if (coeff2 is Constant { value: 1 })
 						{
@@ -438,7 +492,7 @@ namespace DerivativeCalculator
 								);
 						}
 
-						coefficientDict.Remove(key);
+						additionList.Remove((key, coeff));
 					}
 					else
 					{
@@ -447,8 +501,97 @@ namespace DerivativeCalculator
 					}
 				}
 
-				// we are finished
-				return root;
+				if (additionList.Count == 1)
+				{
+					// a - (b + c + d + ...)
+					additionRoot = new Mult(
+						additionList.First().Item2,
+						additionList.First().Item1 
+					);
+				}
+				else
+				{
+					// -(a+b+c+...)
+					additionRoot = new Constant(0);
+				}
+
+				// build the subtraction tree
+
+				head = new Add(null, null);
+				TreeNode subtractionRoot = head;
+
+				while (subtractionList.Count >= 2)
+				{
+					(var key, var coeff) = subtractionList.Last();
+
+					if (coeff is not Constant)
+					{
+						throw new Exception("coeff should be a constant!!!");
+					}
+
+					(coeff as Constant).value *= -1;
+
+					if (coeff is Constant { value: 1 })
+					{
+						head.operand1 = key;
+					}
+					else
+					{
+						head.operand1 = new Mult(
+								coeff,
+								key
+							);
+					}
+
+					subtractionList.Remove((key, coeff));
+
+					if (subtractionList.Count == 1)
+					{
+						(var key2, var coeff2) = subtractionList.Last();
+
+						if (coeff2 is not Constant)
+						{
+							throw new Exception("coeff2 should be a constant!!!");
+						}
+
+						(coeff2 as Constant).value *= -1;
+
+						if (coeff2 is Constant { value: 1 })
+						{
+							head.operand2 = key2;
+						}
+						else
+						{
+							head.operand2 = new Mult(
+									coeff2,
+									key2
+								);
+						}
+
+						subtractionList.Remove((key2, coeff2));
+					}
+					else
+					{
+						head.operand2 = new Add(null, null);
+						head = head.operand2 as Operator;
+					}
+				}
+
+				if (subtractionList.Count == 1)
+				{
+					// (b + c + d + ...) - a
+					subtractionRoot = new Mult(
+						subtractionList.First().Item2,
+						subtractionList.First().Item1
+					);
+				}
+				else
+				{
+					// (b + c + d + ...)
+					return additionRoot;
+				}
+
+				return new Sub(additionRoot, subtractionRoot);
 			}
 
 			return this;
@@ -473,6 +616,20 @@ namespace DerivativeCalculator
 		public override TreeNode Diff(char varToDiff)
 		{
 			return new Sub(operand1.Diff(varToDiff), operand2.Diff(varToDiff));
+		}
+
+		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
+		{
+			if (skipSimplificationOfChildren == false)
+			{
+				operand1 = operand1.Simplify();
+				operand2 = operand2.Simplify();
+			}
+
+			return new Add(
+				new Constant(0),
+				this
+			).Simplify(true);
 		}
 	}
 
@@ -505,10 +662,13 @@ namespace DerivativeCalculator
 			);
 		}
 
-		public override TreeNode Simplify()
+		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
 		{
-			operand1 = operand1.Simplify();
-			operand2 = operand2.Simplify();
+			if (skipSimplificationOfChildren == false)
+			{
+				operand1 = operand1.Simplify();
+				operand2 = operand2.Simplify();
+			}
 
 			// associative things
 
@@ -518,7 +678,7 @@ namespace DerivativeCalculator
 			//	return wildcards['a'];
 			//return this;
 
-			var operands = TreeUtils.GetAssociativeOperands(this, type);
+			var operands = TreeUtils.GetAssociativeOperands(this, type, inverseType);
 
 			double constantPart = 1.0;
 
@@ -526,130 +686,137 @@ namespace DerivativeCalculator
 			{
 				var powerDict = new Dictionary<TreeNode, TreeNode>();
 
-				foreach (var node in operands)
+				foreach ((var node, bool isNodeInverse) in operands)
 				{
 					bool addToDict = true;
 
 					foreach (var otherNode in powerDict.Keys)
 					{
-						// *1 ---> skip
-						if (TreeUtils.MatchPattern(
-							node.Eval(),
-							new Constant(1),
-							out wildcards
-						))
+						if (isNodeInverse == false)
 						{
-							addToDict = false;
-							break;
-						}
+							// *1 ---> skip
+							if (TreeUtils.MatchPattern(
+								node.Eval(),
+								new Constant(1),
+								out wildcards
+							))
+							{
+								addToDict = false;
+								break;
+							}
 
-						// *0 = 0
-						if (TreeUtils.MatchPattern(
-							node.Eval(),
-							new Constant(0),
-							out wildcards
-						))
-						{
-							return new Constant(0);
-						}
+							// *0 = 0
+							if (TreeUtils.MatchPattern(
+								node.Eval(),
+								new Constant(0),
+								out wildcards
+							))
+							{
+								return new Constant(0);
+							}
 
-						// othernode    node
-						//     a     *   a^c   ---> a^(c+1)
-						if (TreeUtils.MatchPattern(
-							node,
-							new Pow(
-								otherNode,
-								new Wildcard('c')
-							),
-							out wildcards
-						))
-						{
-							powerDict[otherNode] = new Add(
-										wildcards['c'],
-										powerDict[otherNode]
-									);
-							addToDict = false;
-							break;
-						}
-
-						//   node     othernode
-						//     a   *     a^c   ---> a^(c+1)
-						if (TreeUtils.MatchPattern(
-							otherNode,
-							new Pow(
+							// othernode    node
+							//     a     *   a^c   ---> a^(c+1)
+							if (TreeUtils.MatchPattern(
 								node,
-								new Wildcard('c')
-							),
-							out wildcards
-						))
-						{
-							powerDict.Remove(otherNode);
-							powerDict[node] = new Add(
-										wildcards['c'],
-										new Constant(1)
-									);
-							addToDict = false;
-							break;
-						}
+								new Pow(
+									otherNode,
+									new Wildcard('c')
+								),
+								out wildcards
+							))
+							{
+								powerDict[otherNode] = new Add(
+											wildcards['c'],
+											powerDict[otherNode]
+										);
+								addToDict = false;
+								break;
+							}
 
-						// x * x ---> x^2
-						if (TreeUtils.MatchPattern(node, otherNode, out _))
-						{
-							powerDict[otherNode] = new Constant(2);
-							addToDict = false;
-							break;
-						}
-
-						// a^b * a^c ---> a^(b+c)
-						if (TreeUtils.MatchPattern(
-							node,
-							new Pow(
-								new Wildcard('a'),
-								new Wildcard('b')
-							),
-							out wildcards
-						))
-						{
-							TreeNode a = wildcards['a'];
-							TreeNode b = wildcards['b'];
-
+							//   node     othernode
+							//     a   *     a^c   ---> a^(c+1)
 							if (TreeUtils.MatchPattern(
 								otherNode,
 								new Pow(
-									new Wildcard('c'),
-									new Wildcard('d')
-									),
-								out wildcards)
-							)
+									node,
+									new Wildcard('c')
+								),
+								out wildcards
+							))
 							{
-								TreeNode c = wildcards['c'];
-								TreeNode d = wildcards['d'];
-
-								// eg.: a == c --> a^(b+d)
-								bool ac = TreeUtils.MatchPattern(a, c, out _);
-
-								// we only care about matching bases
-								(TreeNode? key, TreeNode? value1, TreeNode? value2) = (
-									ac ? (a, b, d) :
-									(null, null, null)
-								);
-
-								if (key is not null && value1 is not null && value2 is not null)
-								{
-									powerDict.Remove(otherNode);
-
-									if (powerDict.ContainsKey(key) == false)
-										powerDict[key] = new Add(value1, value2);
-									else
-										powerDict[key] = new Add(
-											powerDict[key],
-											new Add(value1, value2)
+								powerDict.Remove(otherNode);
+								powerDict[node] = new Add(
+											wildcards['c'],
+											new Constant(1)
 										);
+								addToDict = false;
+								break;
+							}
 
-									addToDict = false;
-									break;
+							// x * x ---> x^2
+							if (TreeUtils.MatchPattern(node, otherNode, out _))
+							{
+								powerDict[otherNode] = new Constant(2);
+								addToDict = false;
+								break;
+							}
+
+							// a^b * a^c ---> a^(b+c)
+							if (TreeUtils.MatchPattern(
+								node,
+								new Pow(
+									new Wildcard('a'),
+									new Wildcard('b')
+								),
+								out wildcards
+							))
+							{
+								TreeNode a = wildcards['a'];
+								TreeNode b = wildcards['b'];
+
+								if (TreeUtils.MatchPattern(
+									otherNode,
+									new Pow(
+										new Wildcard('c'),
+										new Wildcard('d')
+										),
+									out wildcards)
+								)
+								{
+									TreeNode c = wildcards['c'];
+									TreeNode d = wildcards['d'];
+
+									// eg.: a == c --> a^(b+d)
+									bool ac = TreeUtils.MatchPattern(a, c, out _);
+
+									// we only care about matching bases
+									(TreeNode? key, TreeNode? value1, TreeNode? value2) = (
+										ac ? (a, b, d) :
+										(null, null, null)
+									);
+
+									if (key is not null && value1 is not null && value2 is not null)
+									{
+										powerDict.Remove(otherNode);
+
+										if (powerDict.ContainsKey(key) == false)
+											powerDict[key] = new Add(value1, value2);
+										else
+											powerDict[key] = new Add(
+												powerDict[key],
+												new Add(value1, value2)
+											);
+
+										addToDict = false;
+										break;
+									}
 								}
 							}
+						}
+						else
+						{
+							// node is inverse
 						}
 					}
 
@@ -658,15 +825,13 @@ namespace DerivativeCalculator
 
 					// new entry
 					if (node is Constant constant)
-						constantPart *= constant.value;
+						if (isNodeInverse == false)
+							constantPart *= constant.value;
+						else
+							constantPart /= constant.value;
 					else
-						powerDict[node] = new Constant(1);
+						powerDict[node] = new Constant(isNodeInverse ? -1 : 1);
 				}
-
-				// build back the tree
-
-				Operator head = new Mult(null, null);
-				Operator root = head;
 
 				if (constantPart != 1.0)
 					powerDict.Add(new Constant(constantPart), new Constant(1));
@@ -681,10 +846,31 @@ namespace DerivativeCalculator
 						powerDict.Values.First()
 					);
 
-				while (powerDict.Keys.Count >= 2)
+				// building 2 trees
+				// same trick, as with the addition / subtraction
+
+				var multList = new List<(TreeNode, TreeNode)>();
+				var divList = new List<(TreeNode, TreeNode)>();
+
+				foreach ((var key, var power) in powerDict)
 				{
-					var key = powerDict.Keys.First(); // a (from c*a)
-					var pow = powerDict[key]; // c (from c*a) 
+					if (power is Constant { value: < 0 })
+					{
+						divList.Add((key, power));
+					}
+					else
+					{
+						multList.Add((key, power));
+					}
+				}
+
+				Operator head = new Mult(null, null);
+
+				TreeNode multRoot = head;
+
+				while (multList.Count >= 2)
+				{
+					(var key, var pow) = multList.Last();
 
 					if (pow is Constant { value: 1 })
 					{
@@ -698,12 +884,11 @@ namespace DerivativeCalculator
 							);
 					}
 
-					powerDict.Remove(key);
+					multList.Remove((key, pow));
 
-					if (powerDict.Keys.Count == 1)
+					if (multList.Count == 1)
 					{
-						var key2 = powerDict.Keys.First(); // a (from c*a)
-						var pow2 = powerDict[key2]; // c (from c*a)
+						(var key2, var pow2) = multList.Last();
 
 						if (pow2 is Constant { value: 1 })
 						{
@@ -717,7 +902,7 @@ namespace DerivativeCalculator
 								);
 						}
 
-						powerDict.Remove(key);
+						multList.Remove((key2, pow2));
 					}
 					else
 					{
@@ -726,8 +911,78 @@ namespace DerivativeCalculator
 					}
 				}
 
-				// we are finished
-				return root;
+				if (multList.Count == 1)
+				{
+					multRoot = new Pow(
+						multList.First().Item1,
+						multList.First().Item2
+					);
+				}
+				else
+				{
+					multRoot = new Constant(1);
+				}
+
+				head = new Mult(null, null);
+
+				TreeNode divRoot = head;
+
+				while (divList.Count >= 2)
+				{
+					(var key, var pow) = divList.Last();
+
+					if (pow is Constant { value: 1 })
+					{
+						head.operand1 = key;
+					}
+					else
+					{
+						head.operand1 = new Pow(
+								key,
+								pow
+							);
+					}
+
+					divList.Remove((key, pow));
+
+					if (multList.Count == 1)
+					{
+						(var key2, var pow2) = divList.Last();
+
+						if (pow2 is Constant { value: 1 })
+						{
+							head.operand2 = key2;
+						}
+						else
+						{
+							head.operand2 = new Pow(
+									key2,
+									pow2
+								);
+						}
+
+						divList.Remove((key2, pow2));
+					}
+					else
+					{
+						head.operand2 = new Mult(null, null);
+						head = head.operand2 as Operator;
+					}
+				}
+
+				if (divList.Count == 1)
+				{
+					divRoot = new Pow(
+						divList.First().Item1,	
+						divList.First().Item2
+					);
+				}
+				else
+				{
+					return multRoot;
+				}
+
+				return new Div(multRoot, divRoot);
 			}
 
 			return this;
@@ -761,6 +1016,20 @@ namespace DerivativeCalculator
 				),
 				new Pow (operand2, new Constant(2))
 			);
+		}
+
+		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
+		{
+			if (skipSimplificationOfChildren == false)
+			{
+				operand1 = operand1.Simplify();
+				operand2 = operand2.Simplify();
+			}
+
+			return new Mult(
+				new Constant(1),
+				this
+			).Simplify(true);
 		}
 	}
 
@@ -824,7 +1093,7 @@ namespace DerivativeCalculator
 			);
 		}
 
-		public override TreeNode Simplify()
+		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
 		{
 			operand1 = operand1.Simplify();
 			operand2 = operand2.Simplify();

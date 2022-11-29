@@ -43,7 +43,7 @@ namespace DerivativeCalculator
 		public virtual TreeNode Eval() => throw new NotImplementedException();
 		public virtual TreeNode Diff(char varToDiff) => throw new NotImplementedException();
 		public bool IsConstant (char varToDiff) => TreeUtils.IsExpressionConstant(this, varToDiff);
-		public virtual TreeNode Simplify() => this;
+		public virtual TreeNode Simplify(bool skipSimplificationOfChildren = false) => this;
 	}
 
 	public sealed class DerivativeSymbol : TreeNode
@@ -147,7 +147,7 @@ namespace DerivativeCalculator
 		{
 			return base.Eval();
 		}
-		public override TreeNode Simplify()
+		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
 		{
 			return base.Simplify();
 		}

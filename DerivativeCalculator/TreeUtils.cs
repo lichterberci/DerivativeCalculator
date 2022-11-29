@@ -288,21 +288,22 @@ namespace DerivativeCalculator
 			return resultTree;
 		}
 	
-		public static List<TreeNode> GetAssociativeOperands(TreeNode root, OperatorType type)
+		public static List<(TreeNode, bool)> GetAssociativeOperands(TreeNode root, OperatorType type, OperatorType? inverseType, bool isInverse = false)
 		{
 			if (root is null)
-				return new List<TreeNode> { root };
+				return new List<(TreeNode, bool)> { (null, isInverse) };
 
 			if (root is not Operator)
-				return new List<TreeNode> { root };
+				return new List<(TreeNode, bool)> { (root, isInverse) };
 
 			Operator op = root as Operator;
 
-			if (op.type != type)
-				return new List<TreeNode> { root };
+			if (op.type != type && op.type != inverseType)
+				return new List<(TreeNode, bool)> { (root, isInverse) };
 
-			var leftList = GetAssociativeOperands(op.operand1, type);
-			var rightList = GetAssociativeOperands(op.operand2, type);
+			// on inverses, we flip, but just on the right operand
+			var leftList = GetAssociativeOperands(op.operand1, type, inverseType, isInverse);
+			var rightList = GetAssociativeOperands(op.operand2, type, inverseType, op.type == inverseType ? !isInverse : isInverse); 
 
 			leftList.AddRange(rightList);
 
