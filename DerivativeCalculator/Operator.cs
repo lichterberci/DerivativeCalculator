@@ -419,7 +419,7 @@ namespace DerivativeCalculator
 
 					// new entry
 					if (node is Constant constant)
-						coefficientDict[new Constant(1)] = isNodeInverse ? node : new Constant(-constant.value);
+						coefficientDict[new Constant(1)] = isNodeInverse ? new Constant(-constant.value) : node;
 					else
 						coefficientDict[node] = new Constant(isNodeInverse ? -1 : 1);
 				}
@@ -457,50 +457,7 @@ namespace DerivativeCalculator
 				Operator head = new Add(null, null);
 
 				TreeNode additionRoot = head;
-
-				while (additionList.Count >= 2)
-				{
-					(var key, var coeff) = additionList.Last();
-
-					if (coeff is Constant { value: 1 })
-					{
-						head.operand1 = key;
-					}
-					else
-					{
-						head.operand1 = new Mult(
-								coeff,
-								key
-							);
-					}
-
-					additionList.Remove((key, coeff));
-
-					if (additionList.Count == 1)
-					{
-						(var key2, var coeff2) = additionList.Last();
-
-						if (coeff2 is Constant { value: 1 })
-						{
-							head.operand2 = key2;
-						}
-						else
-						{
-							head.operand2 = new Mult(
-									coeff2,
-									key2
-								);
-						}
-
-						additionList.Remove((key, coeff));
-					}
-					else
-					{
-						head.operand2 = new Add(null, null);
-						head = head.operand2 as Operator;
-					}
-				}
-
+								
 				if (additionList.Count == 1)
 				{
 					// a - (b + c + d + ...)
@@ -509,73 +466,62 @@ namespace DerivativeCalculator
 						additionList.First().Item1 
 					);
 				}
-				else
+				else if (additionList.Count == 0)
 				{
 					// -(a+b+c+...)
 					additionRoot = new Constant(0);
+				}
+				else
+				{
+					while (additionList.Count >= 2)
+					{
+						(var key, var coeff) = additionList.Last();
+
+						if (coeff is Constant { value: 1 })
+						{
+							head.operand1 = key;
+						}
+						else
+						{
+							head.operand1 = new Mult(
+									coeff,
+									key
+								);
+						}
+
+						additionList.Remove((key, coeff));
+
+						if (additionList.Count == 1)
+						{
+							(var key2, var coeff2) = additionList.Last();
+
+							if (coeff2 is Constant { value: 1 })
+							{
+								head.operand2 = key2;
+							}
+							else
+							{
+								head.operand2 = new Mult(
+										coeff2,
+										key2
+									);
+							}
+
+							additionList.Remove((key2, coeff2));
+						}
+						else
+						{
+							head.operand2 = new Add(null, null);
+							head = head.operand2 as Operator;
+						}
+					}
+
 				}
 
 				// build the subtraction tree
 
 				head = new Add(null, null);
 				TreeNode subtractionRoot = head;
-
-				while (subtractionList.Count >= 2)
-				{
-					(var key, var coeff) = subtractionList.Last();
-
-					if (coeff is not Constant)
-					{
-						throw new Exception("coeff should be a constant!!!");
-					}
-
-					(coeff as Constant).value *= -1;
-
-					if (coeff is Constant { value: 1 })
-					{
-						head.operand1 = key;
-					}
-					else
-					{
-						head.operand1 = new Mult(
-								coeff,
-								key
-							);
-					}
-
-					subtractionList.Remove((key, coeff));
-
-					if (subtractionList.Count == 1)
-					{
-						(var key2, var coeff2) = subtractionList.Last();
-
-						if (coeff2 is not Constant)
-						{
-							throw new Exception("coeff2 should be a constant!!!");
-						}
-
-						(coeff2 as Constant).value *= -1;
-
-						if (coeff2 is Constant { value: 1 })
-						{
-							head.operand2 = key2;
-						}
-						else
-						{
-							head.operand2 = new Mult(
-									coeff2,
-									key2
-								);
-						}
-
-						subtractionList.Remove((key2, coeff2));
-					}
-					else
-					{
-						head.operand2 = new Add(null, null);
-						head = head.operand2 as Operator;
-					}
-				}
 
 				if (subtractionList.Count == 1)
 				{
@@ -585,10 +531,77 @@ namespace DerivativeCalculator
 						subtractionList.First().Item1
 					);
 				}
-				else
+				else if (subtractionList.Count == 0)
 				{
 					// (b + c + d + ...)
 					return additionRoot;
+				}
+				else
+				{
+					while (subtractionList.Count >= 2)
+					{
+						(var key, var coeff) = subtractionList.Last();
+
+						if (coeff is not Constant)
+						{
+							throw new Exception("coeff should be a constant!!!");
+						}
+
+					(coeff as Constant).value *= -1;
+
+						if (coeff is Constant { value: 1 })
+						{
+							head.operand1 = key;
+						}
+						else if (key is Constant)
+						{
+							head.operand1 = coeff;
+						}
+						else
+						{
+							head.operand1 = new Mult(
+									coeff,
+									key
+								);
+						}
+
+						subtractionList.Remove((key, coeff));
+
+						if (subtractionList.Count == 1)
+						{
+							(var key2, var coeff2) = subtractionList.Last();
+
+							if (coeff2 is not Constant)
+							{
+								throw new Exception("coeff2 should be a constant!!!");
+							}
+
+							(coeff2 as Constant).value *= -1;
+
+							if (coeff2 is Constant { value: 1 })
+							{
+								head.operand2 = key2;
+							}
+							else if (key is Constant)
+							{
+								head.operand1 = coeff;
+							}
+							else
+							{
+								head.operand2 = new Mult(
+										coeff2,
+										key2
+									);
+							}
+
+							subtractionList.Remove((key2, coeff2));
+						}
+						else
+						{
+							head.operand2 = new Add(null, null);
+							head = head.operand2 as Operator;
+						}
+					}
 				}
 
 				return new Sub(additionRoot, subtractionRoot);
@@ -868,49 +881,6 @@ namespace DerivativeCalculator
 
 				TreeNode multRoot = head;
 
-				while (multList.Count >= 2)
-				{
-					(var key, var pow) = multList.Last();
-
-					if (pow is Constant { value: 1 })
-					{
-						head.operand1 = key;
-					}
-					else
-					{
-						head.operand1 = new Pow(
-								key,
-								pow
-							);
-					}
-
-					multList.Remove((key, pow));
-
-					if (multList.Count == 1)
-					{
-						(var key2, var pow2) = multList.Last();
-
-						if (pow2 is Constant { value: 1 })
-						{
-							head.operand2 = key2;
-						}
-						else
-						{
-							head.operand2 = new Pow(
-									key2,
-									pow2
-								);
-						}
-
-						multList.Remove((key2, pow2));
-					}
-					else
-					{
-						head.operand2 = new Mult(null, null);
-						head = head.operand2 as Operator;
-					}
-				}
-
 				if (multList.Count == 1)
 				{
 					multRoot = new Pow(
@@ -918,57 +888,60 @@ namespace DerivativeCalculator
 						multList.First().Item2
 					);
 				}
-				else
+				else if (multList.Count == 0)
 				{
 					multRoot = new Constant(1);
+				}
+				else
+				{
+					while (multList.Count >= 2)
+					{
+						(var key, var pow) = multList.Last();
+
+						if (pow is Constant { value: 1 })
+						{
+							head.operand1 = key;
+						}
+						else
+						{
+							head.operand1 = new Pow(
+									key,
+									pow
+								);
+						}
+
+						multList.Remove((key, pow));
+
+						if (multList.Count == 1)
+						{
+							(var key2, var pow2) = multList.Last();
+
+							if (pow2 is Constant { value: 1 })
+							{
+								head.operand2 = key2;
+							}
+							else
+							{
+								head.operand2 = new Pow(
+										key2,
+										pow2
+									);
+							}
+
+							multList.Remove((key2, pow2));
+						}
+						else
+						{
+							head.operand2 = new Mult(null, null);
+							head = head.operand2 as Operator;
+						}
+					}
 				}
 
 				head = new Mult(null, null);
 
 				TreeNode divRoot = head;
 
-				while (divList.Count >= 2)
-				{
-					(var key, var pow) = divList.Last();
-
-					if (pow is Constant { value: 1 })
-					{
-						head.operand1 = key;
-					}
-					else
-					{
-						head.operand1 = new Pow(
-								key,
-								pow
-							);
-					}
-
-					divList.Remove((key, pow));
-
-					if (multList.Count == 1)
-					{
-						(var key2, var pow2) = divList.Last();
-
-						if (pow2 is Constant { value: 1 })
-						{
-							head.operand2 = key2;
-						}
-						else
-						{
-							head.operand2 = new Pow(
-									key2,
-									pow2
-								);
-						}
-
-						divList.Remove((key2, pow2));
-					}
-					else
-					{
-						head.operand2 = new Mult(null, null);
-						head = head.operand2 as Operator;
-					}
-				}
 
 				if (divList.Count == 1)
 				{
@@ -977,9 +950,54 @@ namespace DerivativeCalculator
 						divList.First().Item2
 					);
 				}
-				else
+				else if (divList.Count == 0)
 				{
 					return multRoot;
+				}
+				else
+				{
+					while (divList.Count >= 2)
+					{
+						(var key, var pow) = divList.Last();
+
+						if (pow is Constant { value: 1 })
+						{
+							head.operand1 = key;
+						}
+						else
+						{
+							head.operand1 = new Pow(
+									key,
+									pow
+								);
+						}
+
+						divList.Remove((key, pow));
+
+						if (multList.Count == 1)
+						{
+							(var key2, var pow2) = divList.Last();
+
+							if (pow2 is Constant { value: 1 })
+							{
+								head.operand2 = key2;
+							}
+							else
+							{
+								head.operand2 = new Pow(
+										key2,
+										pow2
+									);
+							}
+
+							divList.Remove((key2, pow2));
+						}
+						else
+						{
+							head.operand2 = new Mult(null, null);
+							head = head.operand2 as Operator;
+						}
+					}
 				}
 
 				return new Div(multRoot, divRoot);
