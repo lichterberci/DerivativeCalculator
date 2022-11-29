@@ -444,11 +444,13 @@ namespace DerivativeCalculator
 
 				foreach ((var key, var coeff) in coefficientDict)
 				{
-					if (coeff.Eval() is Constant { value: < 0 })
+					if (coeff.Eval() is Constant { value: < 0 } c)
 					{
-						subtractionList.Add((key, coeff));
+						c.value *= -1;
+
+						subtractionList.Add((key, c));
 					}
-					else
+					else if (coeff.Eval() is not Constant { value: 0 })
 					{
 						additionList.Add((key, coeff));
 					}
@@ -461,10 +463,20 @@ namespace DerivativeCalculator
 				if (additionList.Count == 1)
 				{
 					// a - (b + c + d + ...)
-					additionRoot = new Mult(
-						additionList.First().Item2,
-						additionList.First().Item1 
-					);
+
+					(var key, var coeff) = additionList.First();
+
+					if (coeff is Constant { value: 1 })
+					{
+						additionRoot = key;
+					}
+					else
+					{
+						additionRoot = new Mult(
+							coeff,
+							key
+						);
+					}
 				}
 				else if (additionList.Count == 0)
 				{
@@ -526,10 +538,20 @@ namespace DerivativeCalculator
 				if (subtractionList.Count == 1)
 				{
 					// (b + c + d + ...) - a
-					subtractionRoot = new Mult(
-						subtractionList.First().Item2,
-						subtractionList.First().Item1
-					);
+
+					(var key, var coeff) = subtractionList.First();
+
+					if (coeff is Constant { value: 1})
+					{
+						subtractionRoot = key;
+					}
+					else
+					{
+						subtractionRoot = new Mult(
+							coeff,
+							key
+						);
+					}
 				}
 				else if (subtractionList.Count == 0)
 				{
@@ -546,8 +568,6 @@ namespace DerivativeCalculator
 						{
 							throw new Exception("coeff should be a constant!!!");
 						}
-
-					(coeff as Constant).value *= -1;
 
 						if (coeff is Constant { value: 1 })
 						{
@@ -575,8 +595,6 @@ namespace DerivativeCalculator
 							{
 								throw new Exception("coeff2 should be a constant!!!");
 							}
-
-							(coeff2 as Constant).value *= -1;
 
 							if (coeff2 is Constant { value: 1 })
 							{
@@ -867,9 +885,11 @@ namespace DerivativeCalculator
 
 				foreach ((var key, var power) in powerDict)
 				{
-					if (power is Constant { value: < 0 })
+					if (power is Constant { value: < 0 } pow)
 					{
-						divList.Add((key, power));
+						pow.value *= -1;
+
+						divList.Add((key, pow));
 					}
 					else
 					{
@@ -883,10 +903,19 @@ namespace DerivativeCalculator
 
 				if (multList.Count == 1)
 				{
-					multRoot = new Pow(
-						multList.First().Item1,
-						multList.First().Item2
-					);
+					(var key, var pow) = multList.First();
+
+					if (pow is Constant { value: 1 })
+					{
+						multRoot = key;
+					}
+					else
+					{
+						multRoot = new Pow(
+							key,
+							pow
+						);
+					}
 				}
 				else if (multList.Count == 0)
 				{
@@ -945,10 +974,19 @@ namespace DerivativeCalculator
 
 				if (divList.Count == 1)
 				{
-					divRoot = new Pow(
-						divList.First().Item1,	
-						divList.First().Item2
-					);
+					(var key, var pow) = divList.First();
+
+					if (pow is Constant { value: 1 })
+					{
+						divRoot = key;
+					}
+					else
+					{
+						divRoot = new Pow(
+							key,
+							pow
+						);
+					}
 				}
 				else if (divList.Count == 0)
 				{

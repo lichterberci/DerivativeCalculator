@@ -271,19 +271,20 @@ namespace DerivativeCalculator
 			TreeNode prevTree;
 			TreeNode resultTree = tree;
 
+			int iterations = 0;
+			const int maxIterations = 2;
+
 			do
 			{
 				prevTree = resultTree;
-				resultTree = CopyTree(prevTree);
-				resultTree = resultTree.Eval();
-				resultTree = resultTree.Simplify();
+				resultTree = CopyTree(prevTree).Eval().Simplify().Eval();
 
 				//Console.WriteLine("---------prev----------");
 				//PrintTree(prevTree);
 				//Console.WriteLine("--------result---------");
 				//PrintTree(resultTree);
 
-			} while (MatchPattern(resultTree, prevTree, out _) == false);
+			} while (MatchPattern(resultTree, prevTree, out _) == false && ++iterations < maxIterations);
 
 			return resultTree;
 		}
