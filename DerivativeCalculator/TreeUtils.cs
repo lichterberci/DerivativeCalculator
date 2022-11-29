@@ -274,14 +274,16 @@ namespace DerivativeCalculator
 			do
 			{
 				prevTree = resultTree;
-				resultTree = CopyTree(prevTree).Eval().Simplify();
+				resultTree = CopyTree(prevTree);
+				resultTree = resultTree.Eval();
+				resultTree = resultTree.Simplify();
 
 				//Console.WriteLine("---------prev----------");
 				//PrintTree(prevTree);
 				//Console.WriteLine("--------result---------");
 				//PrintTree(resultTree);
 
-			} while (AreTreesEqual(resultTree, prevTree) == false);
+			} while (MatchPattern(resultTree, prevTree, out _) == false);
 
 			return resultTree;
 		}

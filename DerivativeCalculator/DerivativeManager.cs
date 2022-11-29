@@ -91,7 +91,7 @@ namespace DerivativeCalculator
 				nodes = Parser.HandleNegativeSigns(nodes);
 				nodes = Parser.AddHiddenMultiplications(nodes);
 				nodes = Parser.ApplyParentheses(nodes);
-				//nodes.ForEach(n => Console.WriteLine(n));
+				nodes.ForEach(n => Console.WriteLine(n));
 
 				if (nodes.Count == 0)
 				{
@@ -115,19 +115,23 @@ namespace DerivativeCalculator
 
 			TreeNode diffTree;
 
-			try
-			{
-				if (withSteps)
-					diffTree = Differentiator.DifferentiateWithStepsRecorded(tree, varToDifferentiate);
-				else
-					diffTree = Differentiator.Differentiate(tree, varToDifferentiate);
-			}
-			catch (Exception e)
-			{
-				Console.WriteLine($"An error occured while differentiating! ({e.Message})" +
-					$"{e.StackTrace}");
-				return;
-			}
+			//try
+			//{
+			//	if (withSteps)
+			//		diffTree = Differentiator.DifferentiateWithStepsRecorded(tree, varToDifferentiate);
+			//	else
+			//		diffTree = Differentiator.Differentiate(tree, varToDifferentiate);
+			//}
+			//catch (Exception e)
+			//{
+			//	Console.WriteLine($"An error occured while differentiating! ({e.Message})" +
+			//		$"{e.StackTrace}");
+			//	return;
+			//}
+
+			Console.WriteLine(TreeUtils.CollapseTreeToString(tree));
+
+			diffTree = tree;
 
 			if (withSteps)
 			{

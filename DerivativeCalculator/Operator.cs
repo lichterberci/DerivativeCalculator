@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Dynamic;
 using System.Linq;
 using System.Net.Http.Headers;
 using System.Reflection.Metadata.Ecma335;
@@ -371,16 +372,16 @@ namespace DerivativeCalculator
 						coefficientDict[node] = new Constant(1);
 				}
 
-				// build back the tree
-
-				Operator head = new Add(null, null);
-
 				// if we have managed to simplify to a single expression
 				if (coefficientDict.Keys.Count == 1)
 					return new Mult(
-						coefficientDict.Values.First(),
-						coefficientDict.Keys.First()
+						coefficientDict.Keys.First(),
+						coefficientDict.Values.First()
 					);
+
+				// build back the tree
+				Operator head = new Add(null, null);
+				Operator root = head;
 
 				while (coefficientDict.Keys.Count >= 2)
 				{
@@ -428,7 +429,7 @@ namespace DerivativeCalculator
 				}
 
 				// we are finished
-				return head;
+				return root;
 			}
 
 			return this;
@@ -500,6 +501,8 @@ namespace DerivativeCalculator
 
 			var operands = TreeUtils.GetAssociativeOperands(this, type);
 
+			double constantPart = 1.0;
+
 			if (operands.Count >= 2)
 			{
 				var powerDict = new Dictionary<TreeNode, TreeNode>();
@@ -531,14 +534,6 @@ namespace DerivativeCalculator
 							return new Constant(0);
 						}
 
-						// x * x ---> x^2
-						if (TreeUtils.MatchPattern(node, otherNode, out _))
-						{
-							powerDict[otherNode] = new Constant(2);
-							addToDict = false;
-							break;
-						}
-
 						// othernode    node
 						//     a     *   a^c   ---> a^(c+1)
 						if (TreeUtils.MatchPattern(
@@ -554,6 +549,14 @@ namespace DerivativeCalculator
 										wildcards['c'],
 										new Constant(1)
 									);
+							addToDict = false;
+							break;
+						}
+
+						// x * x ---> x^2
+						if (TreeUtils.MatchPattern(node, otherNode, out _))
+						{
+							powerDict[otherNode] = new Constant(2);
 							addToDict = false;
 							break;
 						}
@@ -615,8 +618,8 @@ namespace DerivativeCalculator
 						continue;
 
 					// new entry
-					if (node is Constant)
-						powerDict[new Constant(1)] = node;
+					if (node is Constant constant)
+						constantPart *= constant.value;
 					else
 						powerDict[node] = new Constant(1);
 				}
@@ -624,6 +627,13 @@ namespace DerivativeCalculator
 				// build back the tree
 
 				Operator head = new Mult(null, null);
+				Operator root = head;
+
+				if (constantPart != 1.0)
+					powerDict.Add(new Constant(constantPart), new Constant(1));
+
+				if (powerDict.Keys.Count == 0)
+					return new Constant(1);
 
 				// if we have managed to simplify to a single expression
 				if (powerDict.Keys.Count == 1)
@@ -678,7 +688,7 @@ namespace DerivativeCalculator
 				}
 
 				// we are finished
-				return head;
+				return root;
 			}
 
 			return this;
