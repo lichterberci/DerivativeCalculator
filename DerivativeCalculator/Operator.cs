@@ -1130,7 +1130,7 @@ namespace DerivativeCalculator
 					if (pow is Constant { value: 1 })
 						return key;
 					else if (pow is Constant { value: -1 })
-						return new Div(1, key);
+						return new Div(new Constant(1), key);
 					else
 						return new Pow(
 							powerDict.Keys.First(),
