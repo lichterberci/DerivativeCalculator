@@ -1012,7 +1012,7 @@ namespace DerivativeCalculator
 
 						divList.Remove((key, pow));
 
-						if (multList.Count == 1)
+						if (divList.Count == 1)
 						{
 							(var key2, var pow2) = divList.Last();
 
