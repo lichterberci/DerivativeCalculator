@@ -1124,10 +1124,19 @@ namespace DerivativeCalculator
 
 				// if we have managed to simplify to a single expression
 				if (powerDict.Keys.Count == 1)
-					return new Pow(
-						powerDict.Keys.First(),
-						powerDict.Values.First()
-					);
+				{
+					(var key, var pow) = powerDict.First();
+
+					if (pow is Constant { value: 1 })
+						return key;
+					else if (pow is Constant { value: -1 })
+						return new Div(1, key);
+					else
+						return new Pow(
+							powerDict.Keys.First(),
+							powerDict.Values.First()
+						);
+				}
 
 				// building 2 trees
 				// same trick, as with the addition / subtraction
