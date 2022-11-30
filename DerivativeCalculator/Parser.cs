@@ -280,7 +280,7 @@ namespace DerivativeCalculator
 						if (
 							prevNode == null
 							|| prevNode is Operator
-							|| ((prevNode is Parenthesis) && (prevNode as Parenthesis).isOpeningParinthesis == false)
+							|| prevNode is Parenthesis { isOpeningParinthesis: true }
 						)
 						{
 							// it is a negative sign, so we replace '-' with a '(-1)*'
