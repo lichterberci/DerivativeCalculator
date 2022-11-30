@@ -52,9 +52,15 @@ namespace DerivativeCalculator
 				return "";
 			}
 
+			TreeNode diffTree;
+
 			try
 			{
-				TreeNode diffTree = Differentiator.DifferentiateWithStepsRecorded(tree, varToDifferentiate);
+				diffTree = Differentiator.DifferentiateWithStepsRecorded(tree, varToDifferentiate);
+
+				Console.WriteLine(TreeUtils.CollapseTreeToString(diffTree));
+
+				diffTree = TreeUtils.GetSimplestForm(diffTree);
 			}
 			catch (Exception e)
 			{
@@ -63,8 +69,9 @@ namespace DerivativeCalculator
 				return "";
 			}
 
+			Console.WriteLine(diffTree.ToLatexString());
 
-			return Differentiator.steps.Last();
+			return diffTree.ToLatexString();
 		}
 
 		public static void DifferentiateFromConsole(bool withSteps = true)
@@ -115,23 +122,23 @@ namespace DerivativeCalculator
 
 			TreeNode diffTree;
 
-			//try
-			//{
-			//	if (withSteps)
-			//		diffTree = Differentiator.DifferentiateWithStepsRecorded(tree, varToDifferentiate);
-			//	else
-			//		diffTree = Differentiator.Differentiate(tree, varToDifferentiate);
-			//}
-			//catch (Exception e)
-			//{
-			//	Console.WriteLine($"An error occured while differentiating! ({e.Message})" +
-			//		$"{e.StackTrace}");
-			//	return;
-			//}
+			try
+			{
+				if (withSteps)
+					diffTree = Differentiator.DifferentiateWithStepsRecorded(tree, varToDifferentiate);
+				else
+					diffTree = Differentiator.Differentiate(tree, varToDifferentiate);
+			}
+			catch (Exception e)
+			{
+				Console.WriteLine($"An error occured while differentiating! ({e.Message})" +
+					$"{e.StackTrace}");
+				return;
+			}
+
+			//diffTree = tree;
 
 			Console.WriteLine(TreeUtils.CollapseTreeToString(tree));
-
-			diffTree = tree;
 
 			if (withSteps)
 			{

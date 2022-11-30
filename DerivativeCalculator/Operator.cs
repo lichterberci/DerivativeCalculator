@@ -244,6 +244,13 @@ namespace DerivativeCalculator
 				return GetInverse(this.type);
 			}
 		}
+		public override string ToLatexString()
+		{
+			if (numOperands == 1)
+				return $@"{this.GetTypeString()}\left({{{operand1.ToLatexString()}}}\right)";
+			else
+				return $@"\left({{{operand1.ToLatexString()}}}\right){this.GetTypeString()}\left({{{operand2.ToLatexString()}}}\right)";
+		}
 	}
 
 	public sealed class Add : Operator
@@ -758,6 +765,11 @@ namespace DerivativeCalculator
 
 			return this;
 		}
+
+		public override string ToLatexString()
+		{
+			return $@"{{{operand1.ToLatexString()}}} + {{{operand2.ToLatexString()}}}";
+		}
 	}
 
 	public sealed class Sub : Operator
@@ -792,6 +804,16 @@ namespace DerivativeCalculator
 				new Constant(0),
 				this
 			).Simplify(true);
+		}
+
+		public override string ToLatexString()
+		{
+			bool leaveRightParenthesisOut = operand2 is not Operator || operand2 is Operator { basePriority: > 1 };
+
+			if (leaveRightParenthesisOut)
+				return $@"{{{operand1.ToLatexString()}}} - {{{operand2.ToLatexString()}}}";
+			else
+				return $@"{{{operand1.ToLatexString()}}} - \left({{{operand2.ToLatexString()}}}\right)";
 		}
 	}
 
@@ -1304,6 +1326,37 @@ namespace DerivativeCalculator
 
 			return this;
 		}
+
+		public override string ToLatexString()
+		{
+			bool switchOperandOrder = operand2 is Constant && operand1 is not Constant
+										|| (operand1 is Operator op1 && operand2 is Operator op2 && op1.basePriority > op2.basePriority)
+										|| (operand2 is Variable && operand1 is Operator { numOperands: 1 });
+
+			var leftOperand = switchOperandOrder ? operand2 : operand1;
+			var rightOperand = switchOperandOrder ? operand1 : operand2;
+
+			bool leaveLeftParenthesisOut = leftOperand is not Operator || leftOperand is Operator { basePriority: > 1 };
+			bool leaveRightParenthesisOut = rightOperand is not Operator || rightOperand is Operator { basePriority: > 1 };
+
+			bool leaveMultiplicationSignOut = (leftOperand is Constant ^ rightOperand is Constant)
+											|| (leftOperand is Operator { numOperands: 1 } && rightOperand is Operator { numOperands: 1 })
+											|| (leftOperand is Variable && rightOperand is Operator { numOperands: 1 })
+											|| (rightOperand is Variable && leftOperand is Operator { numOperands: 1 })
+											|| leaveRightParenthesisOut == false;
+
+
+			string leftPart = $"{{{(leaveLeftParenthesisOut ? "" : @"\left(")}" +
+								$"{leftOperand.ToLatexString()}" +
+								$"{(leaveLeftParenthesisOut ? "" : @"\right)")}}}";
+
+			string rightPart = $"{{{(leaveRightParenthesisOut ? "" : @"\left(")}" +
+								$"{rightOperand.ToLatexString()}" +
+								$"{(leaveRightParenthesisOut ? "" : @"\right)")}}}";
+
+			string multiplicationSign = leaveMultiplicationSignOut ? "" : @" \cdot ";
+			return $"{leftPart}{multiplicationSign}{rightPart}";
+		}
 	}
 
 	public sealed class Div : Operator
@@ -1347,6 +1400,11 @@ namespace DerivativeCalculator
 				new Constant(1),
 				this
 			).Simplify(true);
+		}
+
+		public override string ToLatexString()
+		{
+			return $@"\frac{{{operand1.ToLatexString()}}}{{{operand2.ToLatexString()}}}";
 		}
 	}
 
@@ -1412,14 +1470,87 @@ namespace DerivativeCalculator
 
 		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
 		{
-			operand1 = operand1.Simplify();
-			operand2 = operand2.Simplify();
+			if (skipSimplificationOfChildren == false)
+			{
+				operand1 = operand1.Simplify();
+				operand2 = operand2.Simplify();
+			}
 
 			if (operand2.Eval() is Constant { value: 1 })
 				return operand1;
 
+			if (operand1.Eval() is Constant { value: 0 })
+				return new Constant(1);
+
 			if (operand1.Eval() is Constant { value: 1 })
 				return new Constant(1);
+
+			if (operand1.Eval() is Constant { value: 0 })
+				return new Constant(0);
+
+			Dictionary<char, TreeNode> wildcards;
+
+
+			// (a^b)^c = a^(b*c)
+			if (TreeUtils.MatchPattern(
+				this,
+				new Pow(
+					new Pow(
+						new Wildcard('a'),
+						new Wildcard('b')
+					),
+					new Wildcard('c')
+				),
+				out wildcards
+			))
+			{
+				return new Pow(
+					wildcards['a'],
+					new Mult(
+						wildcards['b'],
+						wildcards['c']
+					)
+				);
+			}
+
+			// e^(lna*b) = a^b
+			if (TreeUtils.MatchPattern(
+				this,
+				new Pow(
+					Constant.E,
+					new Mult(
+						new Ln(new Wildcard('a')),
+						new Wildcard('b')
+					)
+				),
+				out wildcards
+			))
+			{
+				return new Pow(
+					wildcards['a'],
+					wildcards['b']
+				);
+			}
+
+			// 10^(loga*b) = a^b
+			if (TreeUtils.MatchPattern(
+				this,
+				new Pow(
+					new Constant(10),
+					new Mult(
+						new Log(new Wildcard('a')),
+						new Wildcard('b')
+					)
+				),
+				out wildcards
+			))
+			{
+				return new Pow(
+					wildcards['a'],
+					wildcards['b']
+				);
+			}
+
 
 			return this;
 		}

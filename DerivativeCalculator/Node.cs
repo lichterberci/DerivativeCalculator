@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -44,6 +45,7 @@ namespace DerivativeCalculator
 		public virtual TreeNode Diff(char varToDiff) => throw new NotImplementedException();
 		public bool IsConstant (char varToDiff) => TreeUtils.IsExpressionConstant(this, varToDiff);
 		public virtual TreeNode Simplify(bool skipSimplificationOfChildren = false) => this;
+		public virtual string ToLatexString () => this.ToPrettyString();
 	}
 
 	public sealed class DerivativeSymbol : TreeNode
@@ -60,6 +62,11 @@ namespace DerivativeCalculator
 		public override string ToPrettyString()
 		{
 			return $"d/d{varToDifferentiate}({TreeUtils.CollapseTreeToString(expression)})";
+		}
+
+		public override string ToLatexString()
+		{
+			return @$"\frac{{d}}{{d{varToDifferentiate}}}{expression.ToLatexString()}";
 		}
 
 		public override TreeNode Eval()
@@ -92,6 +99,11 @@ namespace DerivativeCalculator
 			return $"Constant({value.ToString("0.###")})";
 		}
 
+		public override string ToLatexString()
+		{
+			return value == Math.E ? "e" : value.ToString("0.###");
+		}
+
 		public override TreeNode Eval()
 		{
 			return this;
@@ -112,6 +124,10 @@ namespace DerivativeCalculator
 		}
 
 		public override string ToPrettyString()
+		{
+			return name.ToString();
+		}
+		public override string ToLatexString()
 		{
 			return name.ToString();
 		}
@@ -152,6 +168,10 @@ namespace DerivativeCalculator
 			return base.Simplify();
 		}
 		public override string ToPrettyString()
+		{
+			return "%%";
+		}
+		public override string ToLatexString()
 		{
 			return "%%";
 		}
