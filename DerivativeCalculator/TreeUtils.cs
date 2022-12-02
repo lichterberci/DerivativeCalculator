@@ -268,25 +268,21 @@ namespace DerivativeCalculator
 	
 		public static TreeNode GetSimplestForm (TreeNode tree)
 		{
-			TreeNode prevTree;
-			TreeNode resultTree = tree;
+			TreeNode _tree = CopyTree(tree);
+
+			string prevLatexString = "";
+
+			const int maxIterations = 10;
 
 			int iterations = 0;
-			const int maxIterations = 2;
 
 			do
 			{
-				prevTree = resultTree;
-				resultTree = CopyTree(prevTree).Eval().Simplify().Eval();
+				_tree = _tree.Eval().Simplify().Eval();
+			} 
+			while (prevLatexString != _tree.ToLatexString() && ++iterations < maxIterations);
 
-				//Console.WriteLine("---------prev----------");
-				//PrintTree(prevTree);
-				//Console.WriteLine("--------result---------");
-				//PrintTree(resultTree);
-
-			} while (MatchPattern(resultTree, prevTree, out _) == false && ++iterations < maxIterations);
-
-			return resultTree;
+			return _tree;
 		}
 	
 		public static List<(TreeNode, bool)> GetAssociativeOperands(TreeNode root, OperatorType type, OperatorType? inverseType, bool isInverse = false)

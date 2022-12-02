@@ -800,6 +800,34 @@ namespace DerivativeCalculator
 				operand2 = operand2.Simplify();
 			}
 
+			Dictionary<char, TreeNode> wildcards;
+
+			// b-(-a) = b+a
+			if (TreeUtils.MatchPattern(
+				operand2,
+				new Mult(
+					  new Constant(-1),
+					  new Wildcard('a')
+				),
+				out wildcards
+			))
+			{
+				return new Add(operand1, wildcards['a']).Simplify(false);
+			}
+
+			// b-(0-a) = b+a
+			if (TreeUtils.MatchPattern(
+				operand2,
+				new Sub(
+					  new Constant(0),
+					  new Wildcard('a')
+				),
+				out wildcards
+			))
+			{
+				return new Add(operand1, wildcards['a']).Simplify(false);
+			}
+
 			return new Add(
 				new Constant(0),
 				this
@@ -808,7 +836,21 @@ namespace DerivativeCalculator
 
 		public override string ToLatexString()
 		{
-			bool leaveRightParenthesisOut = operand2 is not Operator || operand2 is Operator { basePriority: > 1 };
+			bool leaveRightParenthesisOut = operand2 is not Operator 
+				|| operand2 is Operator { basePriority: > 1 } 
+				|| operand2 is Operator { numOperands: 1};
+
+			if (operand1 is Constant { value: 0 })
+			{
+				// it is just a sign
+
+				if (leaveRightParenthesisOut)
+				{
+					return $@"-{{{operand2.ToLatexString()}}}";
+				}
+
+				return $@"-\left({{{operand2.ToLatexString()}}}\right)";
+			}
 
 			if (leaveRightParenthesisOut)
 				return $@"{{{operand1.ToLatexString()}}} - {{{operand2.ToLatexString()}}}";
@@ -1105,16 +1147,18 @@ namespace DerivativeCalculator
 										(null, null, null)
 									);
 
+									// IMPORTANT: value2 - value1 is the new power!!!!
+
 									if (key is not null && value1 is not null && value2 is not null)
 									{
 										powerDict.Remove(otherNode);
 
 										if (powerDict.ContainsKey(key) == false)
-											powerDict[key] = new Sub(value1, value2);
+											powerDict[key] = new Sub(value2, value1);
 										else
 											powerDict[key] = new Add(
 												powerDict[key],
-												new Sub(value1, value2)
+												new Sub(value2, value1)
 											);
 
 										addToDict = false;
@@ -1340,15 +1384,21 @@ namespace DerivativeCalculator
 			bool leaveRightParenthesisOut = rightOperand is not Operator || rightOperand is Operator { basePriority: > 1 };
 
 			bool leaveMultiplicationSignOut = (leftOperand is Constant ^ rightOperand is Constant)
-											|| (leftOperand is Operator { numOperands: 1 } && rightOperand is Operator { numOperands: 1 })
-											|| (leftOperand is Variable && rightOperand is Operator { numOperands: 1 })
-											|| (rightOperand is Variable && leftOperand is Operator { numOperands: 1 })
+											|| (leftOperand is Variable && rightOperand is Variable)
+											|| rightOperand is Operator { numOperands: 1 }
+											|| rightOperand is Operator { basePriority: > 2 }
 											|| leaveRightParenthesisOut == false;
 
 
 			string leftPart = $"{{{(leaveLeftParenthesisOut ? "" : @"\left(")}" +
 								$"{leftOperand.ToLatexString()}" +
 								$"{(leaveLeftParenthesisOut ? "" : @"\right)")}}}";
+
+			if (leftOperand is Constant { value: -1 })
+			{
+				leftPart = "-";
+				leaveLeftParenthesisOut = true;
+			}
 
 			string rightPart = $"{{{(leaveRightParenthesisOut ? "" : @"\left(")}" +
 								$"{rightOperand.ToLatexString()}" +
@@ -1441,14 +1491,17 @@ namespace DerivativeCalculator
 			if (operand2.IsConstant(varToDiff))
 			{
 				return new Mult(
-					operand2,
-					new Pow(
-						operand1,
-						new Sub(
-							operand2, 
-							new Constant(1)
+					new Mult(
+						operand2,
+						new Pow(
+							operand1,
+							new Sub(
+								operand2, 
+								new Constant(1)
+							)
 						)
-					)
+					),
+					operand1.Diff(varToDiff)
 				);
 			}
 
@@ -1553,6 +1606,21 @@ namespace DerivativeCalculator
 
 
 			return this;
+		}
+
+		public override string ToLatexString()
+		{
+			bool leaveBaseParenthesisOut = operand1 is not Operator
+										|| operand1 is Operator { numOperands: 1 };
+			bool leavePowerParenthesisOut = operand2 is not Pow;
+
+			return $"{(leaveBaseParenthesisOut ? "" : @"\left(")}" +
+				$"{{{operand1.ToLatexString()}}}" +
+				$"{(leaveBaseParenthesisOut ? "" : @"\right)")}" +
+				$"^" +
+				$"{(leavePowerParenthesisOut ? "" : @"\left(")}" +
+				$"{{{operand2.ToLatexString()}}}" +
+				$"{(leavePowerParenthesisOut ? "" : @"\right)")}";
 		}
 	}
 
@@ -1673,7 +1741,7 @@ namespace DerivativeCalculator
 			return new Div(
 				operand1.Diff(varToDiff),
 				new Mult(
-					new Constant(Math.Log(10)),
+					new Ln(new Constant(10)),
 					operand1
 				)
 			);

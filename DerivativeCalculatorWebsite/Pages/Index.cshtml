@@ -9,24 +9,16 @@
 <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
 <div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-    <p>@ViewData["DerivativeOutput"]</p>
-    <p>
-        When \(a \ne 0\), there are two fasz to \(ax^2 + bx + c = 0\) and they are
-        $$x = {-b \pm \sqrt{b^2-4ac} \over 2a}.$$
-    </p>
-
     <p>
         Add meg mit szeretnél lederiválni Tasi Masinak.
     </p>
 
     <form method="post">
         <fieldset> 
-            <label for="DerivateInput">f(x) = </label>
-            <input type="text" name="DerivateInput" value="" />
+            @*<label for="derivativeInput">f(x) = </label>*@
+            <input type="text" name="derivativeInput" value="" />
             <div>
-                <label>&nbsp;</label>s
+                <label>&nbsp;</label>
                 <input type="submit" value="Deriváljunk!" class="submit" />
             </div>
         </fieldset>
@@ -36,14 +28,41 @@
         if (HttpMethods.IsPost(Request.Method))
         {
 
-            string input = Request.Form["DerivateInput"];
+            string derivativeInput = Request.Form["derivativeInput"];
 
-            string DerivativeOutput = DerivativeCalculator.DerivativeManager.DifferentiateString(input);
+            string prettyInput = "";
+            string prettySimplifiedInput = "";
+            
+            string derivativeOutput = "";
+            string errorString = "";
 
-            <text>
-                Eredmény: $$ @DerivativeOutput $$
-                Random test: $$e^{2x}$$ IT WORKS!!!!!!
-            </text>
+            try 
+            {
+                derivativeOutput = DerivativeCalculator.DerivativeManager.DifferentiateString(derivativeInput, out prettyInput, out prettySimplifiedInput);
+            }
+            catch (Exception e) 
+            {
+                errorString = e.Message;
+            }   
+            
+            if (errorString == "") 
+            {
+                if (prettyInput != prettySimplifiedInput) {
+                    <text>
+                        $$ @prettyInput = @prettySimplifiedInput = @derivativeOutput $$
+                    </text>
+                }
+                else
+                {
+                    <text>
+                        $$ @prettySimplifiedInput = @derivativeOutput $$
+                    </text>
+                }
+            }
+            else 
+            {
+                <text>@errorString</text>          
+            }
         }
     }
 

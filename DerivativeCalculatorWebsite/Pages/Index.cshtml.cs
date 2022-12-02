@@ -23,16 +23,7 @@ namespace DerivativeCalculatorWebsite.Pages
 
 		public void OnGet()
 		{
-			string dateTime = DateTime.Now.ToString("d", new CultureInfo("hu"));
-			ViewData["TimeStamp"] = dateTime;
 
-			string input = "2x+1";
-
-			ViewData["DerivativeInput"] = input;
-
-			string output = DerivativeCalculator.DerivativeManager.DifferentiateString(input);
-
-			ViewData["DerivativeOutput"] = output;
 		}
 	}
 }
