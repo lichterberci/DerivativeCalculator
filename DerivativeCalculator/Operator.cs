@@ -1375,7 +1375,7 @@ namespace DerivativeCalculator
 		{
 			bool switchOperandOrder = operand2 is Constant && operand1 is not Constant
 										|| (operand1 is Operator op1 && operand2 is Operator op2 && op1.basePriority > op2.basePriority)
-										|| (operand2 is Variable && operand1 is Operator { numOperands: 1 });
+										|| (operand2 is Variable && operand1 is Operator);
 
 			var leftOperand = switchOperandOrder ? operand2 : operand1;
 			var rightOperand = switchOperandOrder ? operand1 : operand2;
@@ -1387,6 +1387,8 @@ namespace DerivativeCalculator
 											|| (leftOperand is Variable && rightOperand is Variable)
 											|| rightOperand is Operator { numOperands: 1 }
 											|| rightOperand is Operator { basePriority: > 2 }
+											|| leftOperand is Mult 
+											|| rightOperand is Mult
 											|| leaveRightParenthesisOut == false;
 
 
