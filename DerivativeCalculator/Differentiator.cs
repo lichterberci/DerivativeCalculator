@@ -27,9 +27,10 @@ namespace DerivativeCalculator
 		{
 			TreeNode diffTree = root;
 			TreeNode prevTree = null;
-			TreeNode prettyTree = null;
 
 			maxSteps = 0;
+
+			steps = new List<string>();
 
 			// initial step
 			steps.Add(
