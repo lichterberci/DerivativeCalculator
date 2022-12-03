@@ -270,6 +270,11 @@ namespace DerivativeCalculator
 
 		public override TreeNode Diff(char varToDiff)
 		{
+			if (Differentiator.numStapsTaken++ >= Differentiator.maxSteps)
+			{
+				return new DerivativeSymbol(this, varToDiff);
+			}
+
 			return new Add(operand1.Diff(varToDiff), operand2.Diff(varToDiff));
 		}
 
@@ -789,6 +794,11 @@ namespace DerivativeCalculator
 
 		public override TreeNode Diff(char varToDiff)
 		{
+			if (Differentiator.numStapsTaken++ >= Differentiator.maxSteps)
+			{
+				return new DerivativeSymbol(this, varToDiff);
+			}
+
 			return new Sub(operand1.Diff(varToDiff), operand2.Diff(varToDiff));
 		}
 
@@ -876,6 +886,11 @@ namespace DerivativeCalculator
 
 		public override TreeNode Diff(char varToDiff)
 		{
+			if (Differentiator.numStapsTaken++ >= Differentiator.maxSteps)
+			{
+				return new DerivativeSymbol(this, varToDiff);
+			}
+
 			if (operand1.IsConstant(varToDiff))
 				return new Mult(operand1, operand2.Diff(varToDiff));
 
@@ -1428,6 +1443,11 @@ namespace DerivativeCalculator
 
 		public override TreeNode Diff(char varToDiff)
 		{
+			if (Differentiator.numStapsTaken++ >= Differentiator.maxSteps)
+			{
+				return new DerivativeSymbol(this, varToDiff);
+			}
+
 			if (operand2.IsConstant(varToDiff))
 				return new Div(operand1.Diff(varToDiff), operand2);
 
@@ -1477,6 +1497,11 @@ namespace DerivativeCalculator
 
 		public override TreeNode Diff(char varToDiff)
 		{
+			if (Differentiator.numStapsTaken++ >= Differentiator.maxSteps)
+			{
+				return new DerivativeSymbol(this, varToDiff);
+			}
+
 			// c^f(x) --> ln(c)*c^f(x)*f'(x)
 			if (operand1.IsConstant(varToDiff))
 			{
@@ -1642,6 +1667,11 @@ namespace DerivativeCalculator
 
 		public override TreeNode Diff(char varToDiff)
 		{
+			if (Differentiator.numStapsTaken++ >= Differentiator.maxSteps)
+			{
+				return new DerivativeSymbol(this, varToDiff);
+			}
+
 			return new Mult(
 				new Cos(operand1),
 				operand1.Diff(varToDiff)
@@ -1665,6 +1695,11 @@ namespace DerivativeCalculator
 
 		public override TreeNode Diff(char varToDiff)
 		{
+			if (Differentiator.numStapsTaken++ >= Differentiator.maxSteps)
+			{
+				return new DerivativeSymbol(this, varToDiff);
+			}
+
 			return new Mult(
 				new Mult(
 					new Constant(-1),
@@ -1691,6 +1726,11 @@ namespace DerivativeCalculator
 
 		public override TreeNode Diff(char varToDiff)
 		{
+			if (Differentiator.numStapsTaken++ >= Differentiator.maxSteps)
+			{
+				return new DerivativeSymbol(this, varToDiff);
+			}
+
 			return new Div(
 				operand1.Diff(varToDiff),
 				new Pow(
@@ -1717,6 +1757,11 @@ namespace DerivativeCalculator
 
 		public override TreeNode Diff(char varToDiff)
 		{
+			if (Differentiator.numStapsTaken++ >= Differentiator.maxSteps)
+			{
+				return new DerivativeSymbol(this, varToDiff);
+			}
+
 			return new Div(
 				operand1.Diff(varToDiff),
 				operand1
@@ -1740,6 +1785,11 @@ namespace DerivativeCalculator
 
 		public override TreeNode Diff(char varToDiff)
 		{
+			if (Differentiator.numStapsTaken++ >= Differentiator.maxSteps)
+			{
+				return new DerivativeSymbol(this, varToDiff);
+			}
+
 			return new Div(
 				operand1.Diff(varToDiff),
 				new Mult(

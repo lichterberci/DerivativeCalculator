@@ -9,10 +9,11 @@ namespace DerivativeCalculator
 {
 	public static class DerivativeManager
 	{
-		public static string DifferentiateString(string input, out string inputAsLatex, out string simplifiedInputAsLatex)
+		public static string DifferentiateString(string input, out string inputAsLatex, out string simplifiedInputAsLatex, out List<string> stepsAsLatex)
 		{
 			simplifiedInputAsLatex = "";
 			inputAsLatex = "";
+			stepsAsLatex = new List<string>();
 
 			input = input.Trim().ToLower();
 
@@ -69,12 +70,13 @@ namespace DerivativeCalculator
 
 				Console.WriteLine(TreeUtils.CollapseTreeToString(diffTree));
 
+				stepsAsLatex = Differentiator.steps;
+
 				diffTree = TreeUtils.GetSimplestForm(diffTree);
 			}
 			catch (Exception e)
 			{
-				Console.WriteLine($"An error occured while differentiating! ({e.Message})" +
-					$"{e.StackTrace}");
+				Console.WriteLine($"An error occured while differentiating! ({e.Message}) {e.StackTrace}");
 				throw new Exception("An error occured while differentiating!");
 			}
 
@@ -86,8 +88,12 @@ namespace DerivativeCalculator
 			Console.Write("> ");
 			string input = Console.ReadLine().ToLower().Trim();
 
-			Console.Write(">");
-			Console.WriteLine(DifferentiateString(input, out _, out _));
+			List<string> steps;
+
+			Console.Write("> ");
+			DifferentiateString(input, out _, out _, out steps); // will call a nicer writeline
+
+			steps.ForEach(step => Console.WriteLine(step));
 		}
 	}
 }

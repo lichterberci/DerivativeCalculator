@@ -10,8 +10,8 @@ namespace DerivativeCalculator
 	public static class Differentiator {
 		public static List<string> steps { get; private set; }
 
-		private static int numStapsTaken = 0;
-		private static int maxSteps = 0;
+		public static int numStapsTaken = 0;
+		public static int maxSteps = 0;
 
 		static Differentiator()
 		{
@@ -26,7 +26,6 @@ namespace DerivativeCalculator
 		public static TreeNode DifferentiateWithStepsRecorded (TreeNode root, char varToDiff)
 		{
 			TreeNode diffTree = root;
-			TreeNode prevTree = null;
 
 			maxSteps = 0;
 
@@ -39,7 +38,7 @@ namespace DerivativeCalculator
 
 			string prevStepString = "";
 
-			do
+			while (true)
 			{
 				numStapsTaken = 0;
 				maxSteps++;
@@ -48,15 +47,13 @@ namespace DerivativeCalculator
 
 				diffTree = TreeUtils.GetSimplestForm(diffTree);
 
+				if (prevStepString == diffTree.ToLatexString())
+					break;
+
 				prevStepString = diffTree.ToLatexString();
 
 				steps.Add(prevStepString);
 			}
-			while (prevStepString != diffTree.ToLatexString());
-
-			// last 2 steps are the same
-			if (steps.Count >= 2)
-				steps.RemoveAt(steps.Count - 1);
 
 			return diffTree;
 		}

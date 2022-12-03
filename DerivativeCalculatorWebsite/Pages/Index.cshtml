@@ -8,16 +8,17 @@
 <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
 <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 
-<div class="text-center">
-    <p>
-        Add meg mit szeretnél lederiválni Tasi Masinak.
-    </p>
+<div class="my-container">
+   <h1>
+        Nem hiszed? <span class="derivald">Deriváld le!</span>
+
+   </h1>
 
     <form method="post">
         <fieldset> 
             @*<label for="derivativeInput">f(x) = </label>*@
-            <input type="text" name="derivativeInput" value="" />
-            <div>
+            <div class="derivative-wrapper">
+                <input class"derivative-input" type="text" name="derivativeInput" value="" />
                 <label>&nbsp;</label>
                 <input type="submit" value="Deriváljunk!" class="submit" />
             </div>
@@ -32,13 +33,14 @@
 
             string prettyInput = "";
             string prettySimplifiedInput = "";
-            
+            List<string> prettySteps;
+
             string derivativeOutput = "";
             string errorString = "";
 
             try 
             {
-                derivativeOutput = DerivativeCalculator.DerivativeManager.DifferentiateString(derivativeInput, out prettyInput, out prettySimplifiedInput);
+                derivativeOutput = DerivativeCalculator.DerivativeManager.DifferentiateString(derivativeInput, out prettyInput, out prettySimplifiedInput, out prettySteps);
             }
             catch (Exception e) 
             {
