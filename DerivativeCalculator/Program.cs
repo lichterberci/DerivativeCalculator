@@ -21,7 +21,7 @@ public partial class Program
 
 		//TreeUtils.PrintTree(tree);
 
-		DerivativeManager.DifferentiateFromConsole(false);
+		DerivativeManager.DifferentiateFromConsole();
 
 
 	}

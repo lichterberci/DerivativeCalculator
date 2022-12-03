@@ -34,23 +34,25 @@ namespace DerivativeCalculator
 
 			// initial step
 			steps.Add(
-				TreeUtils.CollapseTreeToString(
-					TreeUtils.SimplifyWithPatterns(TreeUtils.Calculate(TreeUtils.SimplifyWithPatterns(new DerivativeSymbol(root, varToDiff))))
-				)
+				diffTree.ToLatexString()
 			);
 
-			while (TreeUtils.AreTreesEqual(prevTree, diffTree) == false)
+			string prevStepString = "";
+
+			do
 			{
 				numStapsTaken = 0;
 				maxSteps++;
 
-				prevTree = TreeUtils.CopyTree(diffTree);
+				diffTree = TreeUtils.CopyTree(root).Diff(varToDiff);
 
-				diffTree = root.Diff(varToDiff);
+				diffTree = TreeUtils.GetSimplestForm(diffTree);
 
-				prettyTree = diffTree.Eval().Simplify().Eval().Simplify();
-				steps.Add(TreeUtils.CollapseTreeToString(prettyTree));
+				prevStepString = diffTree.ToLatexString();
+
+				steps.Add(prevStepString);
 			}
+			while (prevStepString != diffTree.ToLatexString());
 
 			// last 2 steps are the same
 			if (steps.Count >= 2)

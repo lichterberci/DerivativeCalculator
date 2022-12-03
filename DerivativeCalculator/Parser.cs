@@ -72,20 +72,31 @@ namespace DerivativeCalculator
 							}
 							else
 							{
-								// every combination of xyz, xsinx, etc. will be treated as a product!!
+								// it will check for operators at the beginning of the stirng, if it finds none
+								// the first character will be treated as a variable
 
 								while (tmp.Length > 0)
 								{
-									type = Operator.ParseFromString(tmp[0].ToString());
+									bool operatorFound = false;
 
-									if (type == null)
+									for (int j = 1; j < tmp.Length; j++)
+									{
+										// check for an operator in the start
+										type = Operator.ParseFromString(tmp.Substring(0, j));
+
+										if (type != null)
+										{
+											nodes.Add(Operator.GetClassInstanceFromType((OperatorType)type));
+											tmp = tmp.Substring(j);
+
+											operatorFound = true;
+											break;
+										}
+									}
+
+									if (operatorFound == false)
 									{
 										nodes.Add(new Variable(tmp[0]));
-										tmp = tmp.Substring(1);
-									}
-									else
-									{
-										nodes.Add(Operator.GetClassInstanceFromType((OperatorType)type));
 										tmp = tmp.Substring(1);
 									}
 								}
