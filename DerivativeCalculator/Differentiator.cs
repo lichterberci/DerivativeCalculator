@@ -11,7 +11,7 @@ namespace DerivativeCalculator
 		public static List<string> steps { get; private set; }
 
 		public static int numStapsTaken = 0;
-		public static int maxSteps = 0;
+		public static int maxSteps = int.MaxValue;
 
 		static Differentiator()
 		{
@@ -54,6 +54,8 @@ namespace DerivativeCalculator
 
 				steps.Add(prevStepString);
 			}
+
+			maxSteps = int.MaxValue;
 
 			return diffTree;
 		}

@@ -278,6 +278,7 @@ namespace DerivativeCalculator
 
 			do
 			{
+				TreeNode asd = CopyTree(_tree);
 				_tree = _tree.Eval().Simplify().Eval();
 			} 
 			while (prevLatexString != _tree.ToLatexString() && ++iterations < maxIterations);
@@ -305,6 +306,20 @@ namespace DerivativeCalculator
 			leftList.AddRange(rightList);
 
 			return leftList;
+		}
+
+		public static bool ContainsNullOperand (TreeNode root)
+		{
+			if (root is null)
+				return true;
+
+			if (root is not Operator op)
+				return false;
+
+			if (op.numOperands == 1)
+				return ContainsNullOperand(op.operand1);
+			else
+				return ContainsNullOperand(op.operand1) || ContainsNullOperand(op.operand2);
 		}
 	}
 

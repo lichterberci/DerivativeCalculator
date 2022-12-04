@@ -33,16 +33,24 @@ namespace DerivativeCalculator
         public int maxConstValue;
         public bool constIsOnlyInt;
         public float parameterChance;
-    }
+        public bool shouldYieldNonZeroDiff;
+        public bool shouldYieldNonConstDiff;
+	}
 
     public static class ExerciseGenerator
     {
         private static Random random;
+        private static readonly OperatorType[] operatorTypesThatCountAsComposition;
 
-        static ExerciseGenerator ()
+		static ExerciseGenerator ()
         {
             random = new Random(DateTime.Now.Millisecond);
-        }
+
+            operatorTypesThatCountAsComposition = new OperatorType[]
+            {
+                OperatorType.Sin, OperatorType.Cos, OperatorType.Tan, OperatorType.Ln, OperatorType.Log, OperatorType.Pow // pow is special !!!
+            };
+		}
 
         private static List<OperatorType> GenerateOperatorList (DifficultyMetrics difficulty)
         {
@@ -56,7 +64,7 @@ namespace DerivativeCalculator
 
             int sumOfAllowedOperands = numOperandsRemainingFromType.Values.Sum();
 
-            int numOperatorsToChoose = random.Next() % (Math.Min(difficulty.numMaxOperators, sumOfAllowedOperands) - difficulty.numMinOperators) + difficulty.numMinOperators;
+            int numOperatorsToChoose = Math.Min(difficulty.numMaxOperators, sumOfAllowedOperands) != difficulty.numMinOperators ? random.Next() % (Math.Min(difficulty.numMaxOperators, sumOfAllowedOperands) - difficulty.numMinOperators) + difficulty.numMinOperators : difficulty.numMinOperators;
 
             if (sumOfAllowedOperands < numOperatorsToChoose)
             {
@@ -226,6 +234,31 @@ namespace DerivativeCalculator
 			return (root, false);
 		}
 
+        private static int MaxLevelOfComposition (TreeNode root, int depth = 0)
+        {
+            if (root is null)
+                return depth;
+
+            if (root is not Operator op)
+                return depth;
+
+            int newDepth = depth;
+
+            if (operatorTypesThatCountAsComposition.Contains(op.type))
+            {
+			    newDepth = depth + 1;
+			}
+
+			if (op.numOperands == 1)
+            {
+                return MaxLevelOfComposition(op.operand1, newDepth);
+            }
+            else
+            {
+                return Math.Max(MaxLevelOfComposition(op.operand1, newDepth), MaxLevelOfComposition(op.operand2, newDepth));
+            }
+        }
+
 		private static (int numMix, int numX, int numConst) CountNumLeaves (TreeNode root, DifficultyMetrics difficulty)
         {
             if (root is null)
@@ -270,9 +303,8 @@ namespace DerivativeCalculator
             List<TreeNode> result = new List<TreeNode>();
 
             List<char> parameterNameList = new List<char>();
-
-            int numChosenParams = 0;
-            int numParametersToChoose = random.Next() % (difficulty.numMaxParameters - difficulty.numMinParameters) + difficulty.numMinParameters;
+    
+            int numParametersToChoose = difficulty.numMaxParameters != difficulty.numMinParameters ? random.Next() % (difficulty.numMaxParameters - difficulty.numMinParameters) + difficulty.numMinParameters : difficulty.numMinParameters;
 
             while (parameterNameList.Count < numParametersToChoose)
             {
@@ -291,13 +323,13 @@ namespace DerivativeCalculator
             {
                 int numParametersUsed = resList.Where(node => node is Variable && node is not Variable { name: 'x' }).Count();
 
-                if (numParametersUsed < numChosenParams)
+                if (numParametersUsed < numParametersToChoose)
                 {
                     resList.Add(new Variable(parameterNameList[numParametersUsed]));
                     return resList;
                 }
 
-				if (random.NextSingle() % 1.0f < difficulty.parameterChance && numChosenParams > 0)
+				if (random.NextSingle() % 1.0f < difficulty.parameterChance && numParametersToChoose > 0)
 				{
 					int chosenParamIndex = random.Next() % parameterNameList.Count;
 					char chosenParamName = parameterNameList[chosenParamIndex];
@@ -307,12 +339,12 @@ namespace DerivativeCalculator
 				{
 					if (difficulty.constIsOnlyInt)
 					{
-						int value = random.Next() % (difficulty.maxConstValue - difficulty.minConstValue) + difficulty.minConstValue;
+						int value = difficulty.maxConstValue != difficulty.minConstValue ? random.Next() % (difficulty.maxConstValue - difficulty.minConstValue) + difficulty.minConstValue : difficulty.minConstValue;
 						resList.Add(new Constant(value));
 					}
 					else
 					{
-						double value = random.NextDouble() % (difficulty.maxConstValue - difficulty.minConstValue) + difficulty.minConstValue;
+						double value = difficulty.maxConstValue != difficulty.minConstValue ? random.NextDouble() % (difficulty.maxConstValue - difficulty.minConstValue) + difficulty.minConstValue : difficulty.minConstValue;
 						resList.Add(new Constant(value));
 					}
 				}
@@ -461,6 +493,13 @@ namespace DerivativeCalculator
                     opTypeList.RemoveAt(chosenOpIndex);
             }
 
+            int compositionLevel = MaxLevelOfComposition(tree);
+
+			if (compositionLevel > difficulty.numMaxLevelOfComposition || compositionLevel < difficulty.numMinLevelOfComposition)
+            {
+                return GenerateRandomTree(difficulty); // this is bad, generate a new one!
+            }
+
             (int numMix, int numX, int numConst) = CountNumLeaves(tree, difficulty);
 
 			var leafList = MakeLeafList(difficulty, numMix, numX, numConst);
@@ -504,7 +543,21 @@ namespace DerivativeCalculator
 					remainingList.RemoveAt(chosenLeafIndex);
             }
 
-            return tree;
+
+			try
+            {
+			    if (TreeUtils.GetSimplestForm(tree.Diff('x')) is Constant diffConstant)
+                    if (difficulty.shouldYieldNonConstDiff)
+                        return GenerateRandomTree(difficulty);
+                    else if (diffConstant is Constant { value: 0 } && difficulty.shouldYieldNonZeroDiff) 
+			            return GenerateRandomTree(difficulty);
+            } 
+            catch  // x/0 or something random
+            {
+				return GenerateRandomTree(difficulty);
+			}
+
+			return tree;
         }
     }
 }

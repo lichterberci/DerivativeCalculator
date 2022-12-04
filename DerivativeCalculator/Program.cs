@@ -14,35 +14,57 @@ public partial class Program
 		{
 			numAllowedFromEachOperatorType = new Dictionary<OperatorType, int>()
 			{
-				{OperatorType.Add,  4},
-				{OperatorType.Sub,  3},
-				{OperatorType.Mult, 2},
+				{OperatorType.Add,  10},
+				{OperatorType.Sub,  10},
+				{OperatorType.Mult, 10},
 				{OperatorType.Div,  2},
 				{OperatorType.Pow,  3},
-				{OperatorType.Sin,  1},
-				{OperatorType.Cos,  1},
+				{OperatorType.Sin,  2},
+				{OperatorType.Cos,  0},
 				{OperatorType.Tan,  0},
 				{OperatorType.Ln,   0},
 				{OperatorType.Log,  0}
 			},
-			difficultyOfPower = DifficultyOfPower.BothCanBeDependent,
+			difficultyOfPower = DifficultyOfPower.Polinom,
 			difficultyOfMultiplication = DifficultyOfMultiplication.OnlyConstant,
-			numMinOperators = 3,
-			numMaxOperators = 10,
+			numMinOperators = 2,
+			numMaxOperators = 7,
 			numMinLevelOfComposition = 0,
-			numMaxLevelOfComposition = 4,
+			numMaxLevelOfComposition = 2,
 			numMinParameters = 0,
-			numMaxParameters = 3,
-			minConstValue = -10,
-			maxConstValue = 10,
+			numMaxParameters = 0,
+			minConstValue = -5,
+			maxConstValue = 5,
 			constIsOnlyInt = true,
-			parameterChance = 0.3f
+			parameterChance = 0.3f,
+			shouldYieldNonZeroDiff = true,
+			shouldYieldNonConstDiff = true
 		};
 
-		for (int i = 0; i < 100; i++)
+
+		for (int i = 0; i < 1000; i++)
 		{
-			TreeNode generatedTree = ExerciseGenerator.GenerateRandomTree(difficulty);
-			Console.WriteLine(TreeUtils.CollapseTreeToString(generatedTree));
+
+			try
+			{
+				TreeNode generatedTree = ExerciseGenerator.GenerateRandomTree(difficulty);
+
+				
+
+				Console.WriteLine(TreeUtils.CollapseTreeToString(TreeUtils.GetSimplestForm(generatedTree)));
+
+				Console.WriteLine(TreeUtils.CollapseTreeToString(TreeUtils.GetSimplestForm(generatedTree.Diff('x'))));
+
+				Console.WriteLine();
+				Console.WriteLine();
+				Console.WriteLine();
+			} 
+			catch (DivideByZeroException)
+			{
+
+			}
+
+			
 		}
 	}
 }

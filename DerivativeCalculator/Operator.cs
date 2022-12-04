@@ -921,6 +921,17 @@ namespace DerivativeCalculator
 
 			var operands = TreeUtils.GetAssociativeOperands(this, type, inverseType);
 
+			foreach ((var node, bool isNodeInverse) in operands)
+			{
+				if (node.Eval() is Constant { value: 0 })
+				{
+					if (isNodeInverse)
+						throw new DivideByZeroException();
+					else
+						return new Constant(0);
+				}
+			}
+
 			double constantPart = 1.0;
 
 			if (operands.Count >= 2)
@@ -947,11 +958,7 @@ namespace DerivativeCalculator
 							}
 
 							// *0 = 0
-							if (TreeUtils.MatchPattern(
-								node.Eval(),
-								new Constant(0),
-								out wildcards
-							))
+							if (node.Eval() is Constant { value: 0 })
 							{
 								return new Constant(0);
 							}
@@ -1388,6 +1395,7 @@ namespace DerivativeCalculator
 
 		public override string ToLatexString()
 		{
+
 			bool switchOperandOrder = operand2 is Constant && operand1 is not Constant
 										|| (operand1 is Operator op1 && operand2 is Operator op2 && op1.basePriority > op2.basePriority)
 										|| (operand2 is Variable && operand1 is Operator);
@@ -1467,6 +1475,9 @@ namespace DerivativeCalculator
 				operand1 = operand1.Simplify();
 				operand2 = operand2.Simplify();
 			}
+
+			if (operand1.Eval() is Constant { value: 0 })
+				return new Constant(0);
 
 			return new Mult(
 				new Constant(1),
@@ -1559,7 +1570,7 @@ namespace DerivativeCalculator
 			if (operand2.Eval() is Constant { value: 1 })
 				return operand1;
 
-			if (operand1.Eval() is Constant { value: 0 })
+			if (operand2.Eval() is Constant { value: 0 })
 				return new Constant(1);
 
 			if (operand1.Eval() is Constant { value: 1 })
@@ -1677,8 +1688,13 @@ namespace DerivativeCalculator
 				operand1.Diff(varToDiff)
 			);
 		}
-	}
 
+		public override string ToLatexString()
+		{
+			return $@"\sin\left({{{operand1.ToLatexString()}}}\right)";
+		}
+	}
+	
 	public sealed class Cos : Operator
 	{
 		public Cos(TreeNode? operand = null, int? priority = null) : base(OperatorType.Cos, operand, null, priority) { }
@@ -1707,6 +1723,11 @@ namespace DerivativeCalculator
 				),
 				operand1.Diff(varToDiff)
 			);
+		}
+
+		public override string ToLatexString()
+		{
+			return $@"\cos\left({{{operand1.ToLatexString()}}}\right)";
 		}
 	}
 
@@ -1739,6 +1760,11 @@ namespace DerivativeCalculator
 				)
 			);
 		}
+
+		public override string ToLatexString()
+		{
+			return $@"\tan\left({{{operand1.ToLatexString()}}}\right)";
+		}
 	}
 
 	public sealed class Ln : Operator
@@ -1766,6 +1792,11 @@ namespace DerivativeCalculator
 				operand1.Diff(varToDiff),
 				operand1
 			);
+		}
+
+		public override string ToLatexString()
+		{
+			return $@"\ln\left({{{operand1.ToLatexString()}}}\right)";
 		}
 	}
 
@@ -1797,6 +1828,11 @@ namespace DerivativeCalculator
 					operand1
 				)
 			);
+		}
+
+		public override string ToLatexString()
+		{
+			return $@"\log\left({{{operand1.ToLatexString()}}}\right)";
 		}
 	}
 }
