@@ -33,7 +33,7 @@ namespace DerivativeCalculator
 
 			// initial step
 			steps.Add(
-				diffTree.ToLatexString()
+				new DerivativeSymbol(diffTree, varToDiff).ToLatexString()
 			);
 
 			string prevStepString = "";

@@ -2,7 +2,6 @@
 @model IndexModel
 @{
     ViewData["Title"] = "Home page";
-    string errorString = "";
 }
 
 
@@ -47,68 +46,46 @@
                 if (HttpMethods.IsPost(Request.Method))
                 {
 
-                    string derivativeInput = Request.Form["derivativeInput"];
-
-                    string prettyInput = "";
-                    string prettySimplifiedInput = "";
-                    List<string> prettySteps = new List<string>();
-                    string derivativeOutput = "";
-
-                    bool isShowingSteps = false;
-
-                    try 
+                    if (ViewData["errorString"] == "") 
                     {
-                        derivativeOutput = DerivativeCalculator.DerivativeManager.DifferentiateString(derivativeInput, out prettyInput, out prettySimplifiedInput, out prettySteps);
-                    }
-                    catch (Exception e) 
-                    {
-                        errorString = e.Message;
-                    }   
+                        <div class="equation-wrapper">
 
-
-                    if (errorString == "") 
-                    {
-                                <div class="equation-wrapper">
-
-                                    @{
-                                if (prettyInput != prettySimplifiedInput) {
-                                                        <text>
-                                                            $$ @prettyInput = @prettySimplifiedInput = @derivativeOutput $$
-                                                        </text>
+                            @{
+                                if (ViewData["prettyInput"] != ViewData["prettySimplifiedInput"]) {
+                                    <text>
+                                        $$ @ViewData["prettyInput"] = @ViewData["prettySimplifiedInput"] = @ViewData["derivativeOutput"] $$
+                                    </text>
                                 }
                                 else
                                 {
-                                                                    <text>
-                                                                        $$ @prettySimplifiedInput = @derivativeOutput $$
-                                            </text>
+                                    <text>
+                                        $$ @ViewData["prettySimplifiedInput"] = @ViewData["derivativeOutput"] $$
+                                    </text>
                                 }
-                                }
-
-                            </div>
-
-                            <input 
-                                    type="button"
-                                    value="Mutasd a lépéseket!"
-                                    class="button"
-                                    onclick="@{ isShowingSteps = true; }"
-                                />
-
-                        if (isShowingSteps)
-                        {
-
-                                <text>Működik ez a szar</text>
-
-                            foreach (string step in prettySteps) 
-                            {
-
-                                        <text> $$ @step $$</text>
-
                             }
-                        }
+
+                        </div>
+
+                        <input 
+                            type="button"
+                            value="Mutasd a lépéseket!"
+                            class="button"
+                            onserverclick="ShowSolution"
+                            runat="server" 
+                        />
+
+                        <ul>
+                            @foreach (var step in ViewData["prettySteps"] as IList<string>)
+                            {
+                                <li>
+                                    $$ @step $$
+                                </li>
+                            }
+                        </ul>
                     }
                     else 
                     {
-                                        <text>@errorString</text>          
+                        <text>@ViewData["errorString"]</text>          
                     }
                 }
 

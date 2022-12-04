@@ -274,14 +274,15 @@ namespace DerivativeCalculator
 
 			const int maxIterations = 10;
 
-			int iterations = 0;
-
-			do
+			for (int i = 0; i < maxIterations; i++)
 			{
-				TreeNode asd = CopyTree(_tree);
 				_tree = _tree.Eval().Simplify().Eval();
-			} 
-			while (prevLatexString != _tree.ToLatexString() && ++iterations < maxIterations);
+
+				if (_tree.ToLatexString() == prevLatexString)
+					break;
+
+				prevLatexString = _tree.ToLatexString();
+			}
 
 			return _tree;
 		}

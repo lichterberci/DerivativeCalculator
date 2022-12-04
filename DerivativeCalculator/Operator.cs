@@ -1406,13 +1406,16 @@ namespace DerivativeCalculator
 			bool leaveLeftParenthesisOut = leftOperand is not Operator || leftOperand is Operator { basePriority: > 1 };
 			bool leaveRightParenthesisOut = rightOperand is not Operator || rightOperand is Operator { basePriority: > 1 };
 
-			bool leaveMultiplicationSignOut = (leftOperand is Constant ^ rightOperand is Constant)
-											|| (leftOperand is Variable && rightOperand is Variable)
-											|| rightOperand is Operator { numOperands: 1 }
-											|| rightOperand is Operator { basePriority: > 2 }
-											|| leftOperand is Mult 
-											|| rightOperand is Mult
-											|| leaveRightParenthesisOut == false;
+			bool leaveMultiplicationSignOut = (
+												(leftOperand is Constant ^ rightOperand is Constant)
+												|| (leftOperand is Variable && rightOperand is Variable)
+												|| rightOperand is Operator { numOperands: 1 }
+												|| rightOperand is Operator { basePriority: > 2 }
+												|| leftOperand is Mult 
+												|| rightOperand is Mult
+												|| leaveRightParenthesisOut == false
+											)
+											&& leftOperand is not DerivativeSymbol && rightOperand is not DerivativeSymbol;
 
 
 			string leftPart = $"{{{(leaveLeftParenthesisOut ? "" : @"\left(")}" +
@@ -1567,17 +1570,20 @@ namespace DerivativeCalculator
 				operand2 = operand2.Simplify();
 			}
 
+			if (operand1.Eval() is Constant { value: 1 })
+				return new Constant(1);
+
+			if (operand1.Eval() is Constant { value: 0 })
+				return new Constant(0);
+
 			if (operand2.Eval() is Constant { value: 1 })
 				return operand1;
 
 			if (operand2.Eval() is Constant { value: 0 })
 				return new Constant(1);
 
-			if (operand1.Eval() is Constant { value: 1 })
-				return new Constant(1);
-
-			if (operand1.Eval() is Constant { value: 0 })
-				return new Constant(0);
+			if (operand2.Eval() is Constant { value: -1 })
+				return new Div (new Constant(1), operand1);
 
 			Dictionary<char, TreeNode> wildcards;
 

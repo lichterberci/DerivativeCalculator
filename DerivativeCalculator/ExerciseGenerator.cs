@@ -546,6 +546,8 @@ namespace DerivativeCalculator
 
 			try
             {
+                tree = TreeUtils.GetSimplestForm(tree);
+
 			    if (TreeUtils.GetSimplestForm(tree.Diff('x')) is Constant diffConstant)
                     if (difficulty.shouldYieldNonConstDiff)
                         return GenerateRandomTree(difficulty);

@@ -8,7 +8,7 @@ public partial class Program
 	public static void Main()
 	{
 
-		//DerivativeManager.DifferentiateFromConsole();
+		DerivativeManager.DifferentiateFromConsole();
 
 		DifficultyMetrics difficulty = new()
 		{
@@ -42,29 +42,6 @@ public partial class Program
 		};
 
 
-		for (int i = 0; i < 1000; i++)
-		{
 
-			try
-			{
-				TreeNode generatedTree = ExerciseGenerator.GenerateRandomTree(difficulty);
-
-				
-
-				Console.WriteLine(TreeUtils.CollapseTreeToString(TreeUtils.GetSimplestForm(generatedTree)));
-
-				Console.WriteLine(TreeUtils.CollapseTreeToString(TreeUtils.GetSimplestForm(generatedTree.Diff('x'))));
-
-				Console.WriteLine();
-				Console.WriteLine();
-				Console.WriteLine();
-			} 
-			catch (DivideByZeroException)
-			{
-
-			}
-
-			
-		}
 	}
 }
