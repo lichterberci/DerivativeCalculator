@@ -2,70 +2,122 @@
 @model IndexModel
 @{
     ViewData["Title"] = "Home page";
+    string errorString = "";
 }
 
 
 <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
 <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
-
-<div class="my-container">
-   <h1>
-        Nem hiszed? <span class="derivald">Deriváld le!</span>
-
-   </h1>
-
-    <form method="post">
-        <fieldset> 
-            @*<label for="derivativeInput">f(x) = </label>*@
-            <div class="derivative-wrapper">
-                <input class"derivative-input" type="text" name="derivativeInput" value="" />
-                <label>&nbsp;</label>
-                <input type="submit" value="Deriváljunk!" class="submit" />
-            </div>
-        </fieldset>
-    </form>
-
-    @{
-        if (HttpMethods.IsPost(Request.Method))
-        {
-
-            string derivativeInput = Request.Form["derivativeInput"];
-
-            string prettyInput = "";
-            string prettySimplifiedInput = "";
-            List<string> prettySteps;
-
-            string derivativeOutput = "";
-            string errorString = "";
-
-            try 
-            {
-                derivativeOutput = DerivativeCalculator.DerivativeManager.DifferentiateString(derivativeInput, out prettyInput, out prettySimplifiedInput, out prettySteps);
-            }
-            catch (Exception e) 
-            {
-                errorString = e.Message;
-            }   
-            
-            if (errorString == "") 
-            {
-                if (prettyInput != prettySimplifiedInput) {
-                    <text>
-                        $$ @prettyInput = @prettySimplifiedInput = @derivativeOutput $$
-                    </text>
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({tex2jax: {inlineMath: [['$','$'], ['\\(','\\)']]}});
+    MathJax = {
+        options: {
+            menuOptions: {
+                settings: {
+                    renderer: 'SVG',     // CHTML or 'SVG'
                 }
-                else
-                {
-                    <text>
-                        $$ @prettySimplifiedInput = @derivativeOutput $$
-                    </text>
-                }
-            }
-            else 
-            {
-                <text>@errorString</text>          
             }
         }
-    }
+    };
+</script>
+
+<div class="my-container">
+
+   <h1>
+        Nem hiszed? <span class="derivald">Deriváld le!</span>
+   </h1>
+
+
+   <div class="math-wrapper"> 
+
+        <form method="post">
+            <fieldset> 
+                @*<label for="derivativeInput">f(x) = </label>*@
+                <div class="derivative-wrapper">
+                    <input class="derivative-input" type="text" name="derivativeInput" value="" />
+                    <label>&nbsp;</label>
+                    <input class="button" placeholder="f(x) = sin(x)" type="submit" value="Deriváljunk!" class="submit" />
+                </div>
+            </fieldset>
+        </form>
+
+        <div class="output-wrapper">
+
+            @{
+                if (HttpMethods.IsPost(Request.Method))
+                {
+
+                    string derivativeInput = Request.Form["derivativeInput"];
+
+                    string prettyInput = "";
+                    string prettySimplifiedInput = "";
+                    List<string> prettySteps = new List<string>();
+                    string derivativeOutput = "";
+
+                    bool isShowingSteps = false;
+
+                    try 
+                    {
+                        derivativeOutput = DerivativeCalculator.DerivativeManager.DifferentiateString(derivativeInput, out prettyInput, out prettySimplifiedInput, out prettySteps);
+                    }
+                    catch (Exception e) 
+                    {
+                        errorString = e.Message;
+                    }   
+
+
+                    if (errorString == "") 
+                    {
+                                <div class="equation-wrapper">
+
+                                    @{
+                                if (prettyInput != prettySimplifiedInput) {
+                                                        <text>
+                                                            $$ @prettyInput = @prettySimplifiedInput = @derivativeOutput $$
+                                                        </text>
+                                }
+                                else
+                                {
+                                                                    <text>
+                                                                        $$ @prettySimplifiedInput = @derivativeOutput $$
+                                            </text>
+                                }
+                                }
+
+                            </div>
+
+                            <input 
+                                    type="button"
+                                    value="Mutasd a lépéseket!"
+                                    class="button"
+                                    onclick="@{ isShowingSteps = true; }"
+                                />
+
+                        if (isShowingSteps)
+                        {
+
+                                <text>Működik ez a szar</text>
+
+                            foreach (string step in prettySteps) 
+                            {
+
+                                        <text> $$ @step $$</text>
+
+                            }
+                        }
+                    }
+                    else 
+                    {
+                                        <text>@errorString</text>          
+                    }
+                }
+
+            }
+
+            
+            
+        </div>
+
+   </div>
 
 </div>

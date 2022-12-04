@@ -6,6 +6,12 @@ html {
   html {
     font-size: 16px;
   }
+
+    .my-container {
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+
 }
 
 html {
@@ -25,6 +31,8 @@ body {
     flex-direction:column;
     justify-content:center;
     align-items:center;
+    padding-left:2rem;
+    padding-right:2rem;
 }
 
 .derivald {
@@ -39,6 +47,67 @@ body {
 }
 
 .derivative-input {
-    border:none;
-    border-*-*-
+    border: none;
+    border-bottom: 1px solid #767676;
+    max-width:300px;
+    outline:none;
+}
+
+.button {
+    background: none;
+    border: 2px solid #5000FB;
+    color: #5000FB;
+    border-radius: 8px;
+    margin-left: 30px;
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+    padding-top:0.3rem;
+    padding-bottom:0.3rem;
+}
+
+.derivative-input::placeholder {
+    color: #CBCBCB;
+}
+
+.math-wrapper{
+
+    position:relative;
+    margin-top:100px;
+    position:relative;
+    max-width:600px;
+    min-width:300px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+
+}
+
+.output-wrapper {
+    margin-top:50px;
+    position:relative;
+    width:100%;
+    background-color: rgba(202,202,202,0.1);
+    border-radius:8px;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+}
+
+.output-wrapper:first-child
+{
+    overflow-x:scroll;
+}
+
+.navbar-holder {
+    background-color: #854DFC
+}
+
+.liItem{
+    color:white;
+}
+
+.navbar-wrapper{
+    color:white;
 }
