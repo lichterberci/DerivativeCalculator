@@ -273,13 +273,17 @@ namespace DerivativeCalculator
 			string prevLatexString = "";
 
 			const int maxIterations = 10;
+			const int minIterations = 5;
 
 			for (int i = 0; i < maxIterations; i++)
 			{
 				_tree = _tree.Eval().Simplify().Eval();
 
-				if (_tree.ToLatexString() == prevLatexString)
+				if (i >= minIterations && _tree.ToLatexString() == prevLatexString)
+				{
+					Console.WriteLine($"Simplification took {i} iterations");
 					break;
+				}
 
 				prevLatexString = _tree.ToLatexString();
 			}

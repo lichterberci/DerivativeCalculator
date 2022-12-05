@@ -1,7 +1,7 @@
 ﻿@page
 @model IndexModel
 @{
-    ViewData["Title"] = "Home page";
+
 }
 
 
@@ -20,6 +20,24 @@
     };
 </script>
 
+<script>
+    // btn onclicks
+
+    var areStepsVisible = false;
+
+    function ToggleSteps () {
+        const shouldTheyBeVisible = !areStepsVisible;
+        areStepsVisible = shouldTheyBeVisible;
+
+        const steps = document.querySelector('#steps');
+        steps.style.display = shouldTheyBeVisible ? "block" : "none";
+
+        const btn = document.querySelector("#showStepsBtn");
+        btn.value = shouldTheyBeVisible ? "Lépések elrejtése" : "Lépések mutatása";
+    }
+
+</script>
+
 <div class="my-container">
 
    <h1>
@@ -33,9 +51,9 @@
             <fieldset> 
                 @*<label for="derivativeInput">f(x) = </label>*@
                 <div class="derivative-wrapper">
-                    <input class="derivative-input" type="text" name="derivativeInput" value="" />
+                    <input class="derivative-input" type="text" name="derivativeInput" value="" placeholder="sin(x)^2"/>
                     <label>&nbsp;</label>
-                    <input class="button" placeholder="f(x) = sin(x)" type="submit" value="Deriváljunk!" class="submit" />
+                    <input class="button" type="submit" value="Deriváljunk!" class="submit" />
                 </div>
             </fieldset>
         </form>
@@ -64,28 +82,24 @@
                                 }
                             }
 
-                        </div>
+                            </div>
 
-                        <input 
-                            type="button"
-                            value="Mutasd a lépéseket!"
-                            class="button"
-                            onserverclick="ShowSolution"
-                            runat="server" 
-                        />
-
-                        <ul>
-                            @foreach (var step in ViewData["prettySteps"] as IList<string>)
-                            {
-                                <li>
-                                    $$ @step $$
-                                </li>
-                            }
-                        </ul>
+                        
+                            <ul id="steps" style="display:none;">
+                                @foreach (var step in ViewData["prettySteps"] as IList<string>)
+                                {
+                                    <li>
+                                        $$ = @step $$
+                                    </li>
+                                }
+                            </ul>
+                        
+                            <input class="button" id="showStepsBtn" type="button" value="Mutasd a lépéseket" onclick="javascript:ToggleSteps()" />
+                        
                     }
                     else 
                     {
-                        <text>@ViewData["errorString"]</text>          
+                        <div class="error-text">@ViewData["errorString"]</div>          
                     }
                 }
 

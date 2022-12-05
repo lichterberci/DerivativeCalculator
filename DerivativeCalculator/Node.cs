@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Reflection.Emit;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -66,7 +67,12 @@ namespace DerivativeCalculator
 
 		public override string ToLatexString()
 		{
-			return @$"\frac{{d}}{{d{varToDifferentiate}}}{expression.ToLatexString()}";
+			bool leaveOutParenthesis = false;
+
+			if (expression is not Operator || expression is Operator { numOperands: 1 } || expression is Pow)
+				leaveOutParenthesis = true;
+			
+			return @$"\frac{{d}}{{d{varToDifferentiate}}}{(leaveOutParenthesis ? "" : @"\left(")}{expression.ToLatexString()}{(leaveOutParenthesis ? "" : @"\right)")}";
 		}
 
 		public override TreeNode Eval()
@@ -77,6 +83,16 @@ namespace DerivativeCalculator
 		public override TreeNode Diff(char varToDiff)
 		{
 			return expression.Diff(varToDiff);
+		}
+
+		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
+		{
+			if (skipSimplificationOfChildren == false)
+			{
+				expression = expression.Simplify();
+			}
+
+			return this;
 		}
 	}
 

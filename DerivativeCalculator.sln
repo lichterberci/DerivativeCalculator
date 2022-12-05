@@ -5,7 +5,7 @@ VisualStudioVersion = 17.3.32922.545
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DerivativeCalculator", "DerivativeCalculator\DerivativeCalculator.csproj", "{BD646420-6733-4A72-8536-EB191D5A89C8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DerivativeCalculatorWebsite", "DerivativeCalculatorWebsite\DerivativeCalculatorWebsite.csproj", "{0F4E96BE-8F66-44E7-BE17-6A5E46F901CE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DerivativeCalculatorWebsite", "DerivativeCalculatorWebsite\DerivativeCalculatorWebsite.csproj", "{0F4E96BE-8F66-44E7-BE17-6A5E46F901CE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

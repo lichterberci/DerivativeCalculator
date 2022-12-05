@@ -773,6 +773,11 @@ namespace DerivativeCalculator
 
 		public override string ToLatexString()
 		{
+			if (operand1 is Constant { value: 0 })
+				return operand2.ToLatexString();
+			if (operand2 is Constant { value: 0 })
+				return operand1.ToLatexString();
+
 			return $@"{{{operand1.ToLatexString()}}} + {{{operand2.ToLatexString()}}}";
 		}
 	}
@@ -1699,6 +1704,16 @@ namespace DerivativeCalculator
 		{
 			return $@"\sin\left({{{operand1.ToLatexString()}}}\right)";
 		}
+
+		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
+		{
+			if (skipSimplificationOfChildren == false)
+			{
+				operand1 = operand1.Simplify();
+			}
+
+			return this;
+		}
 	}
 	
 	public sealed class Cos : Operator
@@ -1734,6 +1749,16 @@ namespace DerivativeCalculator
 		public override string ToLatexString()
 		{
 			return $@"\cos\left({{{operand1.ToLatexString()}}}\right)";
+		}
+
+		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
+		{
+			if (skipSimplificationOfChildren == false)
+			{
+				operand1 = operand1.Simplify();
+			}
+
+			return this;
 		}
 	}
 
@@ -1771,6 +1796,16 @@ namespace DerivativeCalculator
 		{
 			return $@"\tan\left({{{operand1.ToLatexString()}}}\right)";
 		}
+
+		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
+		{
+			if (skipSimplificationOfChildren == false)
+			{
+				operand1 = operand1.Simplify();
+			}
+
+			return this;
+		}
 	}
 
 	public sealed class Ln : Operator
@@ -1803,6 +1838,16 @@ namespace DerivativeCalculator
 		public override string ToLatexString()
 		{
 			return $@"\ln\left({{{operand1.ToLatexString()}}}\right)";
+		}
+
+		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
+		{
+			if (skipSimplificationOfChildren == false)
+			{
+				operand1 = operand1.Simplify();
+			}
+
+			return this;
 		}
 	}
 
@@ -1839,6 +1884,16 @@ namespace DerivativeCalculator
 		public override string ToLatexString()
 		{
 			return $@"\log\left({{{operand1.ToLatexString()}}}\right)";
+		}
+
+		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
+		{
+			if (skipSimplificationOfChildren == false)
+			{
+				operand1 = operand1.Simplify();
+			}
+
+			return this;
 		}
 	}
 }

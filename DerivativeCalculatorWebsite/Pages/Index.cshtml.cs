@@ -35,27 +35,27 @@ namespace DerivativeCalculatorWebsite.Pages
 				errorString = e.Message;
 			}
 
+			ViewData["prettySteps"] = prettySteps;
 			ViewData["prettyInput"] = prettyInput;
 			ViewData["prettySimplifiedInput"] = prettySimplifiedInput;
-			ViewData["prettySteps"] = prettySteps;
 			ViewData["derivativeOutput"] = derivativeOutput;
 			ViewData["errorString"] = errorString;
 			ViewData["isShowingSolution"] = false;
 		}
 
-		public void ShowSolution(object sender, EventArgs e)
-		{
-			ViewData["prettySteps"] = prettySteps;
-		}
+		//public void ShowSolution(object sender, EventArgs e)
+		//{
+		//	ViewData["prettySteps"] = prettySteps;
+		//}
 
-		public void HideSolution(object sender, EventArgs e)
-		{
-			ViewData["prettySteps"] = new List<string>();
-		}
+		//public void HideSolution(object sender, EventArgs e)
+		//{
+		//	ViewData["prettySteps"] = new List<string>();
+		//}
 
 		public void OnGet()
 		{
-			ViewData["prettySteps"] = new List<string>();
+			//ViewData["prettySteps"] = new List<string>();
 		}
 	}
 }
