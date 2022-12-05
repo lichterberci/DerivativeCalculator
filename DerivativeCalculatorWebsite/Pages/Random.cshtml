@@ -29,16 +29,20 @@
         const shouldTheyBeVisible = !areStepsVisible;
         areStepsVisible = shouldTheyBeVisible;
 
-        const steps = document.querySelector('#steps');
-        steps.style.display = shouldTheyBeVisible ? "block" : "none";
+        const steps = document.querySelectorAll('#hidable-step');
+        steps.forEach(step => step.style.display = shouldTheyBeVisible ? "flex" : "none");
 
         const btn = document.querySelector("#showStepsBtn");
         btn.value = shouldTheyBeVisible ? "Lépések elrejtése" : "Lépések mutatása";
     }
 
     function ShowSolution() {
-        const solution = document.querySelector('#solution');
-        solution.style.display = "block";
+        
+        const steps = document.querySelector('#steps');
+        steps.style.display = "flex";
+        steps.style.flexDirection = "column";
+        steps.style.justifyContent = "center";
+        steps.style.alignItems = "center";
 
         const btn = document.querySelector("#showSolutionBtn");
         btn.style.display = "none";
@@ -59,19 +63,18 @@
             <fieldset>
                 <div class="derivative-wrapper">
                     <select class="level-select" name="level" >
-                        <option value="easy">Könnyű</option>
-                        <option value="medium">Közepes</option>
-                        <option value="hard">Nehéz</option>
-                        <option value="hardcore">Hardcore</option>
+                        <option value="easy">Triviális</option>
+                        <option value="medium">Óbudai</option>
+                        <option value="hard">BME</option>
+                        <option value="hardcore">Tasnádi</option>
                     </select>
                     <label>&nbsp;</label>
-                    <input class="button" placeholder="f(x) = sin(x)" type="submit" value="Deriváljunk!" class="submit" />
+                    <input class="button btn-der" placeholder="f(x) = sin(x)" type="submit" value="Deriváljunk!" class="submit" />
                 </div>
             </fieldset>
         </form>
 
         <div class="output-wrapper">
-
 
                 @{
                     if (HttpMethods.IsPost(Request.Method))
@@ -81,26 +84,25 @@
                         {
                             <div class="equation-wrapper">
 
-                                <div>
+                                <div class="steps ">
                                     $$ @ViewData["prettyInput"] = @ViewData["prettySimplifiedInput"] $$
                                 </div>
 
                                 <input id="showSolutionBtn" class="button" type="button" onclick="javascript:ShowSolution()" value="Megoldás mutatása" />
                                         
-                                <div id="solution" style="display:none;">
-                                    $$ = @ViewData["derivativeOutput"] $$
-
-
-                                    <ul id="steps" style="display:none;">
-                                        @foreach (var step in ViewData["prettySteps"] as IList<string>)
-                                        {
-                                            <li>
-                                                $$ = @step $$
-                                            </li>
-                                        }
-                                    </ul>
-                                    <input class="button" id="showStepsBtn" type="button" value="Mutasd a lépéseket" onclick="javascript:ToggleSteps()" />
-                                </div>
+                                <ul class="steps-ul solution-wrapper" id="steps" style="display:none;">
+                                    <li class="steps">
+                                        $$ = @ViewData["derivativeOutput"] $$
+                                    </li>
+                                    @foreach (var step in ViewData["prettySteps"] as IList<string>)
+                                    {
+                                        <li class="steps" id="hidable-step" style=" display:none;">
+                                            $$ = @step $$
+                                        </li>
+                                    }
+                                </ul>
+                                
+                                <input class="button btn-steps" id="showStepsBtn" type="button" value="Mutasd a lépéseket" onclick="javascript:ToggleSteps()" />
                             </div>
 
 

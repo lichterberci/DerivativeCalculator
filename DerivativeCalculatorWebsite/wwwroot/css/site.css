@@ -3,9 +3,6 @@ html {
 }
 
 @media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
 
     .my-container {
         padding-left: 1rem;
@@ -17,6 +14,7 @@ html {
 html {
   position: relative;
   min-height: 100%;
+  overflow-x:hidden;
 }
 
 body {
@@ -44,6 +42,7 @@ body {
     display: flex;
     flex-direction: row;
     justify-content: center;
+    align-items:center;
 }
 
 .derivative-input {
@@ -58,11 +57,25 @@ body {
     border: 2px solid #5000FB;
     color: #5000FB;
     border-radius: 8px;
-    margin-left: 30px;
     padding-left: 0.5rem;
     padding-right: 0.5rem;
-    padding-top:0.3rem;
-    padding-bottom:0.3rem;
+    padding-top: 0.3rem;
+    padding-bottom: 0.3rem;
+    transition: 0.1s;
+}
+
+.button:hover {
+    background-color: #5000FB;
+    color: white;
+    transition: 0.1s;
+}
+
+.btn-der{
+    margin-left:30px;
+}
+
+.btn-steps{
+    margin-top:20px
 }
 
 .derivative-input::placeholder {
@@ -74,31 +87,26 @@ body {
     position:relative;
     margin-top:100px;
     position:relative;
-    max-width:600px;
-    min-width:300px;
+    max-width:1000px;
+    width:100%;
     display:flex;
     flex-direction:column;
     justify-content:center;
     align-items:center;
-
 }
 
 .output-wrapper {
     margin-top:50px;
     position:relative;
     width:100%;
-    background-color: rgba(202,202,202,0.1);
     border-radius:8px;
     display:flex;
     flex-direction:column;
     justify-content:center;
     align-items:center;
+    padding:1rem 1rem;
 }
 
-.output-wrapper:first-child
-{
-    overflow-x:scroll;
-}
 
 .navbar-holder {
     background-color: #854DFC
@@ -110,4 +118,90 @@ body {
 
 .navbar-wrapper{
     color:white;
+}
+
+.steps{
+    padding-left:0;
+    margin:0;
+    list-style-type:none;
+    position:relative;
+    width:100vw;
+    display:flex;
+    flex-direction:row;
+    justify-content:center;
+}
+
+.steps-ul{
+    padding:0
+}
+
+.MJX-TEX{
+    width:100%;
+    position:relative;
+    text-align:center;
+    font-size:clamp(8px, 1vw,1.2rem);
+    text-align:center;
+    padding-left:10px;
+    padding-right:10px;
+}
+
+.MathJax{
+    position:relative;
+    display:flex;
+    flex-direction:row;
+    justify-content:center;
+    width:80%;
+}
+
+.CtxtMenu_Attached_0{
+
+}
+
+.solution{
+    background:red;
+}
+
+.example {
+    position:relative;
+    width:100%;
+}
+
+.nav-item {
+    color: white;
+    margin-left: 50px;
+    text-decoration: none;
+    font-size: 1.2rem;
+}
+
+.nav-item:hover{
+    color:white;
+}
+
+.solution-wrapper{
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+}
+
+.equation-wrapper {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    overflow-x: scroll;
+    width: 99%;
+    -ms-overflow-style: none;  
+    scrollbar-width: none;  
+}
+
+.equation-wrapper::-webkit-scrollbar { 
+    display: none; 
+}
+
+.level-select {
+    border: 2px solid #854DFC;
+    padding: 0.3rem;
+    border-radius: 6px
 }

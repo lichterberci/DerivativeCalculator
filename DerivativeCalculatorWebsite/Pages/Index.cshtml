@@ -45,6 +45,8 @@
    </h1>
 
 
+
+
    <div class="math-wrapper"> 
 
         <form method="post">
@@ -53,7 +55,7 @@
                 <div class="derivative-wrapper">
                     <input class="derivative-input" type="text" name="derivativeInput" value="" placeholder="sin(x)^2"/>
                     <label>&nbsp;</label>
-                    <input class="button" type="submit" value="Deriváljunk!" class="submit" />
+                    <input class="button btn-der" type="submit" value="Deriváljunk!" class="submit" />
                 </div>
             </fieldset>
         </form>
@@ -82,19 +84,19 @@
                                 }
                             }
 
-                            </div>
+                        </div>
 
                         
-                            <ul id="steps" style="display:none;">
-                                @foreach (var step in ViewData["prettySteps"] as IList<string>)
-                                {
-                                    <li>
-                                        $$ = @step $$
-                                    </li>
-                                }
-                            </ul>
+                        <ul id="steps" style="display:none;">
+                            @foreach (var step in ViewData["prettySteps"] as IList<string>)
+                            {
+                                <li class="steps">
+                                    $$ = @step $$
+                                </li>
+                            }
+                        </ul>
                         
-                            <input class="button" id="showStepsBtn" type="button" value="Mutasd a lépéseket" onclick="javascript:ToggleSteps()" />
+                        <input class="button btn-steps" id="showStepsBtn" type="button" value="Mutasd a lépéseket" onclick="javascript:ToggleSteps()" />
                         
                     }
                     else 
