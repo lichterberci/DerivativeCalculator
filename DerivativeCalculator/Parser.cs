@@ -19,8 +19,6 @@ namespace DerivativeCalculator
 
 			input += ' '; // add a space to the end, so the for-each loop will catch all nodes
 
-			//Console.WriteLine(input);
-
 			bool isInNumber = false;
 			string tmp = "";
 			for (int i = 0; i < input.Length; i++)
@@ -38,6 +36,8 @@ namespace DerivativeCalculator
 					|| (Operator.ParseFromString(tmp) != null) // if we have collected an operator
 				)
 				{
+
+					// handle end of symbol
 
 					if (isInNumber)
 					{

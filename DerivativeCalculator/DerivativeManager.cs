@@ -31,6 +31,7 @@ namespace DerivativeCalculator
 			try
 			{
 				nodes = Parser.ParseToList(input);
+				
 				nodes = Parser.ReplaceVarEWithConstE(nodes);
 				nodes = Parser.HandleNegativeSigns(nodes);
 				nodes = Parser.AddHiddenMultiplications(nodes);
