@@ -275,7 +275,10 @@ namespace DerivativeCalculator
 				return new DerivativeSymbol(this, varToDiff);
 			}
 
-			return new Add(operand1.Diff(varToDiff), operand2.Diff(varToDiff));
+			return new Add(
+				operand1.Diff(varToDiff), 
+				operand2.Diff(varToDiff)
+			);
 		}
 
 		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
