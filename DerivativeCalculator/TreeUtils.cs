@@ -326,6 +326,23 @@ namespace DerivativeCalculator
 			else
 				return ContainsNullOperand(op.operand1) || ContainsNullOperand(op.operand2);
 		}
+
+		public static bool DoesTreeContainNan (TreeNode root)
+		{
+			if (root is null)
+				return false;
+
+			if (root is Constant { value: Double.NaN })
+				return true;
+
+			if (root is not Operator op)
+				return false;
+
+			if (op.numOperands == 1)
+				return DoesTreeContainNan(op.operand1);
+			else
+				return DoesTreeContainNan(op.operand1) || DoesTreeContainNan(op.operand2);
+		}
 	}
 
 }

@@ -104,27 +104,22 @@ namespace DerivativeCalculator
 		{
 			this.value = val;
 		}
-
 		public override string ToPrettyString()
 		{
 			return value == Math.E ? "e" : value.ToString("0.###");
 		}
-
 		public override string ToString()
 		{
 			return $"Constant({value.ToString("0.###")})";
 		}
-
 		public override string ToLatexString()
 		{
 			return value == Math.E ? "e" : value.ToString("0.###");
 		}
-
 		public override TreeNode Eval()
 		{
 			return this;
 		}
-
 		public override TreeNode Diff(char varToDiff)
 		{
 			return new Constant(0);

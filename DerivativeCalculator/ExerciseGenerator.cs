@@ -674,7 +674,10 @@ namespace DerivativeCalculator
                         return GenerateRandomTree(difficulty);
                     else if (diffConstant is Constant { value: 0 } && difficulty.shouldYieldNonZeroDiff) 
 			            return GenerateRandomTree(difficulty);
-            } 
+
+                if (TreeUtils.DoesTreeContainNan(tree) || TreeUtils.DoesTreeContainNan(tree.Diff('x')))
+                    return GenerateRandomTree(difficulty);
+			} 
             catch  // x/0 or something random
             {
 				return GenerateRandomTree(difficulty);
