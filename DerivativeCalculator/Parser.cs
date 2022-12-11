@@ -29,11 +29,21 @@ namespace DerivativeCalculator
 
 				if (
 					   char.IsWhiteSpace(c) // if there is a space / enter
-					|| ((char.IsDigit(c) || c == ',') ^ isInNumber) // if we are starting / ending a number
-					|| (tmp.Length == 1 && char.IsLetter(tmp[0]) && !char.IsLetter(c)) // if we are in var, but it is closed
+					|| (
+						(char.IsDigit(c) || c == ',')
+						^ isInNumber) // if we are starting / ending a number
+					|| (
+						tmp.Length == 1 
+						&& char.IsLetter(tmp[0]) 
+						&& !char.IsLetter(c)) // if we are in var, but it is closed
 					|| Parenthesis.IsParenthesis(c) // number, var, etc followed by a '(' or ')'
-					|| ((tmp.Length > 0) && Parenthesis.IsParenthesis(tmp[0])) // if next is parenthesis
-					|| (Operator.ParseFromString(tmp) != null) // if we have collected an operator
+					|| (
+						tmp.Length > 0
+						&& Parenthesis.IsParenthesis(tmp[0])) // if next is parenthesis
+					|| (
+						Operator.ParseFromString(tmp) != null 
+						&& Operator.ParseFromString(tmp + c) == null
+					) // if we have collected an operator, but for sinh, we must check for the next char as well
 				)
 				{
 
