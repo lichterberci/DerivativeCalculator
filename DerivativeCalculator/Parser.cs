@@ -217,8 +217,8 @@ namespace DerivativeCalculator
 					nodes.RemoveAt(i);
 					i--; // cuz we deleted it from the list, the next element will be at the same exact index
 				}
-				else if (node is Operator)
-					(node as Operator).prioirty += priorityOffset;
+				else if (node is Operator op)
+					op.prioirty += priorityOffset;
 			}
 
 			if (priorityOffset != 0)
@@ -229,9 +229,9 @@ namespace DerivativeCalculator
 
 		public static TreeNode MakeTreeFromList(List<Node> nodes)
 		{
-			// get the operator with the lowest prioirty, and rightmost of those
+			// get the rightmost operator with the lowest priority
 			int minOpIndex = -1;
-			int minOpPriority = 9999999;
+			int minOpPriority = int.MaxValue;
 
 			for (int i = nodes.Count - 1; i >= 0; i--)
 			{
@@ -262,27 +262,23 @@ namespace DerivativeCalculator
 			if (op.numOperands == 1)
 			{
 				if (rightList.Count == 0)
-				{
-					Console.WriteLine($"Parsing error: {op} has no operand!");
-					return null;
-				}
+					throw new ArgumentException($"Parsing error: {op} has no operand!");
+
 				op.operand1 = MakeTreeFromList(rightList);
+
 				return op;
 			}
 			else
 			{
 				if (leftList.Count == 0)
-				{
-					Console.WriteLine($"Parsing error: {op} has no left operand!");
-					return null;
-				}
+					throw new ArgumentException($"Parsing error: {op} has no left operand!");
+
 				if (rightList.Count == 0)
-				{
-					Console.WriteLine($"Parsing error: {op} has no right operand!");
-					return null;
-				}
+					throw new ArgumentException($"Parsing error: {op} has no right operand!");
+
 				op.operand1 = MakeTreeFromList(leftList);
 				op.operand2 = MakeTreeFromList(rightList);
+
 				return op;
 			}
 		}
