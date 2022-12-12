@@ -13,7 +13,7 @@ namespace DerivativeCalculatorWebsite.Pages
 
 		private string prettyInput = "";
 		private string prettySimplifiedInput = "";
-		private List<string> prettySteps = new List<string>();
+		private List<(string, StepDescription?)> stepsWithDescriptions = new List<(string, StepDescription?)>();
 		private string derivativeOutput = "";
 		private string errorString = "";
 
@@ -26,21 +26,26 @@ namespace DerivativeCalculatorWebsite.Pages
 		{
 			string derivativeInput = Request.Form["derivativeInput"];
 
+			List<string> steps;
+			List<StepDescription> descriptions;
+
 			try
 			{
-				derivativeOutput = DerivativeCalculator.DerivativeManager.DifferentiateString(derivativeInput, out prettyInput, out prettySimplifiedInput, out prettySteps);
+				derivativeOutput = DerivativeCalculator.DerivativeManager.DifferentiateString(derivativeInput, out prettyInput, out prettySimplifiedInput, out steps, out descriptions);
+
+				stepsWithDescriptions = new List<(string, StepDescription?)>(steps.Select((step, i) => (step, descriptions[i])));
 			}
 			catch (Exception e)
 			{
 				errorString = e.Message;
 			}
 
-			ViewData["prettySteps"] = prettySteps;
 			ViewData["prettyInput"] = prettyInput;
 			ViewData["prettySimplifiedInput"] = prettySimplifiedInput;
 			ViewData["derivativeOutput"] = derivativeOutput;
 			ViewData["errorString"] = errorString;
 			ViewData["isShowingSolution"] = false;
+			ViewData["stepsWithDescriptions"] = stepsWithDescriptions;
 		}
 
 		//public void ShowSolution(object sender, EventArgs e)

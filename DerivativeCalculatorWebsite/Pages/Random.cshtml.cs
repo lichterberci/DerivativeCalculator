@@ -49,7 +49,7 @@ namespace DerivativeCalculatorWebsite.Pages
 
 			try
 			{
-				derivativeOutput = DerivativeManager.DifferentiateTree(tree, 'x', out prettyInput, out prettySimplifiedInput, out prettySteps);
+				derivativeOutput = DerivativeManager.DifferentiateTree(tree, 'x', out prettyInput, out prettySimplifiedInput, out prettySteps, out _);
 			}
 			catch (Exception ex)
 			{

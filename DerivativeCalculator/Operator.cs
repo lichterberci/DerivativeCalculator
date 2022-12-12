@@ -2031,6 +2031,10 @@ namespace DerivativeCalculator
 		{
 			if (Differentiator.numStapsTaken++ >= Differentiator.maxSteps)
 			{
+				Differentiator.lastStep = new StepDescription(
+					$@"\frac{{d}}{{dx}}\cot(x) = \frac{{-1}}{{{{\sin\left(x\right)}}^2}}",
+					operand1.GetSimplestForm().ToLatexString()
+				);
 				return new DerivativeSymbol(this, varToDiff);
 			}
 
@@ -2080,6 +2084,10 @@ namespace DerivativeCalculator
 		{
 			if (Differentiator.numStapsTaken++ >= Differentiator.maxSteps)
 			{
+				Differentiator.lastStep = new StepDescription(
+					$@"\frac{{d}}{{dx}}arcsin(x) = \frac{{1}}{{\sqrt{{1-x^2}}}}",
+					operand1.GetSimplestForm().ToLatexString()
+				);
 				return new DerivativeSymbol(this, varToDiff);
 			}
 
@@ -2100,7 +2108,7 @@ namespace DerivativeCalculator
 
 		public override string ToLatexString()
 		{
-			return $@"\arcsin\left({{{operand1.ToLatexString()}}}\right)";
+			return $@"arcsin\left({{{operand1.ToLatexString()}}}\right)";
 		}
 
 		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
@@ -2132,6 +2140,10 @@ namespace DerivativeCalculator
 		{
 			if (Differentiator.numStapsTaken++ >= Differentiator.maxSteps)
 			{
+				Differentiator.lastStep = new StepDescription(
+					$@"\frac{{d}}{{dx}}arccos(x) = \frac{{1}}{{\sqrt{{x^2-1}}}}",
+					operand1.GetSimplestForm().ToLatexString()
+				);
 				return new DerivativeSymbol(this, varToDiff);
 			}
 
@@ -2155,7 +2167,7 @@ namespace DerivativeCalculator
 
 		public override string ToLatexString()
 		{
-			return $@"\arccos\left({{{operand1.ToLatexString()}}}\right)";
+			return $@"arccos\left({{{operand1.ToLatexString()}}}\right)";
 		}
 
 		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
@@ -2187,6 +2199,10 @@ namespace DerivativeCalculator
 		{
 			if (Differentiator.numStapsTaken++ >= Differentiator.maxSteps)
 			{
+				Differentiator.lastStep = new StepDescription(
+					$@"\frac{{d}}{{dx}}arctan(x) = \frac{{1}}{{x^2+1}}",
+					operand1.GetSimplestForm().ToLatexString()
+				);
 				return new DerivativeSymbol(this, varToDiff);
 			}
 
@@ -2204,7 +2220,7 @@ namespace DerivativeCalculator
 
 		public override string ToLatexString()
 		{
-			return $@"\arctan\left({{{operand1.ToLatexString()}}}\right)";
+			return $@"arctan\left({{{operand1.ToLatexString()}}}\right)";
 		}
 
 		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
@@ -2236,6 +2252,10 @@ namespace DerivativeCalculator
 		{
 			if (Differentiator.numStapsTaken++ >= Differentiator.maxSteps)
 			{
+				Differentiator.lastStep = new StepDescription(
+					$@"\frac{{d}}{{dx}}arccot(x) = \frac{{-1}}{{\sqrt{{1-x^2}}}}",
+					operand1.GetSimplestForm().ToLatexString()
+				);
 				return new DerivativeSymbol(this, varToDiff);
 			}
 
@@ -2256,7 +2276,7 @@ namespace DerivativeCalculator
 
 		public override string ToLatexString()
 		{
-			return $@"\arccot\left({{{operand1.ToLatexString()}}}\right)";
+			return $@"arccot\left({{{operand1.ToLatexString()}}}\right)";
 		}
 
 		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
@@ -2288,6 +2308,10 @@ namespace DerivativeCalculator
 		{
 			if (Differentiator.numStapsTaken++ >= Differentiator.maxSteps)
 			{
+				Differentiator.lastStep = new StepDescription(
+					$@"\frac{{d}}{{dx}}sinh(x) = cosh(x)",
+					operand1.GetSimplestForm().ToLatexString()
+				);
 				return new DerivativeSymbol(this, varToDiff);
 			}
 
@@ -2299,7 +2323,7 @@ namespace DerivativeCalculator
 
 		public override string ToLatexString()
 		{
-			return $@"\sinh\left({{{operand1.ToLatexString()}}}\right)";
+			return $@"sinh\left({{{operand1.ToLatexString()}}}\right)";
 		}
 
 		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
@@ -2331,6 +2355,10 @@ namespace DerivativeCalculator
 		{
 			if (Differentiator.numStapsTaken++ >= Differentiator.maxSteps)
 			{
+				Differentiator.lastStep = new StepDescription(
+					$@"\frac{{d}}{{dx}}cosh(x) = sinh(x)",
+					operand1.GetSimplestForm().ToLatexString()
+				);
 				return new DerivativeSymbol(this, varToDiff);
 			}
 
@@ -2342,7 +2370,7 @@ namespace DerivativeCalculator
 
 		public override string ToLatexString()
 		{
-			return $@"\cosh\left({{{operand1.ToLatexString()}}}\right)";
+			return $@"cosh\left({{{operand1.ToLatexString()}}}\right)";
 		}
 
 		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
@@ -2374,6 +2402,10 @@ namespace DerivativeCalculator
 		{
 			if (Differentiator.numStapsTaken++ >= Differentiator.maxSteps)
 			{
+				Differentiator.lastStep = new StepDescription(
+					$@"\frac{{d}}{{dx}}tanh(x) = \frac{{1}}{{{{cosh\left(x\right)}}^2}}",
+					operand1.GetSimplestForm().ToLatexString()
+				);
 				return new DerivativeSymbol(this, varToDiff);
 			}
 
@@ -2388,7 +2420,7 @@ namespace DerivativeCalculator
 
 		public override string ToLatexString()
 		{
-			return $@"\tanh\left({{{operand1.ToLatexString()}}}\right)";
+			return $@"tanh\left({{{operand1.ToLatexString()}}}\right)";
 		}
 
 		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
@@ -2420,6 +2452,10 @@ namespace DerivativeCalculator
 		{
 			if (Differentiator.numStapsTaken++ >= Differentiator.maxSteps)
 			{
+				Differentiator.lastStep = new StepDescription(
+					$@"\frac{{d}}{{dx}}coth(x) = \frac{{-1}}{{{{cosh\left(x\right)}}^2}}",
+					operand1.GetSimplestForm().ToLatexString()
+				);
 				return new DerivativeSymbol(this, varToDiff);
 			}
 
@@ -2469,6 +2505,10 @@ namespace DerivativeCalculator
 		{
 			if (Differentiator.numStapsTaken++ >= Differentiator.maxSteps)
 			{
+				Differentiator.lastStep = new StepDescription(
+					$@"\frac{{d}}{{dx}}arsinh(x) = \frac{{1}}{{\sqrt{{x^2+1}}}}",
+					operand1.GetSimplestForm().ToLatexString()
+				);
 				return new DerivativeSymbol(this, varToDiff);
 			}
 
@@ -2521,6 +2561,10 @@ namespace DerivativeCalculator
 		{
 			if (Differentiator.numStapsTaken++ >= Differentiator.maxSteps)
 			{
+				Differentiator.lastStep = new StepDescription(
+					$@"\frac{{d}}{{dx}}arcosh(x) = \frac{{1}}{{\sqrt{{x^2-1}}}}",
+					operand1.GetSimplestForm().ToLatexString()
+				);
 				return new DerivativeSymbol(this, varToDiff);
 			}
 
@@ -2573,6 +2617,10 @@ namespace DerivativeCalculator
 		{
 			if (Differentiator.numStapsTaken++ >= Differentiator.maxSteps)
 			{
+				Differentiator.lastStep = new StepDescription(
+					$@"\frac{{d}}{{dx}}artanh(x) = \frac{{1}}{{1-x^2}}",
+					operand1.GetSimplestForm().ToLatexString()
+				);
 				return new DerivativeSymbol(this, varToDiff);
 			}
 
@@ -2622,6 +2670,10 @@ namespace DerivativeCalculator
 		{
 			if (Differentiator.numStapsTaken++ >= Differentiator.maxSteps)
 			{
+				Differentiator.lastStep = new StepDescription(
+					$@"\frac{{d}}{{dx}}arcoth(x) = \frac{{1}}{{1-x^2}}",
+					operand1.GetSimplestForm().ToLatexString()
+				);
 				return new DerivativeSymbol(this, varToDiff);
 			}
 

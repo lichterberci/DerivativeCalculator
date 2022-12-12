@@ -9,7 +9,7 @@ namespace DerivativeCalculator
 {
 	public static class DerivativeManager
 	{
-		public static string DifferentiateString(string input, out string inputAsLatex, out string simplifiedInputAsLatex, out List<string> stepsAsLatex)
+		public static string DifferentiateString(string input, out string inputAsLatex, out string simplifiedInputAsLatex, out List<string> stepsAsLatex, out List<StepDescription> stepDescriptions)
 		{
 			simplifiedInputAsLatex = "";
 			inputAsLatex = "";
@@ -74,6 +74,7 @@ namespace DerivativeCalculator
 				Console.WriteLine(TreeUtils.CollapseTreeToString(diffTree));
 
 				stepsAsLatex = Differentiator.steps;
+				stepDescriptions = Differentiator.stepDescriptions;
 
 				diffTree = TreeUtils.GetSimplestForm(diffTree);
 			}
@@ -86,7 +87,7 @@ namespace DerivativeCalculator
 			return diffTree.ToLatexString();
 		}
 
-		public static string DifferentiateTree (TreeNode input, char varToDifferentiate, out string inputAsLatex, out string simplifiedInputAsLatex, out List<string> stepsAsLatex)
+		public static string DifferentiateTree (TreeNode input, char varToDifferentiate, out string inputAsLatex, out string simplifiedInputAsLatex, out List<string> stepsAsLatex, out List<StepDescription?> stepDescriptions)
 		{
 			TreeNode tree = TreeUtils.CopyTree(input);
 
@@ -105,6 +106,7 @@ namespace DerivativeCalculator
 				Console.WriteLine(TreeUtils.CollapseTreeToString(diffTree));
 
 				stepsAsLatex = Differentiator.steps;
+				stepDescriptions = Differentiator.stepDescriptions;
 
 				diffTree = TreeUtils.GetSimplestForm(diffTree);
 			}
@@ -127,7 +129,7 @@ namespace DerivativeCalculator
 			string prettyInput, prettySimplifiedInput;
 
 			Console.Write("> ");
-			DifferentiateString(input, out prettyInput, out prettySimplifiedInput, out steps); // will call a nicer writeline
+			DifferentiateString(input, out prettyInput, out prettySimplifiedInput, out steps, out _); // will call a nicer writeline
 
 			Console.WriteLine(prettyInput);
 			Console.WriteLine(prettySimplifiedInput);
