@@ -11,11 +11,13 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Transactions;
 
+using DerivativeCalculator;
+
 namespace DerivativeCalculator
 {
 	public enum OperatorType
 	{
-		Add, Sub, Mult, Div, Pow, Sin, Cos, Tan, Log, Ln
+		Add, Sub, Mult, Div, Pow, Sin, Cos, Tan, Log, Ln, Cot, Arcsin, Arccos, Arctan, Arccot, Sinh, Cosh, Tanh, Coth, Arsinh, Arcosh, Artanh, Arcoth
 	}
 
 	public abstract class Operator : TreeNode
@@ -47,7 +49,7 @@ namespace DerivativeCalculator
 		{
 			return $"Operator({GetStringForType(type)}, priority = {prioirty})";
 		}
-		public static Operator GetClassInstanceFromType (OperatorType _type, TreeNode? operand1 = null, TreeNode? operand2 = null, int? priority = null)
+		public static Operator GetClassInstanceFromType(OperatorType _type, TreeNode? operand1 = null, TreeNode? operand2 = null, int? priority = null)
 		{
 			switch (_type)
 			{
@@ -71,6 +73,32 @@ namespace DerivativeCalculator
 					return new Log(operand1, priority);
 				case OperatorType.Ln: // base e
 					return new Ln(operand1, priority);
+				case OperatorType.Cot:
+					return new Cot(operand1, priority);
+				case OperatorType.Arcsin:
+					return new Arcsin(operand1, priority);
+				case OperatorType.Arccos:
+					return new Arccos(operand1, priority);
+				case OperatorType.Arctan:
+					return new Arctan(operand1, priority);
+				case OperatorType.Arccot:
+					return new Arccot(operand1, priority);
+				case OperatorType.Sinh:
+					return new Sinh(operand1, priority);
+				case OperatorType.Cosh:
+					return new Cosh(operand1, priority);
+				case OperatorType.Tanh:
+					return new Tanh(operand1, priority);
+				case OperatorType.Coth:
+					return new Coth(operand1, priority);
+				case OperatorType.Arsinh:
+					return new Arsinh(operand1, priority);
+				case OperatorType.Arcosh:
+					return new Arcosh(operand1, priority);
+				case OperatorType.Artanh:
+					return new Artanh(operand1, priority);
+				case OperatorType.Arcoth:
+					return new Arcoth(operand1, priority);
 				default:
 					throw new ArgumentException($"Type {_type} is not handled!");
 			}
@@ -87,20 +115,8 @@ namespace DerivativeCalculator
 					return 2;
 				case OperatorType.Div:
 					return 2;
-				case OperatorType.Pow:
-					return 3;
-				case OperatorType.Sin:
-					return 3;
-				case OperatorType.Cos:
-					return 3;
-				case OperatorType.Tan:
-					return 3;
-				case OperatorType.Log: // base 10
-					return 3;
-				case OperatorType.Ln: // base e
-					return 3;
 				default:
-					return 1;
+					return 3;
 			}
 		}
 		public int basePriority
@@ -124,18 +140,8 @@ namespace DerivativeCalculator
 					return 2;
 				case OperatorType.Pow:
 					return 2;
-				case OperatorType.Sin:
-					return 1;
-				case OperatorType.Cos:
-					return 1;
-				case OperatorType.Tan:
-					return 1;
-				case OperatorType.Log: // base 10
-					return 1;
-				case OperatorType.Ln: // base 10
-					return 1;
 				default:
-					return 2;
+					return 1;
 			}
 		}
 		public int numOperands
@@ -169,6 +175,32 @@ namespace DerivativeCalculator
 					return "log";
 				case OperatorType.Ln: // base e
 					return "ln";
+				case OperatorType.Cot:
+					return "cot";
+				case OperatorType.Arcsin:
+					return "arcsin";
+				case OperatorType.Arccos:
+					return "arccos";
+				case OperatorType.Arctan:
+					return "arctan";
+				case OperatorType.Arccot:
+					return "arccot";
+				case OperatorType.Sinh:
+					return "sinh";
+				case OperatorType.Cosh:
+					return "cosh";
+				case OperatorType.Tanh:
+					return "tanh";
+				case OperatorType.Coth:
+					return "coth";
+				case OperatorType.Arsinh:
+					return "arsinh";
+				case OperatorType.Arcosh:
+					return "arcosh";
+				case OperatorType.Artanh:
+					return "artanh";
+				case OperatorType.Arcoth:
+					return "arcoth";
 				default:
 					return "UNKNOWN_OPERATOR";
 			}
@@ -187,41 +219,26 @@ namespace DerivativeCalculator
 
 			return null;
 		}
-		public static bool IsOperatorTypeCommutative (OperatorType type)
+		public static bool IsOperatorTypeCommutative(OperatorType type)
 		{
 			switch (type)
 			{
 				case OperatorType.Add:
 					return true;
-				case OperatorType.Sub:
-					return false;
 				case OperatorType.Mult:
 					return true;
-				case OperatorType.Div:
-					return false;
-				case OperatorType.Pow:
-					return false;
-				case OperatorType.Sin:
-					return false;
-				case OperatorType.Cos:
-					return false;
-				case OperatorType.Tan:
-					return false;
-				case OperatorType.Log:
-					return false;
-				case OperatorType.Ln:
-					return false;
 				default:
 					return false;
 			}
-		}		
-		public bool isCommutative { 
+		}
+		public bool isCommutative
+		{
 			get
 			{
 				return IsOperatorTypeCommutative(this.type);
-			} 
+			}
 		}
-		public static OperatorType? GetInverse (OperatorType type)
+		public static OperatorType? GetInverse(OperatorType type)
 		{
 			switch (type)
 			{
@@ -257,7 +274,7 @@ namespace DerivativeCalculator
 	{
 		public Add(TreeNode? left = null, TreeNode? right = null, int? priority = null) : base(OperatorType.Add, left, right, priority) { }
 
-		public override TreeNode Eval ()
+		public override TreeNode Eval()
 		{
 			operand1 = operand1.Eval();
 			operand2 = operand2.Eval();
@@ -311,8 +328,8 @@ namespace DerivativeCalculator
 
 					foreach (var otherNode in coefficientDict.Keys)
 					{
-						if (isNodeInverse == false) 
-						{ 
+						if (isNodeInverse == false)
+						{
 							// +0 --> just skip
 							if (TreeUtils.MatchPattern(
 								node.Eval(),
@@ -611,7 +628,7 @@ namespace DerivativeCalculator
 				Operator head = new Add(null, null);
 
 				TreeNode additionRoot = head;
-								
+
 				if (additionList.Count == 1)
 				{
 					// a - (b + c + d + ...)
@@ -693,7 +710,7 @@ namespace DerivativeCalculator
 
 					(var key, var coeff) = subtractionList.First();
 
-					if (coeff is Constant { value: 1})
+					if (coeff is Constant { value: 1 })
 					{
 						subtractionRoot = key;
 					}
@@ -1463,7 +1480,7 @@ namespace DerivativeCalculator
 												|| (leftOperand is Variable && rightOperand is Variable)
 												|| rightOperand is Operator { numOperands: 1 }
 												|| rightOperand is Operator { basePriority: > 2 }
-												|| leftOperand is Mult 
+												|| leftOperand is Mult
 												|| rightOperand is Mult
 												|| leaveRightParenthesisOut == false
 											)
@@ -1492,7 +1509,7 @@ namespace DerivativeCalculator
 	public sealed class Div : Operator
 	{
 		public Div(TreeNode? left = null, TreeNode? right = null, int? priority = null) : base(OperatorType.Div, left, right, priority) { }
-		
+
 		public override TreeNode Eval()
 		{
 			operand1 = operand1.Eval();
@@ -1531,7 +1548,7 @@ namespace DerivativeCalculator
 					new Mult(operand1.Diff(varToDiff), operand2),
 					new Mult(operand1, operand2.Diff(varToDiff))
 				),
-				new Pow (operand2, new Constant(2))
+				new Pow(operand2, new Constant(2))
 			);
 		}
 
@@ -1618,7 +1635,7 @@ namespace DerivativeCalculator
 						new Pow(
 							operand1,
 							new Sub(
-								operand2, 
+								operand2,
 								new Constant(1)
 							)
 						)
@@ -1664,7 +1681,7 @@ namespace DerivativeCalculator
 				return new Constant(1);
 
 			if (operand2.Eval() is Constant { value: -1 })
-				return new Div (new Constant(1), operand1);
+				return new Div(new Constant(1), operand1);
 
 			Dictionary<char, TreeNode> wildcards;
 
@@ -1735,6 +1752,9 @@ namespace DerivativeCalculator
 
 		public override string ToLatexString()
 		{
+			if (operand2 is Constant { value: 0.5 })
+				return $@"\sqrt{{{operand1.ToLatexString()}}}";
+
 			bool leaveBaseParenthesisOut = operand1 is not Operator
 										|| operand1 is Operator { numOperands: 1 };
 			bool leavePowerParenthesisOut = operand2 is not Pow;
@@ -1795,7 +1815,7 @@ namespace DerivativeCalculator
 			return this;
 		}
 	}
-	
+
 	public sealed class Cos : Operator
 	{
 		public Cos(TreeNode? operand = null, int? priority = null) : base(OperatorType.Cos, operand, null, priority) { }
@@ -1980,6 +2000,646 @@ namespace DerivativeCalculator
 		public override string ToLatexString()
 		{
 			return $@"\log\left({{{operand1.ToLatexString()}}}\right)";
+		}
+
+		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
+		{
+			if (skipSimplificationOfChildren == false)
+			{
+				operand1 = operand1.Simplify();
+			}
+
+			return this;
+		}
+	}
+
+	public sealed class Cot : Operator
+	{
+		public Cot(TreeNode? operand = null, int? priority = null) : base(OperatorType.Cot, operand, null, priority) { }
+
+		public override TreeNode Eval()
+		{
+			operand1 = operand1.Eval();
+
+			if (operand1 is Constant c)
+				return new Constant(Math.Tan(1.0d / c.value));
+			else
+				return this;
+		}
+
+		public override TreeNode Diff(char varToDiff)
+		{
+			if (Differentiator.numStapsTaken++ >= Differentiator.maxSteps)
+			{
+				return new DerivativeSymbol(this, varToDiff);
+			}
+
+			return new Div(
+				new Mult(
+					new Constant(-1),
+					operand1.Diff(varToDiff)
+				),
+				new Pow(
+					new Sin(operand1),
+					new Constant(2)
+				)
+			);
+		}
+
+		public override string ToLatexString()
+		{
+			return $@"\cot\left({{{operand1.ToLatexString()}}}\right)";
+		}
+
+		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
+		{
+			if (skipSimplificationOfChildren == false)
+			{
+				operand1 = operand1.Simplify();
+			}
+
+			return this;
+		}
+	}
+
+	public sealed class Arcsin : Operator
+	{
+		public Arcsin(TreeNode? operand = null, int? priority = null) : base(OperatorType.Arcsin, operand, null, priority) { }
+
+		public override TreeNode Eval()
+		{
+			operand1 = operand1.Eval();
+
+			if (operand1 is Constant c)
+				return new Constant(Math.Asin(c.value));
+			else
+				return this;
+		}
+
+		public override TreeNode Diff(char varToDiff)
+		{
+			if (Differentiator.numStapsTaken++ >= Differentiator.maxSteps)
+			{
+				return new DerivativeSymbol(this, varToDiff);
+			}
+
+			return new Div(
+				operand1.Diff(varToDiff),
+				new Pow(
+					new Sub(
+						new Constant(1),
+						new Pow(
+							operand1,
+							new Constant(2)
+						)
+					),
+					new Constant(0.5)
+				)
+			);
+		}
+
+		public override string ToLatexString()
+		{
+			return $@"\arcsin\left({{{operand1.ToLatexString()}}}\right)";
+		}
+
+		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
+		{
+			if (skipSimplificationOfChildren == false)
+			{
+				operand1 = operand1.Simplify();
+			}
+
+			return this;
+		}
+	}
+
+	public sealed class Arccos : Operator
+	{
+		public Arccos(TreeNode? operand = null, int? priority = null) : base(OperatorType.Arccos, operand, null, priority) { }
+
+		public override TreeNode Eval()
+		{
+			operand1 = operand1.Eval();
+
+			if (operand1 is Constant c)
+				return new Constant(Math.Acos(c.value));
+			else
+				return this;
+		}
+
+		public override TreeNode Diff(char varToDiff)
+		{
+			if (Differentiator.numStapsTaken++ >= Differentiator.maxSteps)
+			{
+				return new DerivativeSymbol(this, varToDiff);
+			}
+
+			return new Div(
+				new Mult(
+					new Constant(-1),
+					operand1.Diff(varToDiff)
+				),
+				new Pow(
+					new Sub(
+						new Pow(
+							operand1,
+							new Constant(2)
+						),
+						new Constant(1)
+					),
+					new Constant(0.5)
+				)
+			);
+		}
+
+		public override string ToLatexString()
+		{
+			return $@"\arccos\left({{{operand1.ToLatexString()}}}\right)";
+		}
+
+		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
+		{
+			if (skipSimplificationOfChildren == false)
+			{
+				operand1 = operand1.Simplify();
+			}
+
+			return this;
+		}
+	}
+
+	public sealed class Arctan : Operator
+	{
+		public Arctan(TreeNode? operand = null, int? priority = null) : base(OperatorType.Arctan, operand, null, priority) { }
+
+		public override TreeNode Eval()
+		{
+			operand1 = operand1.Eval();
+
+			if (operand1 is Constant c)
+				return new Constant(Math.Atan(c.value));
+			else
+				return this;
+		}
+
+		public override TreeNode Diff(char varToDiff)
+		{
+			if (Differentiator.numStapsTaken++ >= Differentiator.maxSteps)
+			{
+				return new DerivativeSymbol(this, varToDiff);
+			}
+
+			return new Div(
+				operand1.Diff(varToDiff),
+				new Add(
+					new Pow(
+						operand1,
+						new Constant(2)
+					),
+					new Constant(1)
+				)
+			);
+		}
+
+		public override string ToLatexString()
+		{
+			return $@"\arctan\left({{{operand1.ToLatexString()}}}\right)";
+		}
+
+		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
+		{
+			if (skipSimplificationOfChildren == false)
+			{
+				operand1 = operand1.Simplify();
+			}
+
+			return this;
+		}
+	}
+
+	public sealed class Arccot : Operator
+	{
+		public Arccot(TreeNode? operand = null, int? priority = null) : base(OperatorType.Arccot, operand, null, priority) { }
+
+		public override TreeNode Eval()
+		{
+			operand1 = operand1.Eval();
+
+			if (operand1 is Constant c)
+				return new Constant(Math.Atan(1.0d / c.value));
+			else
+				return this;
+		}
+
+		public override TreeNode Diff(char varToDiff)
+		{
+			if (Differentiator.numStapsTaken++ >= Differentiator.maxSteps)
+			{
+				return new DerivativeSymbol(this, varToDiff);
+			}
+
+			return new Div(
+				new Mult(
+					new Constant(-1),
+					operand1.Diff(varToDiff)
+				),
+				new Add(
+					new Pow(
+						operand1,
+						new Constant(2)
+					),
+					new Constant(1)
+				)
+			);
+		}
+
+		public override string ToLatexString()
+		{
+			return $@"\arccot\left({{{operand1.ToLatexString()}}}\right)";
+		}
+
+		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
+		{
+			if (skipSimplificationOfChildren == false)
+			{
+				operand1 = operand1.Simplify();
+			}
+
+			return this;
+		}
+	}
+
+	public sealed class Sinh : Operator
+	{
+		public Sinh(TreeNode? operand = null, int? priority = null) : base(OperatorType.Sinh, operand, null, priority) { }
+
+		public override TreeNode Eval()
+		{
+			operand1 = operand1.Eval();
+
+			if (operand1 is Constant c)
+				return new Constant(Math.Sinh(c.value));
+			else
+				return this;
+		}
+
+		public override TreeNode Diff(char varToDiff)
+		{
+			if (Differentiator.numStapsTaken++ >= Differentiator.maxSteps)
+			{
+				return new DerivativeSymbol(this, varToDiff);
+			}
+
+			return new Mult(
+				new Cosh(operand1),
+				operand1.Diff(varToDiff)
+			);
+		}
+
+		public override string ToLatexString()
+		{
+			return $@"\sinh\left({{{operand1.ToLatexString()}}}\right)";
+		}
+
+		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
+		{
+			if (skipSimplificationOfChildren == false)
+			{
+				operand1 = operand1.Simplify();
+			}
+
+			return this;
+		}
+	}
+
+	public sealed class Cosh : Operator
+	{
+		public Cosh(TreeNode? operand = null, int? priority = null) : base(OperatorType.Cosh, operand, null, priority) { }
+
+		public override TreeNode Eval()
+		{
+			operand1 = operand1.Eval();
+
+			if (operand1 is Constant c)
+				return new Constant(Math.Cosh(c.value));
+			else
+				return this;
+		}
+
+		public override TreeNode Diff(char varToDiff)
+		{
+			if (Differentiator.numStapsTaken++ >= Differentiator.maxSteps)
+			{
+				return new DerivativeSymbol(this, varToDiff);
+			}
+
+			return new Mult(
+				new Sinh(operand1),
+				operand1.Diff(varToDiff)
+			);
+		}
+
+		public override string ToLatexString()
+		{
+			return $@"\cosh\left({{{operand1.ToLatexString()}}}\right)";
+		}
+
+		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
+		{
+			if (skipSimplificationOfChildren == false)
+			{
+				operand1 = operand1.Simplify();
+			}
+
+			return this;
+		}
+	}
+
+	public sealed class Tanh : Operator
+	{
+		public Tanh(TreeNode? operand = null, int? priority = null) : base(OperatorType.Tanh, operand, null, priority) { }
+
+		public override TreeNode Eval()
+		{
+			operand1 = operand1.Eval();
+
+			if (operand1 is Constant c)
+				return new Constant(Math.Tanh(c.value));
+			else
+				return this;
+		}
+
+		public override TreeNode Diff(char varToDiff)
+		{
+			if (Differentiator.numStapsTaken++ >= Differentiator.maxSteps)
+			{
+				return new DerivativeSymbol(this, varToDiff);
+			}
+
+			return new Div(
+				operand1.Diff(varToDiff),
+				new Pow(
+					new Cosh(operand1),
+					new Constant(2)
+				)
+			);
+		}
+
+		public override string ToLatexString()
+		{
+			return $@"\tanh\left({{{operand1.ToLatexString()}}}\right)";
+		}
+
+		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
+		{
+			if (skipSimplificationOfChildren == false)
+			{
+				operand1 = operand1.Simplify();
+			}
+
+			return this;
+		}
+	}
+
+	public sealed class Coth : Operator
+	{
+		public Coth(TreeNode? operand = null, int? priority = null) : base(OperatorType.Coth, operand, null, priority) { }
+
+		public override TreeNode Eval()
+		{
+			operand1 = operand1.Eval();
+
+			if (operand1 is Constant c)
+				return new Constant(Math.Tanh(1.0d / c.value));
+			else
+				return this;
+		}
+
+		public override TreeNode Diff(char varToDiff)
+		{
+			if (Differentiator.numStapsTaken++ >= Differentiator.maxSteps)
+			{
+				return new DerivativeSymbol(this, varToDiff);
+			}
+
+			return new Div(
+				new Mult(
+					new Constant(-1),
+					operand1.Diff(varToDiff)
+				),
+				new Pow(
+					new Sinh(operand1),
+					new Constant(2)
+				)
+			);
+		}
+
+		public override string ToLatexString()
+		{
+			return $@"coth\left({{{operand1.ToLatexString()}}}\right)";
+		}
+
+		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
+		{
+			if (skipSimplificationOfChildren == false)
+			{
+				operand1 = operand1.Simplify();
+			}
+
+			return this;
+		}
+	}
+
+	public sealed class Arsinh : Operator
+	{
+		public Arsinh(TreeNode? operand = null, int? priority = null) : base(OperatorType.Arsinh, operand, null, priority) { }
+
+		public override TreeNode Eval()
+		{
+			operand1 = operand1.Eval();
+
+			if (operand1 is Constant c)
+				return new Constant(Math.Asinh(c.value));
+			else
+				return this;
+		}
+
+		public override TreeNode Diff(char varToDiff)
+		{
+			if (Differentiator.numStapsTaken++ >= Differentiator.maxSteps)
+			{
+				return new DerivativeSymbol(this, varToDiff);
+			}
+
+			return new Div(
+				operand1.Diff(varToDiff),
+				new Pow(
+					new Add(
+						new Pow(
+							operand1,
+							new Constant(2)
+						),
+						new Constant(1)
+					),
+					new Constant(0.5)
+				)
+			);
+		}
+
+		public override string ToLatexString()
+		{
+			return $@"arsinh\left({{{operand1.ToLatexString()}}}\right)";
+		}
+
+		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
+		{
+			if (skipSimplificationOfChildren == false)
+			{
+				operand1 = operand1.Simplify();
+			}
+
+			return this;
+		}
+	}
+
+	public sealed class Arcosh : Operator
+	{
+		public Arcosh(TreeNode? operand = null, int? priority = null) : base(OperatorType.Arcosh, operand, null, priority) { }
+
+		public override TreeNode Eval()
+		{
+			operand1 = operand1.Eval();
+
+			if (operand1 is Constant c)
+				return new Constant(Math.Acosh(c.value));
+			else
+				return this;
+		}
+
+		public override TreeNode Diff(char varToDiff)
+		{
+			if (Differentiator.numStapsTaken++ >= Differentiator.maxSteps)
+			{
+				return new DerivativeSymbol(this, varToDiff);
+			}
+
+			return new Div(
+				operand1.Diff(varToDiff),
+				new Pow(
+					new Sub(
+						new Pow(
+							operand1,
+							new Constant(2)
+						),
+						new Constant(1)
+					),
+					new Constant(0.5)
+				)
+			);
+		}
+
+		public override string ToLatexString()
+		{
+			return $@"arcosh\left({{{operand1.ToLatexString()}}}\right)";
+		}
+
+		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
+		{
+			if (skipSimplificationOfChildren == false)
+			{
+				operand1 = operand1.Simplify();
+			}
+
+			return this;
+		}
+	}
+
+	public sealed class Artanh : Operator
+	{
+		public Artanh(TreeNode? operand = null, int? priority = null) : base(OperatorType.Artanh, operand, null, priority) { }
+
+		public override TreeNode Eval()
+		{
+			operand1 = operand1.Eval();
+
+			if (operand1 is Constant c)
+				return new Constant(Math.Atanh(c.value));
+			else
+				return this;
+		}
+
+		public override TreeNode Diff(char varToDiff)
+		{
+			if (Differentiator.numStapsTaken++ >= Differentiator.maxSteps)
+			{
+				return new DerivativeSymbol(this, varToDiff);
+			}
+
+			return new Div(
+				operand1.Diff(varToDiff),
+				new Sub(
+					new Constant(1),
+					new Pow(
+						operand1,
+						new Constant(2)
+					)
+				)
+			);
+		}
+
+		public override string ToLatexString()
+		{
+			return $@"artanh\left({{{operand1.ToLatexString()}}}\right)";
+		}
+
+		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
+		{
+			if (skipSimplificationOfChildren == false)
+			{
+				operand1 = operand1.Simplify();
+			}
+
+			return this;
+		}
+	}
+
+	public sealed class Arcoth : Operator
+	{
+		public Arcoth(TreeNode? operand = null, int? priority = null) : base(OperatorType.Arcoth, operand, null, priority) { }
+
+		public override TreeNode Eval()
+		{
+			operand1 = operand1.Eval();
+
+			if (operand1 is Constant c)
+				return new Constant(Math.Atanh(1.0d / c.value));
+			else
+				return this;
+		}
+
+		public override TreeNode Diff(char varToDiff)
+		{
+			if (Differentiator.numStapsTaken++ >= Differentiator.maxSteps)
+			{
+				return new DerivativeSymbol(this, varToDiff);
+			}
+
+			return new Div(
+				operand1.Diff(varToDiff),
+				new Sub(
+					new Constant(1),
+					new Pow(
+						operand1,
+						new Constant(2)
+					)
+				)
+			);
+		}
+
+		public override string ToLatexString()
+		{
+			return $@"arcoth\left({{{operand1.ToLatexString()}}}\right)";
 		}
 
 		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
