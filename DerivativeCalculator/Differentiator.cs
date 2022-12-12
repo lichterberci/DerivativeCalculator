@@ -9,13 +9,17 @@ namespace DerivativeCalculator
 {
 	public static class Differentiator {
 		public static List<string> steps { get; private set; }
+		public static List<StepDescription?> stepDescriptions { get; private set; }
 
 		public static int numStapsTaken = 0;
 		public static int maxSteps = int.MaxValue;
 
+		public static StepDescription? lastStep = null;
+
 		static Differentiator()
 		{
 			steps = new List<string>();
+			stepDescriptions = new List<StepDescription?>();
 		}
 
 		public static TreeNode Differentiate (TreeNode root, char varToDiff)
@@ -30,11 +34,14 @@ namespace DerivativeCalculator
 			maxSteps = 0;
 
 			steps = new List<string>();
+			stepDescriptions = new List<StepDescription?>();
 
 			// initial step
 			steps.Add(
 				new DerivativeSymbol(diffTree, varToDiff).ToLatexString()
 			);
+
+			stepDescriptions.Add(null);
 
 			string prevStepString = "";
 
@@ -53,6 +60,7 @@ namespace DerivativeCalculator
 				prevStepString = diffTree.ToLatexString();
 
 				steps.Add(prevStepString);
+				stepDescriptions.Add(lastStep);
 			}
 
 			maxSteps = int.MaxValue;

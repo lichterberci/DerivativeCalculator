@@ -272,6 +272,12 @@ namespace DerivativeCalculator
 		{
 			if (Differentiator.numStapsTaken++ >= Differentiator.maxSteps)
 			{
+				Differentiator.lastStep = new StepDescription(
+					$@"\frac{{d}}{{dx}}\left(f(x) + g(x)\right) = \frac{{d}}{{dx}}f(x) + \frac{{d}}{{dx}}g(x)",
+					operand1.GetSimplestForm().ToLatexString(),
+					operand2.GetSimplestForm().ToLatexString()
+				);
+
 				return new DerivativeSymbol(this, varToDiff);
 			}
 
@@ -804,6 +810,11 @@ namespace DerivativeCalculator
 		{
 			if (Differentiator.numStapsTaken++ >= Differentiator.maxSteps)
 			{
+				Differentiator.lastStep = new StepDescription(
+					$@"\frac{{d}}{{dx}}\left(f(x) - g(x)\right) = \frac{{d}}{{dx}}f(x) - \frac{{d}}{{dx}}g(x)",
+					operand1.GetSimplestForm().ToLatexString(),
+					operand2.GetSimplestForm().ToLatexString()
+				);
 				return new DerivativeSymbol(this, varToDiff);
 			}
 
@@ -854,26 +865,42 @@ namespace DerivativeCalculator
 
 		public override string ToLatexString()
 		{
-			bool leaveRightParenthesisOut = operand2 is not Operator 
-				|| operand2 is Operator { basePriority: > 1 } 
-				|| operand2 is Operator { numOperands: 1};
+			bool leaveRightParenthesisOut = operand2 is not Operator
+				|| operand2 is Operator { basePriority: > 1 }
+				|| operand2 is Operator { numOperands: 1 };
 
-			if (operand1 is Constant { value: 0 })
+			bool changeSubToAdd = operand2.ToLatexString().Trim().StartsWith("-");
+
+			string operand2LatexString = changeSubToAdd ? operand2.ToLatexString().Trim()[1..] : operand2.ToLatexString();
+
+			if (operand1 is Constant { value: 0.0 } || operand1 is Constant { value: -0.0 })
 			{
 				// it is just a sign
 
 				if (leaveRightParenthesisOut)
 				{
-					return $@"-{{{operand2.ToLatexString()}}}";
+					if (changeSubToAdd)
+						return $@"+{{{operand2LatexString}}}";
+					else
+						return $@"-{{{operand2LatexString}}}";
 				}
 
-				return $@"-\left({{{operand2.ToLatexString()}}}\right)";
+				if (changeSubToAdd)
+					return $@"+\left({{{operand2LatexString}}}\right)";
+				else
+					return $@"-\left({{{operand2LatexString}}}\right)";
 			}
 
-			if (leaveRightParenthesisOut)
-				return $@"{{{operand1.ToLatexString()}}} - {{{operand2.ToLatexString()}}}";
+			if (changeSubToAdd)
+				if (leaveRightParenthesisOut)
+					return $@"{{{operand1.ToLatexString()}}} + {{{operand2LatexString}}}";
+				else
+					return $@"{{{operand1.ToLatexString()}}} + \left({{{operand2LatexString}}}\right)";
 			else
-				return $@"{{{operand1.ToLatexString()}}} - \left({{{operand2.ToLatexString()}}}\right)";
+				if (leaveRightParenthesisOut)
+					return $@"{{{operand1.ToLatexString()}}} - {{{operand2LatexString}}}";
+				else
+					return $@"{{{operand1.ToLatexString()}}} - \left({{{operand2LatexString}}}\right)";
 		}
 	}
 
@@ -896,6 +923,23 @@ namespace DerivativeCalculator
 		{
 			if (Differentiator.numStapsTaken++ >= Differentiator.maxSteps)
 			{
+				if (operand1.IsConstant(varToDiff))
+					Differentiator.lastStep = new StepDescription(
+						$@"\frac{{d}}{{dx}}\left(c \cdot f(x)\right) = c \cdot \frac{{d}}{{dx}}f(x)",
+						operand2.GetSimplestForm().ToLatexString()
+					);
+				else if (operand2.IsConstant(varToDiff))
+					Differentiator.lastStep = new StepDescription(
+						$@"\frac{{d}}{{dx}}\left(c \cdot f(x)\right) = c \cdot \frac{{d}}{{dx}}f(x)",
+						operand1.GetSimplestForm().ToLatexString()
+					);
+				else
+					Differentiator.lastStep = new StepDescription(
+						$@"\frac{{d}}{{dx}}\left(f(x) \cdot g(x)\right) = f(x) \ cdot \frac{{d}}{{dx}}g(x) + g(x) \ cdot \frac{{d}}{{dx}}f(x)",
+						operand1.GetSimplestForm().ToLatexString(),
+						operand2.GetSimplestForm().ToLatexString()
+					);
+
 				return new DerivativeSymbol(this, varToDiff);
 			}
 
@@ -931,7 +975,7 @@ namespace DerivativeCalculator
 
 			foreach ((var node, bool isNodeInverse) in operands)
 			{
-				if (node.Eval() is Constant { value: 0 })
+				if (node.Eval() is Constant { value: 0.0 } || node.Eval() is Constant { value: -0.0 })
 				{
 					if (isNodeInverse)
 						throw new DivideByZeroException();
@@ -1464,6 +1508,18 @@ namespace DerivativeCalculator
 		{
 			if (Differentiator.numStapsTaken++ >= Differentiator.maxSteps)
 			{
+				if (operand2.IsConstant(varToDiff))
+					Differentiator.lastStep = new StepDescription(
+						$@"\frac{{d}}{{dx}}\frac{{f(x)}}{{c}} = \frac{{\frac{{d}}{{dx}}f(x)}}{{c}}",
+						operand1.GetSimplestForm().ToLatexString()
+					);
+				else
+					Differentiator.lastStep = new StepDescription(
+						$@"\frac{{d}}{{dx}}frac{{f(x)}}{{g(x)}} = frac{{f(x) \ cdot \frac{{d}}{{dx}}g(x) - g(x) \ cdot \frac{{d}}{{dx}}f(x)}}{{{{g(x)}}^2}}",
+						operand1.GetSimplestForm().ToLatexString(),
+						operand2.GetSimplestForm().ToLatexString()
+					);
+
 				return new DerivativeSymbol(this, varToDiff);
 			}
 
@@ -1521,6 +1577,23 @@ namespace DerivativeCalculator
 		{
 			if (Differentiator.numStapsTaken++ >= Differentiator.maxSteps)
 			{
+				if (operand1.IsConstant(varToDiff))
+					Differentiator.lastStep = new StepDescription(
+						$@"\frac{{d}}{{dx}}{{c^{{f(x)}}}} = ln(c) \cdot {{c^{{f(x)}}}} \cdot \frac{{d}}{{dx}}f(x)",
+						operand2.GetSimplestForm().ToLatexString()
+					);
+				else if (operand2.IsConstant(varToDiff))
+					Differentiator.lastStep = new StepDescription(
+						$@"\frac{{d}}{{dx}}{{f(x)}}^c = \left(c\right) \cdot f(x)^{{c-1}} \cdot \frac{{d}}{{dx}}f(x)",
+						operand1.GetSimplestForm().ToLatexString()
+					);
+				else
+					Differentiator.lastStep = new StepDescription(
+						$@"\frac{{d}}{{dx}}f(x)^{{g(x)}} = \frac{{d}}{{dx}}e^{{g(x)\cdotln\left(f\left(x\right)\right)}} = e^{{g(x)\cdotln\left(f\left(x\right)\right)}}\cdot\frac{{d}}{{dx}}{{g(x)\cdotln\left(f\left(x\right)\right)}} = f(x)^{{g(x)}}\cdot\frac{{d}}{{dx}}{{g(x)\cdotln\left(f\left(x\right)\right)}}",
+						operand1.GetSimplestForm().ToLatexString(),
+						operand1.GetSimplestForm().ToLatexString()
+					);
+
 				return new DerivativeSymbol(this, varToDiff);
 			}
 
@@ -1694,6 +1767,10 @@ namespace DerivativeCalculator
 		{
 			if (Differentiator.numStapsTaken++ >= Differentiator.maxSteps)
 			{
+				Differentiator.lastStep = new StepDescription(
+					$@"\frac{{d}}{{dx}}\sin(x) = \cos(x)",
+					operand1.GetSimplestForm().ToLatexString()
+				);
 				return new DerivativeSymbol(this, varToDiff);
 			}
 
@@ -1737,6 +1814,10 @@ namespace DerivativeCalculator
 		{
 			if (Differentiator.numStapsTaken++ >= Differentiator.maxSteps)
 			{
+				Differentiator.lastStep = new StepDescription(
+					$@"\frac{{d}}{{dx}}\cos(x) = -\sin(x)",
+					operand1.GetSimplestForm().ToLatexString()
+				);
 				return new DerivativeSymbol(this, varToDiff);
 			}
 
@@ -1783,6 +1864,10 @@ namespace DerivativeCalculator
 		{
 			if (Differentiator.numStapsTaken++ >= Differentiator.maxSteps)
 			{
+				Differentiator.lastStep = new StepDescription(
+					$@"\frac{{d}}{{dx}}\tan(x) = \frac{{1}}{{{{\cos\left(x\right)}}^2}}",
+					operand1.GetSimplestForm().ToLatexString()
+				);
 				return new DerivativeSymbol(this, varToDiff);
 			}
 
@@ -1829,6 +1914,10 @@ namespace DerivativeCalculator
 		{
 			if (Differentiator.numStapsTaken++ >= Differentiator.maxSteps)
 			{
+				Differentiator.lastStep = new StepDescription(
+					$@"\frac{{d}}{{dx}}\ln(x) = \frac{{1}}{{x}}",
+					operand1.GetSimplestForm().ToLatexString()
+				);
 				return new DerivativeSymbol(this, varToDiff);
 			}
 
@@ -1872,6 +1961,10 @@ namespace DerivativeCalculator
 		{
 			if (Differentiator.numStapsTaken++ >= Differentiator.maxSteps)
 			{
+				Differentiator.lastStep = new StepDescription(
+					$@"\frac{{d}}{{dx}}\log(x) = \frac{{1}}{{\ln\left(10\right)\cdotx}}",
+					operand1.GetSimplestForm().ToLatexString()
+				);
 				return new DerivativeSymbol(this, varToDiff);
 			}
 

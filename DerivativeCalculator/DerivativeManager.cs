@@ -124,8 +124,13 @@ namespace DerivativeCalculator
 
 			List<string> steps;
 
+			string prettyInput, prettySimplifiedInput;
+
 			Console.Write("> ");
-			DifferentiateString(input, out _, out _, out steps); // will call a nicer writeline
+			DifferentiateString(input, out prettyInput, out prettySimplifiedInput, out steps); // will call a nicer writeline
+
+			Console.WriteLine(prettyInput);
+			Console.WriteLine(prettySimplifiedInput);
 
 			steps.ForEach(step => Console.WriteLine(step));
 		}

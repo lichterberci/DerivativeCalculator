@@ -71,17 +71,17 @@
                         <div class="equation-wrapper">
 
                             @{
-                                if (ViewData["prettyInput"] != ViewData["prettySimplifiedInput"]) {
-                                    <text>
-                                        $$ @ViewData["prettyInput"] = @ViewData["prettySimplifiedInput"] = @ViewData["derivativeOutput"] $$
-                                    </text>
-                                }
-                                else
-                                {
+                                //if (ViewData["prettyInput"] != ViewData["prettySimplifiedInput"]) {
+                                //    <text>
+                                //        $$ @ViewData["prettyInput"] = @ViewData["prettySimplifiedInput"] = @ViewData["derivativeOutput"] $$
+                                //    </text>
+                                //}
+                                //else
+                                //{
                                     <text>
                                         $$ @ViewData["prettySimplifiedInput"] = @ViewData["derivativeOutput"] $$
                                     </text>
-                                }
+                                //}
                             }
 
                         </div>
