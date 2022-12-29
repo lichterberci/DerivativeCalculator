@@ -46,8 +46,6 @@ namespace DerivativeCalculator
 				new DerivativeSymbol(diffTree, varToDiff).ToLatexString()
 			);
 
-			//stepDescriptions.Add(null);
-
 			string prevStepString = "";
 
 			while (true)
@@ -65,8 +63,7 @@ namespace DerivativeCalculator
 				prevStepString = diffTree.ToLatexString();
 
 				steps.Add(prevStepString);
-				Console.WriteLine("Deleting desc");
-				stepDescriptions = new List<StepDescription?>();
+				stepDescriptions = new List<StepDescription?>() { null };
 			}
 
 			maxSteps = int.MaxValue;
