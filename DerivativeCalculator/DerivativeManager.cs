@@ -125,16 +125,29 @@ namespace DerivativeCalculator
 			string input = Console.ReadLine().ToLower().Trim();
 
 			List<string> steps;
+			List<StepDescription?> stepDescriptions;
 
 			string prettyInput, prettySimplifiedInput;
 
 			Console.Write("> ");
-			DifferentiateString(input, out prettyInput, out prettySimplifiedInput, out steps, out _); // will call a nicer writeline
+			DifferentiateString(input, out prettyInput, out prettySimplifiedInput, out steps, out stepDescriptions); // will call a nicer writeline
 
-			Console.WriteLine(prettyInput);
-			Console.WriteLine(prettySimplifiedInput);
+			Console.WriteLine($"Pretty input: {prettyInput}");
+			Console.WriteLine($"Pretty simplified input: {prettySimplifiedInput}");
 
-			steps.ForEach(step => Console.WriteLine(step));
+			for (int i = 0; i < steps.Count; i++)
+			{
+				Console.WriteLine($"Step {i}:");
+				Console.WriteLine(steps[i]);
+				Console.WriteLine($"Step description {i}:");
+				if (stepDescriptions.Count <= i)
+					Console.WriteLine("out of range");
+				else
+					if (stepDescriptions[i] == null)
+						Console.WriteLine("null");
+					else
+						Console.WriteLine($"{stepDescriptions[i].ruleNameAsLatex} f(x)={stepDescriptions[i].fxAsLatex} g(x)={stepDescriptions[i].gxAsLatex}");
+			}
 		}
 	}
 }
