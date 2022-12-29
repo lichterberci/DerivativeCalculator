@@ -1611,7 +1611,7 @@ namespace DerivativeCalculator
 				));
 			else
 				Differentiator.AddStepDescription(new StepDescription(
-					$@"\frac{{d}}{{dx}}f(x)^{{g(x)}} = \frac{{d}}{{dx}}e^{{g(x)\cdotln\left(f\left(x\right)\right)}} = e^{{g(x)\cdotln\left(f\left(x\right)\right)}}\cdot\frac{{d}}{{dx}}{{g(x)\cdotln\left(f\left(x\right)\right)}} = f(x)^{{g(x)}}\cdot\frac{{d}}{{dx}}{{g(x)\cdotln\left(f\left(x\right)\right)}}",
+					$@"\frac{{d}}{{dx}}f(x)^{{g(x)}} = \frac{{d}}{{dx}}e^{{g(x)\cdot \ln\left(f\left(x\right)\right)}} = e^{{g(x)\cdot \ln\left(f\left(x\right)\right)}}\cdot\frac{{d}}{{dx}}{{g(x)\cdot \ln\left(f\left(x\right)\right)}} = f(x)^{{g(x)}}\cdot\frac{{d}}{{dx}}{{g(x)\cdot \ln\left(f\left(x\right)\right)}}",
 					operand1.GetSimplestForm().ToLatexString(),
 					operand1.GetSimplestForm().ToLatexString()
 				));

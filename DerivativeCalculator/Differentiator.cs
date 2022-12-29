@@ -46,6 +46,8 @@ namespace DerivativeCalculator
 				new DerivativeSymbol(diffTree, varToDiff).ToLatexString()
 			);
 
+			stepDescriptions = new List<StepDescription?>() { null };
+
 			string prevStepString = "";
 
 			while (true)
