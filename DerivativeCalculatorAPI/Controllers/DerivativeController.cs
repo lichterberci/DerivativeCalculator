@@ -14,8 +14,8 @@ namespace DerivativeCalculatorAPI.Controllers
 			return new string[] { "asd", "dsa" };
 		}
 
-		[HttpGet("differentiate")]
-		public ResponseData GetFromBody([FromBody] string input)
+		[HttpPost("differentiate")]
+		public ResponseData Post([FromBody] string input)
 		{
 			if (string.IsNullOrEmpty(input))
 			{
@@ -40,6 +40,14 @@ namespace DerivativeCalculatorAPI.Controllers
 			}
 
 			return new ResponseData(inputAsLatex, simplifiedInputAsLatex, outputAsLatex, stepsAsLatex, stepDescriptions);
+		}
+
+		// without data, the request is invalid
+		[HttpGet("differentiate")]
+		public ResponseData GetWithoutInput ()
+		{
+			Response.StatusCode = (int)HttpStatusCode.BadRequest;
+			return new ResponseData();
 		}
 
 		[HttpGet("differentiate/{input}")]
