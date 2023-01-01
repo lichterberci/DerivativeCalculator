@@ -1,0 +1,64 @@
+Date : 2023-01-01 15:46:09
+Directory : c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculator
+Total : 27 files,  4136 codes, 108 comments, 728 blanks, all 4972 lines
+
+Languages
++--------------+------------+------------+------------+------------+------------+
+| language     | files      | code       | comment    | blank      | total      |
++--------------+------------+------------+------------+------------+------------+
+| C#           |         16 |      3,882 |        108 |        723 |      4,713 |
+| JSON         |          6 |        207 |          0 |          0 |        207 |
+| XML          |          3 |         27 |          0 |          3 |         30 |
+| EditorConfig |          2 |         20 |          0 |          2 |         22 |
++--------------+------------+------------+------------+------------+------------+
+
+Directories
++---------------------------------------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| path                                                                                                                                                    | files      | code       | comment    | blank      | total      |
++---------------------------------------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+| .                                                                                                                                                       |         27 |      4,136 |        108 |        728 |      4,972 |
+| bin                                                                                                                                                     |          4 |         67 |          0 |          0 |         67 |
+| bin\Debug                                                                                                                                               |          2 |         32 |          0 |          0 |         32 |
+| bin\Debug\net6.0                                                                                                                                        |          2 |         32 |          0 |          0 |         32 |
+| bin\Release                                                                                                                                             |          2 |         35 |          0 |          0 |         35 |
+| bin\Release\net6.0                                                                                                                                      |          2 |         35 |          0 |          0 |         35 |
+| obj                                                                                                                                                     |         12 |        216 |         24 |         16 |        256 |
+| obj\Debug                                                                                                                                               |          4 |         29 |         12 |          8 |         49 |
+| obj\Debug\net6.0                                                                                                                                        |          4 |         29 |         12 |          8 |         49 |
+| obj\Release                                                                                                                                             |          4 |         29 |         12 |          8 |         49 |
+| obj\Release\net6.0                                                                                                                                      |          4 |         29 |         12 |          8 |         49 |
++---------------------------------------------------------------------------------------------------------------------------------------------------------+------------+------------+------------+------------+------------+
+
+Files
++---------------------------------------------------------------------------------------------------------------------------------------------------------+--------------+------------+------------+------------+------------+
+| filename                                                                                                                                                | language     | code       | comment    | blank      | total      |
++---------------------------------------------------------------------------------------------------------------------------------------------------------+--------------+------------+------------+------------+------------+
+| c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculator\DerivativeCalculator.csproj                                                       | XML          |          9 |          0 |          3 |         12 |
+| c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculator\DerivativeManager.cs                                                              | C#           |        116 |          1 |         37 |        154 |
+| c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculator\Differentiator.cs                                                                 | C#           |         56 |          1 |         20 |         77 |
+| c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculator\Exceptions.cs                                                                     | C#           |         32 |          0 |          5 |         37 |
+| c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculator\ExerciseGenerator.cs                                                              | C#           |        580 |          2 |        111 |        693 |
+| c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculator\Node.cs                                                                           | C#           |        174 |          0 |         22 |        196 |
+| c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculator\Operator.cs                                                                       | C#           |      2,286 |         64 |        377 |      2,727 |
+| c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculator\Parser.cs                                                                         | C#           |        256 |         13 |         47 |        316 |
+| c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculator\Program.cs                                                                        | C#           |         40 |          0 |          8 |         48 |
+| c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculator\StepDescription.cs                                                                | C#           |         20 |          0 |          3 |         23 |
+| c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculator\TreeUtils.cs                                                                      | C#           |        284 |          3 |         79 |        366 |
+| c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculator\bin\Debug\net6.0\DerivativeCalculator.deps.json                                   | JSON         |         23 |          0 |          0 |         23 |
+| c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculator\bin\Debug\net6.0\DerivativeCalculator.runtimeconfig.json                          | JSON         |          9 |          0 |          0 |          9 |
+| c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculator\bin\Release\net6.0\DerivativeCalculator.deps.json                                 | JSON         |         23 |          0 |          0 |         23 |
+| c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculator\bin\Release\net6.0\DerivativeCalculator.runtimeconfig.json                        | JSON         |         12 |          0 |          0 |         12 |
+| c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculator\obj\Debug\net6.0\.NETCoreApp,Version=v6.0.AssemblyAttributes.cs                   | C#           |          3 |          1 |          1 |          5 |
+| c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculator\obj\Debug\net6.0\DerivativeCalculator.AssemblyInfo.cs                             | C#           |          9 |         10 |          5 |         24 |
+| c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculator\obj\Debug\net6.0\DerivativeCalculator.GeneratedMSBuildEditorConfig.editorconfig   | EditorConfig |         10 |          0 |          1 |         11 |
+| c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculator\obj\Debug\net6.0\DerivativeCalculator.GlobalUsings.g.cs                           | C#           |          7 |          1 |          1 |          9 |
+| c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculator\obj\DerivativeCalculator.csproj.nuget.dgspec.json                                 | JSON         |         67 |          0 |          0 |         67 |
+| c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculator\obj\DerivativeCalculator.csproj.nuget.g.props                                     | XML          |         16 |          0 |          0 |         16 |
+| c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculator\obj\DerivativeCalculator.csproj.nuget.g.targets                                   | XML          |          2 |          0 |          0 |          2 |
+| c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculator\obj\Release\net6.0\.NETCoreApp,Version=v6.0.AssemblyAttributes.cs                 | C#           |          3 |          1 |          1 |          5 |
+| c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculator\obj\Release\net6.0\DerivativeCalculator.AssemblyInfo.cs                           | C#           |          9 |         10 |          5 |         24 |
+| c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculator\obj\Release\net6.0\DerivativeCalculator.GeneratedMSBuildEditorConfig.editorconfig | EditorConfig |         10 |          0 |          1 |         11 |
+| c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculator\obj\Release\net6.0\DerivativeCalculator.GlobalUsings.g.cs                         | C#           |          7 |          1 |          1 |          9 |
+| c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculator\obj\project.assets.json                                                           | JSON         |         73 |          0 |          0 |         73 |
+| Total                                                                                                                                                   |              |      4,136 |        108 |        728 |      4,972 |
++---------------------------------------------------------------------------------------------------------------------------------------------------------+--------------+------------+------------+------------+------------+

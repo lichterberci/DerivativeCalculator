@@ -8,12 +8,6 @@ namespace DerivativeCalculatorAPI.Controllers
 	[Route("/")]
 	public class DerivativeController : ControllerBase
 	{
-		[HttpGet("test")]
-		public IEnumerable<string> Test()
-		{
-			return new string[] { "asd", "dsa" };
-		}
-
 		[HttpPost("differentiate")]
 		public ResponseData Post([FromBody] string input)
 		{

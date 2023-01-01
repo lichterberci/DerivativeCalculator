@@ -8,40 +8,44 @@ public partial class Program
 	public static void Main()
 	{
 
-		DerivativeManager.DifferentiateFromConsole();
+		//DerivativeManager.DifferentiateFromConsole();
 
-		DifficultyMetrics difficulty = new()
+		do
 		{
-			numAllowedFromEachOperatorType = new Dictionary<OperatorType, int>()
+			for (int i = 0; i < 1000; i++)
 			{
-				{OperatorType.Add,  10},
-				{OperatorType.Sub,  10},
-				{OperatorType.Mult, 10},
-				{OperatorType.Div,  2},
-				{OperatorType.Pow,  3},
-				{OperatorType.Sin,  2},
-				{OperatorType.Cos,  0},
-				{OperatorType.Tan,  0},
-				{OperatorType.Ln,   0},
-				{OperatorType.Log,  0}
-			},
-			difficultyOfPower = DifficultyOfPower.Polinom,
-			difficultyOfMultiplication = DifficultyOfMultiplication.OnlyConstant,
-			numMinOperators = 2,
-			numMaxOperators = 7,
-			numMinLevelOfComposition = 0,
-			numMaxLevelOfComposition = 2,
-			numMinParameters = 0,
-			numMaxParameters = 0,
-			minConstValue = -5,
-			maxConstValue = 5,
-			constIsOnlyInt = true,
-			parameterChance = 0.3f,
-			shouldYieldNonZeroDiff = true,
-			shouldYieldNonConstDiff = true
-		};
+				if (i % 100 == 0)
+					Console.WriteLine($"{i}/{1000}");
 
+				var tree = ExerciseGenerator.GenerateRandomTree(DifficultyMetrics.Hardcore);
 
+				string treeString = tree.ToLatexString();
+				string diffString = tree.Diff('x').ToLatexString();
 
+				if (treeString.ToLower().Contains("nan")) {
+
+					Console.WriteLine("Found tree with error in treeString!");
+					Console.WriteLine(treeString);
+
+					TreeUtils.PrintTree(tree);
+
+					Environment.Exit(0);
+				}
+
+				if (diffString.ToLower().Contains("nan")) {
+
+					Console.WriteLine("Found tree with error in diffString!");
+					Console.WriteLine(treeString);
+					Console.WriteLine(diffString);
+
+					TreeUtils.PrintTree(tree);
+
+					Environment.Exit(0);
+				}
+			}
+
+			Console.WriteLine("Batch is done without error!");
+		}
+		while (Console.ReadKey().Key != ConsoleKey.Q);
 	}
 }

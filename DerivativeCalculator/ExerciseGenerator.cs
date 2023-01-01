@@ -189,7 +189,7 @@ namespace DerivativeCalculator
 
             if (sumOfAllowedOperands < numOperatorsToChoose)
             {
-                throw new ExerciseCouldNotBeGeneratedException("There are not enough operators to choose from!", nameof(difficulty.numAllowedFromEachOperatorType));
+                throw new ExerciseCouldNotBeGeneratedException("There are not enough operators to choose from!");
             }
 
             for (int i = 0; i < numOperatorsToChoose; i++)
@@ -403,7 +403,7 @@ namespace DerivativeCalculator
                     }
                 }
 
-                throw new ExerciseCouldNotBeGeneratedException("root is of invalid type!", nameof(root));
+                throw new ExerciseCouldNotBeGeneratedException("root is of invalid type!");
             }
 
             if (op.numOperands == 1)
@@ -665,11 +665,22 @@ namespace DerivativeCalculator
             }
 
 
+            if (TreeUtils.DoesTreeContainNull(tree))
+                return GenerateRandomTree(difficulty);
+
 			try
             {
                 tree = TreeUtils.GetSimplestForm(tree);
 
-			    if (TreeUtils.GetSimplestForm(tree.Diff('x')) is Constant diffConstant)
+				if (TreeUtils.DoesTreeContainNull(tree))
+					return GenerateRandomTree(difficulty);
+
+                var diffTree = TreeUtils.GetSimplestForm(tree.Diff('x'));
+
+				if (TreeUtils.DoesTreeContainNull(diffTree))
+					return GenerateRandomTree(difficulty);
+
+				if (diffTree is Constant diffConstant)
                     if (difficulty.shouldYieldNonConstDiff)
                         return GenerateRandomTree(difficulty);
                     else if (diffConstant is Constant { value: 0 } && difficulty.shouldYieldNonZeroDiff) 

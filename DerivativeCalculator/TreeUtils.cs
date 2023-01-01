@@ -281,7 +281,7 @@ namespace DerivativeCalculator
 
 				if (i >= minIterations && _tree.ToLatexString() == prevLatexString)
 				{
-					Console.WriteLine($"Simplification took {i} iterations");
+					//Console.WriteLine($"Simplification took {i} iterations");
 					break;
 				}
 
@@ -359,6 +359,23 @@ namespace DerivativeCalculator
 				return DoesTreeContainNonInt(op.operand1);
 			else
 				return DoesTreeContainNonInt(op.operand1) || DoesTreeContainNonInt(op.operand2);
+		}
+
+		public static bool DoesTreeContainNull (TreeNode root)
+		{
+			if (root is null)
+				return true;
+
+			if (root is Constant { value: Double.NaN })
+				return false;
+
+			if (root is not Operator op)
+				return false;
+
+			if (op.numOperands == 1)
+				return DoesTreeContainNull(op.operand1);
+			else
+				return DoesTreeContainNull(op.operand1) || DoesTreeContainNull(op.operand2);
 		}
 	}
 
