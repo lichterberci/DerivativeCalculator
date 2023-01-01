@@ -736,7 +736,7 @@ namespace DerivativeCalculator
 
 						if (coeff is not Constant)
 						{
-							throw new Exception("coeff should be a constant!!!");
+							throw new SimplificationException("coeff should be a constant!!!");
 						}
 
 						if (coeff is Constant { value: 1 })
@@ -763,7 +763,7 @@ namespace DerivativeCalculator
 
 							if (coeff2 is not Constant)
 							{
-								throw new Exception("coeff2 should be a constant!!!");
+								throw new SimplificationException("coeff2 should be a constant!!!");
 							}
 
 							if (coeff2 is Constant { value: 1 })

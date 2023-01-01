@@ -189,7 +189,7 @@ namespace DerivativeCalculator
 
             if (sumOfAllowedOperands < numOperatorsToChoose)
             {
-                throw new ArgumentException("There are not enough operators to choose from!", nameof(difficulty.numAllowedFromEachOperatorType));
+                throw new ExerciseCouldNotBeGeneratedException("There are not enough operators to choose from!", nameof(difficulty.numAllowedFromEachOperatorType));
             }
 
             for (int i = 0; i < numOperatorsToChoose; i++)
@@ -403,7 +403,7 @@ namespace DerivativeCalculator
                     }
                 }
 
-                throw new ArgumentException("root is of invalid type!", nameof(root));
+                throw new ExerciseCouldNotBeGeneratedException("root is of invalid type!", nameof(root));
             }
 
             if (op.numOperands == 1)

@@ -40,7 +40,7 @@ namespace DerivativeCalculator
 				if (nodes.Count == 0)
 				{
 					Console.WriteLine("Input is empty, or the parser is unable to parse it!");
-					throw new Exception("Input is empty, or the parser is unable to parse it!");
+					throw new ParsingError("Input is empty, or the parser is unable to parse it!");
 				}
 
 				tree = Parser.MakeTreeFromList(nodes);
@@ -54,13 +54,13 @@ namespace DerivativeCalculator
 				if (tree == null)
 				{
 					Console.WriteLine("Parsing error: tree is empty!");
-					throw new Exception("Parsing error: tree is empty!");
+					throw new ParsingError("Parsing error: tree is empty!");
 				}
 			}
 			catch (Exception e)
 			{
 				Console.WriteLine("Parsing error!");
-				throw new Exception("Parsing error!");
+				throw new ParsingError("Parsing error!");
 			}
 
 			TreeNode diffTree;
@@ -81,7 +81,7 @@ namespace DerivativeCalculator
 			catch (Exception e)
 			{
 				Console.WriteLine($"An error occured while differentiating! ({e.Message}) {e.StackTrace}");
-				throw new Exception("An error occured while differentiating!");
+				throw new DifferentiationException("An error occured while differentiating!");
 			}
 
 			return diffTree.ToLatexString();
@@ -113,7 +113,7 @@ namespace DerivativeCalculator
 			catch (Exception e)
 			{
 				Console.WriteLine($"An error occured while differentiating! ({e.Message}) {e.StackTrace}");
-				throw new Exception("An error occured while differentiating!");
+				throw new DifferentiationException("An error occured while differentiating!");
 			}
 
 			return diffTree.ToLatexString();
