@@ -332,8 +332,8 @@ namespace DerivativeCalculator
 			if (root is null)
 				return false;
 
-			if (root is Constant { value: Double.NaN })
-				return true;
+			if (root is Constant c)
+				return double.IsNaN(c.value) || double.IsInfinity(c.value);
 
 			if (root is not Operator op)
 				return false;

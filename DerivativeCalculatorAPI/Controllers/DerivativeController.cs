@@ -30,7 +30,7 @@ namespace DerivativeCalculatorAPI.Controllers
 			{
 				Console.WriteLine(e.Message);
 
-				Response.Headers.Add("Access-Control-Request-Headers", "x-exception-type, x-exception-message");
+				Response.Headers.Add("Access-Control-Expose-Headers", "x-exception-type, x-exception-message");
 				Response.Headers.Add("x-exception-type", "PARSING ERROR");
 				Response.Headers.Add("x-exception-message", e.Message);
 
@@ -41,7 +41,7 @@ namespace DerivativeCalculatorAPI.Controllers
 			{
 				Console.WriteLine(e.Message);
 
-				Response.Headers.Add("Access-Control-Request-Headers", "x-exception-type, x-exception-message");
+				Response.Headers.Add("Access-Control-Expose-Headers", "x-exception-type, x-exception-message");
 				Response.Headers.Add("x-exception-type", "DIFFERENTIATION ERROR");
 				Response.Headers.Add("x-exception-message", e.Message);
 
@@ -52,7 +52,7 @@ namespace DerivativeCalculatorAPI.Controllers
 			{
 				Console.WriteLine(e.Message);
 
-				Response.Headers.Add("Access-Control-Request-Headers", "x-exception-type, x-exception-message");
+				Response.Headers.Add("Access-Control-Expose-Headers", "x-exception-type, x-exception-message");
 				Response.Headers.Add("x-exception-type", "SIMPLIFICATION ERROR");
 				Response.Headers.Add("x-exception-message", e.Message);
 
@@ -63,7 +63,7 @@ namespace DerivativeCalculatorAPI.Controllers
 			{
 				Console.WriteLine(e.Message);
 
-				Response.Headers.Add("Access-Control-Request-Headers", "x-exception-type, x-exception-message");
+				Response.Headers.Add("Access-Control-Expose-Headers", "x-exception-type, x-exception-message");
 				Response.Headers.Add("x-exception-type", "UNKNOWN ERROR");
 				Response.Headers.Add("x-exception-message", e.Message);
 
@@ -80,7 +80,7 @@ namespace DerivativeCalculatorAPI.Controllers
 		{
 			Console.WriteLine("differenatiate endpoint called without input!");
 
-			Response.Headers.Add("Access-Control-Request-Headers", "x-exception-type, x-exception-message");
+			Response.Headers.Add("Access-Control-Expose-Headers", "x-exception-type, x-exception-message");
 			Response.Headers.Add("x-exception-type", "PARSING ERROR");
 			Response.Headers.Add("x-exception-message", "Input is empty!");
 
@@ -109,7 +109,7 @@ namespace DerivativeCalculatorAPI.Controllers
 			{
 				Console.WriteLine(e.Message);
 
-				Response.Headers.Add("Access-Control-Request-Headers", "x-exception-type, x-exception-message");
+				Response.Headers.Add("Access-Control-Expose-Headers", "x-exception-type, x-exception-message");
 				Response.Headers.Add("x-exception-type", "PARSING ERROR");
 				Response.Headers.Add("x-exception-message", e.Message);
 
@@ -120,7 +120,7 @@ namespace DerivativeCalculatorAPI.Controllers
 			{
 				Console.WriteLine(e.Message);
 
-				Response.Headers.Add("Access-Control-Request-Headers", "x-exception-type, x-exception-message");
+				Response.Headers.Add("Access-Control-Expose-Headers", "x-exception-type, x-exception-message");
 				Response.Headers.Add("x-exception-type", "DIFFERENTIATION ERROR");
 				Response.Headers.Add("x-exception-message", e.Message);
 
@@ -131,7 +131,7 @@ namespace DerivativeCalculatorAPI.Controllers
 			{
 				Console.WriteLine(e.Message);
 
-				Response.Headers.Add("Access-Control-Request-Headers", "x-exception-type, x-exception-message");
+				Response.Headers.Add("Access-Control-Expose-Headers", "x-exception-type, x-exception-message");
 				Response.Headers.Add("x-exception-type", "SIMPLIFICATION ERROR");
 				Response.Headers.Add("x-exception-message", e.Message);
 
@@ -142,7 +142,7 @@ namespace DerivativeCalculatorAPI.Controllers
 			{
 				Console.WriteLine(e.Message);
 
-				Response.Headers.Add("Access-Control-Request-Headers", "x-exception-type, x-exception-message");
+				Response.Headers.Add("Access-Control-Expose-Headers", "x-exception-type, x-exception-message");
 				Response.Headers.Add("x-exception-type", "UNKNOWN ERROR");
 				Response.Headers.Add("x-exception-message", e.Message);
 

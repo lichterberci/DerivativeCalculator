@@ -12,7 +12,7 @@ public partial class Program
 
 		do
 		{
-			for (int i = 0; i < 1000; i++)
+			for (int i = 0; i < 10000; i++)
 			{
 				if (i % 100 == 0)
 					Console.WriteLine($"{i}/{1000}");
@@ -21,6 +21,9 @@ public partial class Program
 
 				string treeString = tree.ToLatexString();
 				string diffString = tree.Diff('x').ToLatexString();
+
+				//Console.WriteLine(treeString);
+				//Console.WriteLine(diffString);
 
 				if (treeString.ToLower().Contains("nan")) {
 
