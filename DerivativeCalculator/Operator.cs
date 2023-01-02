@@ -1664,6 +1664,48 @@ namespace DerivativeCalculator
 
 		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
 		{
+			Dictionary<char, TreeNode> wildcards;
+
+			// we have to check before and after as well, because the simplification might mess up the multiplication
+
+			// e^(lna*b) = a^b
+			if (TreeUtils.MatchPattern(
+				this,
+				new Pow(
+					Constant.E,
+					new Mult(
+						new Ln(new Wildcard('a')),
+						new Wildcard('b')
+					)
+				),
+				out wildcards
+			))
+			{
+				return new Pow(
+					wildcards['a'],
+					wildcards['b']
+				);
+			}
+
+			// 10^(loga*b) = a^b
+			if (TreeUtils.MatchPattern(
+				this,
+				new Pow(
+					new Constant(10),
+					new Mult(
+						new Log(new Wildcard('a')),
+						new Wildcard('b')
+					)
+				),
+				out wildcards
+			))
+			{
+				return new Pow(
+					wildcards['a'],
+					wildcards['b']
+				);
+			}
+
 			if (skipSimplificationOfChildren == false)
 			{
 				operand1 = operand1.Simplify();
@@ -1684,9 +1726,6 @@ namespace DerivativeCalculator
 
 			if (operand2.Eval() is Constant { value: -1 })
 				return new Div(new Constant(1), operand1);
-
-			Dictionary<char, TreeNode> wildcards;
-
 
 			// (a^b)^c = a^(b*c)
 			if (TreeUtils.MatchPattern(
