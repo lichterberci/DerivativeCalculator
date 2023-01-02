@@ -177,7 +177,7 @@ namespace DerivativeCalculator
                         DifficultyOfPower.Polinom => (new PlaceHolderLeaf(false, true), new PlaceHolderLeaf(true, false)),
                         DifficultyOfPower.PolinomOrExponential => random.Next() % 2 == 0 ?
                                                                     (new PlaceHolderLeaf(false, true), new PlaceHolderLeaf(true, false)) :
-                                                                    (new PlaceHolderLeaf(true, false), new PlaceHolderLeaf(false, true)),
+                                                                    (new PlaceHolderLeaf(true, false, 0, false), new PlaceHolderLeaf(false, true)),
                         _ => (new PlaceHolderLeaf(true, true), new PlaceHolderLeaf(true, true))
                     };
                     break;
