@@ -40,6 +40,8 @@ namespace DerivativeCalculator
 		public static readonly DifficultyMetrics Hard;
 		public static readonly DifficultyMetrics Hardcore;
 
+		public static readonly DifficultyMetrics Test;
+
 		static DifficultyMetrics()
 		{
 			Easy = new()
@@ -128,29 +130,29 @@ namespace DerivativeCalculator
 			{
 				numAllowedFromEachOperatorType = new Dictionary<OperatorType, int>()
 				{
-					{OperatorType.Add,		10},
-					{OperatorType.Sub,		5},
-					{OperatorType.Mult,		10},
-					{OperatorType.Div,		7},
-					{OperatorType.Pow,		7},
-					{OperatorType.Log,		3},
-					{OperatorType.Ln,		3},
-					{OperatorType.Sin,		3},
-					{OperatorType.Cos,		3},
-					{OperatorType.Tan,		3},
-					{OperatorType.Cot,		3},
-					{OperatorType.Arcsin,	2},
-					{OperatorType.Arccos,	2},
-					{OperatorType.Arctan,	2},
-					{OperatorType.Arccot,	2},
-					{OperatorType.Sinh,		2},
-					{OperatorType.Cosh,		2},
-					{OperatorType.Tanh,		2},
-					{OperatorType.Coth,		2},
-					{OperatorType.Arsinh,	2},
-					{OperatorType.Arcosh,	2},
-					{OperatorType.Artanh,	2},
-					{OperatorType.Arcoth,	2},
+					{OperatorType.Add,      10},
+					{OperatorType.Sub,      5},
+					{OperatorType.Mult,     10},
+					{OperatorType.Div,      7},
+					{OperatorType.Pow,      7},
+					{OperatorType.Log,      3},
+					{OperatorType.Ln,       3},
+					{OperatorType.Sin,      3},
+					{OperatorType.Cos,      3},
+					{OperatorType.Tan,      3},
+					{OperatorType.Cot,      3},
+					{OperatorType.Arcsin,   2},
+					{OperatorType.Arccos,   2},
+					{OperatorType.Arctan,   2},
+					{OperatorType.Arccot,   2},
+					{OperatorType.Sinh,     2},
+					{OperatorType.Cosh,     2},
+					{OperatorType.Tanh,     2},
+					{OperatorType.Coth,     2},
+					{OperatorType.Arsinh,   2},
+					{OperatorType.Arcosh,   2},
+					{OperatorType.Artanh,   2},
+					{OperatorType.Arcoth,   2},
 				},
 				difficultyOfPower = DifficultyOfPower.BothCanBeDependent,
 				difficultyOfMultiplication = DifficultyOfMultiplication.BothCanBeDependent,
@@ -166,6 +168,30 @@ namespace DerivativeCalculator
 				parameterChance = 0.6f,
 				shouldYieldNonZeroDiff = true,
 				shouldYieldNonConstDiff = true
+			};
+
+			Test = new()
+			{
+				numAllowedFromEachOperatorType = new Dictionary<OperatorType, int>()
+				{
+					{OperatorType.Add,  10 },
+					{OperatorType.Div,  10 },
+					{OperatorType.Pow,  10 }
+				},
+				difficultyOfPower = DifficultyOfPower.PolinomOrExponential,
+				difficultyOfMultiplication = DifficultyOfMultiplication.OnlyConstant,
+				numMinOperators = 2,
+				numMaxOperators = 7,
+				numMinLevelOfComposition = 0,
+				numMaxLevelOfComposition = 1,
+				numMinParameters = 0,
+				numMaxParameters = 0,
+				minConstValue = -100,
+				maxConstValue = 1,
+				constIsOnlyInt = true,
+				parameterChance = 0.0f,
+				shouldYieldNonZeroDiff = true,
+				shouldYieldNonConstDiff = false
 			};
 		}
 	}

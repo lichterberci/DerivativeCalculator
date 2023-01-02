@@ -12,7 +12,7 @@ public partial class Program
 
 		do
 		{
-			for (int i = 0; i < 10000; i++)
+			for (int i = 0; i < 100; i++)
 			{
 				if (i % 100 == 0)
 					Console.WriteLine($"{i}/{1000}");
