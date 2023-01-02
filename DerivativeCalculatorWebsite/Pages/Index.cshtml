@@ -94,20 +94,6 @@
                                         <li class="steps">
                                             $$ = @step $$
 
-                                            @{
-                                                if (stepDescription is not null) {
-                                                    <br/>
-                                                    <text> $$ @stepDescription.ruleNameAsLatex $$ </text> <br/>
-                                                    <text> $$ f\left(x\right) = @stepDescription.fxAsLatex $$ </text>
-
-                                                    if (stepDescription.gxAsLatex is not null) {
-
-                                                        <br/><text> $$ g\left(x\right) = @stepDescription.gxAsLatex $$ </text>
-
-                                                    }
-                                                }
-                                            }
-
                                         </li>
                             }
                                 </ul>

@@ -1761,8 +1761,13 @@ namespace DerivativeCalculator
 										|| operand1 is Operator { numOperands: 1 };
 			bool leavePowerParenthesisOut = operand2 is not Pow;
 
+			string operand1String = operand1.ToLatexString();
+
+			if (operand1String.StartsWith("-"))
+				operand1String = $@"\left({{{operand1.ToLatexString()}}}\right)";
+
 			return $"{(leaveBaseParenthesisOut ? "" : @"\left(")}" +
-				$"{{{operand1.ToLatexString()}}}" +
+				$"{{{operand1String}}}" +
 				$"{(leaveBaseParenthesisOut ? "" : @"\right)")}" +
 				$"^" +
 				$"{(leavePowerParenthesisOut ? "" : @"\left(")}" +
