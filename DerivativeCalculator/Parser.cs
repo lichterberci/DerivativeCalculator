@@ -125,6 +125,43 @@ namespace DerivativeCalculator
 			return nodes;
 		}
 
+		public static List<Node> HandleNegativeSigns(List<Node> nodes)
+		{
+			for (int i = 0; i < nodes.Count - 1; i++)
+			{
+				Node? prevNode = i > 0 ? nodes[i - 1] : null;
+				Node currentNode = nodes[i];
+				Node nextNode = nodes[i + 1];
+
+				if (currentNode is Operator op)
+				{
+					if (op.type == OperatorType.Sub)
+					{
+						if (
+							prevNode == null
+							|| prevNode is Operator
+							|| prevNode is Parenthesis { isOpeningParinthesis: true }
+						)
+						{
+							if (nextNode is Constant c)
+							{
+								nodes.Remove(currentNode);
+								c.value *= -1;
+							}
+							else
+							{
+								// it is a negative sign, so we replace '-' with a '(-1)*'
+								nodes[i] = new Mult(); // add a *
+								nodes.Insert(i, new Constant(-1)); // add a -1 in front of it
+							}
+						}
+					}
+				}
+			}
+
+			return nodes;
+		}
+
 		public static List<Node> ReplaceVarEWithConstE(List<Node> nodes)
 		{
 			for (int i = 0; i < nodes.Count; i++)
@@ -281,34 +318,6 @@ namespace DerivativeCalculator
 
 				return op;
 			}
-		}
-
-		public static List<Node> HandleNegativeSigns(List<Node> nodes)
-		{
-			for (int i = 0; i < nodes.Count; i++)
-			{
-				Node? prevNode = i > 0 ? nodes[i - 1] : null;
-				Node currentNode = nodes[i];
-
-				if (currentNode is Operator op)
-				{
-					if (op.type == OperatorType.Sub)
-					{
-						if (
-							prevNode == null
-							|| prevNode is Operator
-							|| prevNode is Parenthesis { isOpeningParinthesis: true }
-						)
-						{
-							// it is a negative sign, so we replace '-' with a '(-1)*'
-							nodes[i] = new Mult(); // add a *
-							nodes.Insert(i, new Constant(-1)); // add a -1 in front of it
-						}
-					}
-				}
-			}
-
-			return nodes;
 		}
 	}
 
