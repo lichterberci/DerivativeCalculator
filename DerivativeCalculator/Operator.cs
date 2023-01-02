@@ -1496,7 +1496,7 @@ namespace DerivativeCalculator
 			if (leftOperand is Constant { value: -1 })
 			{
 				leftPart = "-";
-				leaveLeftParenthesisOut = true;
+				leaveMultiplicationSignOut = true;
 			}
 
 			string rightPart = $"{{{(leaveRightParenthesisOut ? "" : @"\left(")}" +
