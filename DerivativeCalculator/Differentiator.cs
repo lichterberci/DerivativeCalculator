@@ -65,8 +65,10 @@ namespace DerivativeCalculator
 				prevStepString = diffTree.ToLatexString();
 
 				steps.Add(prevStepString);
-				stepDescriptions = new List<StepDescription?>() { null };
+				stepDescriptions = new List<StepDescription?>();
 			}
+
+			stepDescriptions.Add(null);
 
 			maxSteps = int.MaxValue;
 
