@@ -217,6 +217,36 @@ namespace DerivativeCalculator
 					return op;
 			}
 
+			// aliases
+
+			switch(str)
+			{
+				case "tg":
+					return OperatorType.Tan;
+				case "ctg":
+					return OperatorType.Cot;
+				case "arctg":
+					return OperatorType.Arctan;
+				case "arcctg":
+					return OperatorType.Arccot;
+				case "sh":
+					return OperatorType.Sinh;
+				case "ch":
+					return OperatorType.Cosh;
+				case "th":
+					return OperatorType.Tanh;
+				case "cth":
+					return OperatorType.Coth;
+				case "arsh":
+					return OperatorType.Arsinh;
+				case "arch":
+					return OperatorType.Arcosh;
+				case "arth":
+					return OperatorType.Artanh;
+				case "arcth":
+					return OperatorType.Arcoth;
+			}
+
 			return null;
 		}
 		public static bool IsOperatorTypeCommutative(OperatorType type)
