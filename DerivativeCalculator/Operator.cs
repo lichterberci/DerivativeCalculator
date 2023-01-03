@@ -642,6 +642,22 @@ namespace DerivativeCalculator
 						subtractionList.Add((key, c));
 					}
 
+					if (key is Mult)
+					{
+						List<(TreeNode, bool)> multiplicants = TreeUtils.GetAssociativeOperands(key, OperatorType.Mult, OperatorType.Div);
+
+						// simplify the *2 * a * x * 32 down before adding it to the list
+
+						if (multiplicants.Any(item => item.Item1 is Constant { value: < 0 }))
+						{
+							TreeNode simplifiedKey = new Mult(key, coeff).Simplify().Eval();
+
+							subtractionList.Add((simplifiedKey, new Constant(1)));
+
+							continue;
+						}
+					}
+
 					additionList.Add((key, coeff));
 				}
 
