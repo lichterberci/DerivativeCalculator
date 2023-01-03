@@ -709,7 +709,7 @@ namespace DerivativeCalculator
 					}
 					else if (key is Constant) // constant 1
 					{
-						head.operand1 = coeff;
+						additionRoot = coeff;
 					}
 					else
 					{
@@ -793,6 +793,10 @@ namespace DerivativeCalculator
 					if (coeff is Constant { value: 1 })
 					{
 						subtractionRoot = key;
+					}
+					else if (key is Constant)
+					{
+						subtractionRoot = coeff;
 					}
 					else
 					{
