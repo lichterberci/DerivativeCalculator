@@ -10,8 +10,8 @@ public partial class Program
 
 		//DerivativeManager.DifferentiateFromConsole();
 
-		TreeNode tree = new Sub(
-			new Constant(0),
+		TreeNode tree = new Add(
+			new Constant(10),
 			  new Mult(
 					new Constant(-21),
 					new Variable('x')

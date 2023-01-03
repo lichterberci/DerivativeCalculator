@@ -1,5 +1,6 @@
 ﻿using System.Collections.Immutable;
 using System.Reflection;
+using System.Security.Cryptography;
 
 namespace DerivativeCalculator
 {
@@ -698,6 +699,9 @@ namespace DerivativeCalculator
 
 					if (difficulty.constIsOnlyInt && TreeUtils.DoesTreeContainNonInt(tree))
 						continue;
+
+                    if (TreeUtils.DoesTreeConstainBadConstant(tree, difficulty.minConstValue, difficulty.maxConstValue))
+                        continue;
 				}
                 catch (Exception e) // x/0 or something random
                 {

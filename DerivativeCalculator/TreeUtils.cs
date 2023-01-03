@@ -377,6 +377,27 @@ namespace DerivativeCalculator
 			else
 				return DoesTreeContainNull(op.operand1) || DoesTreeContainNull(op.operand2);
 		}
+
+		public static bool DoesTreeConstainBadConstant(TreeNode root, double min, double max)
+		{
+			if (root is null)
+				return false;
+
+			if (root is Constant c)
+				return c.value < min || c.value > max;
+
+			if (root is not Operator op)
+				return false;
+
+			if (op.numOperands == 1)
+			{
+				return DoesTreeConstainBadConstant(op.operand1, min, max);
+			}
+			else
+			{
+				return DoesTreeConstainBadConstant(op.operand1, min, max) || DoesTreeConstainBadConstant(op.operand2, min, max);
+			}
+		}
 	}
 
 }

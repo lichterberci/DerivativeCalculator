@@ -591,7 +591,7 @@ namespace DerivativeCalculator
 
 					// new entry
 					if (node is Constant constant)
-						coefficientDict[new Constant(1)] = isNodeInverse ? new Constant(-constant.value) : node;
+						coefficientDict[new Constant(val: 1)] = isNodeInverse ? new Constant(-constant.value) : node;
 					else
 						coefficientDict[node] = new Constant(isNodeInverse ? -1 : 1);
 				}
@@ -640,6 +640,8 @@ namespace DerivativeCalculator
 						c.value *= -1;
 
 						subtractionList.Add((key, c));
+
+						continue;
 					}
 
 					if (key is Mult)
@@ -650,7 +652,7 @@ namespace DerivativeCalculator
 
 						if (multiplicants.Any(item => item.Item1 is Constant { value: < 0 }))
 						{
-							TreeNode simplifiedKey = new Mult(key, coeff).Simplify().Eval();
+							TreeNode simplifiedKey = new Mult(new Mult(key, coeff), new Constant(-1)).Simplify().Eval();
 
 							subtractionList.Add((simplifiedKey, new Constant(1)));
 
@@ -675,6 +677,10 @@ namespace DerivativeCalculator
 					{
 						additionRoot = key;
 					}
+					else if (key is Constant) // constant 1
+					{
+						head.operand1 = coeff;
+					}
 					else
 					{
 						additionRoot = new Mult(
@@ -698,6 +704,10 @@ namespace DerivativeCalculator
 						{
 							head.operand1 = key;
 						}
+						else if (key is Constant)
+						{
+							head.operand1 = coeff;
+						}
 						else
 						{
 							head.operand1 = new Mult(
@@ -715,6 +725,10 @@ namespace DerivativeCalculator
 							if (coeff2 is Constant { value: 1 })
 							{
 								head.operand2 = key2;
+							}
+							else if (key2 is Constant)
+							{
+								head.operand2 = coeff2;
 							}
 							else
 							{
@@ -1572,7 +1586,7 @@ namespace DerivativeCalculator
 				));
 			else
 				Differentiator.AddStepDescription(new StepDescription(
-					$@"\frac{{d}}{{dx}}frac{{f(x)}}{{g(x)}} = frac{{f(x) \cdot \frac{{d}}{{dx}}g(x) - g(x) \cdot \frac{{d}}{{dx}}f(x)}}{{{{g(x)}}^2}}",
+					$@"\frac{{d}}{{dx}}\frac{{f(x)}}{{g(x)}} = \frac{{f(x) \cdot \frac{{d}}{{dx}}g(x) - g(x) \cdot \frac{{d}}{{dx}}f(x)}}{{{{g(x)}}^2}}",
 					operand1.GetSimplestForm().ToLatexString(),
 					operand2.GetSimplestForm().ToLatexString()
 				));
