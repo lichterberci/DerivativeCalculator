@@ -9,7 +9,7 @@ namespace DerivativeCalculator
 {
 	public static class DerivativeManager
 	{
-		public static string DifferentiateString(string input, out string inputAsLatex, out string simplifiedInputAsLatex, out List<string> stepsAsLatex, out List<StepDescription> stepDescriptions)
+		public static string DifferentiateString(string input, out string inputAsLatex, out string simplifiedInputAsLatex, out List<string> stepsAsLatex, out List<StepDescription> stepDescriptions, out char varToDiff)
 		{
 			simplifiedInputAsLatex = "";
 			inputAsLatex = "";
@@ -24,6 +24,8 @@ namespace DerivativeCalculator
 				varToDifferentiate = input[3];
 				input = input.Substring(4);
 			}
+
+			varToDiff = varToDifferentiate;
 
 			List<Node> nodes;
 			TreeNode tree;
@@ -130,7 +132,7 @@ namespace DerivativeCalculator
 			string prettyInput, prettySimplifiedInput;
 
 			Console.Write("> ");
-			DifferentiateString(input, out prettyInput, out prettySimplifiedInput, out steps, out stepDescriptions); // will call a nicer writeline
+			DifferentiateString(input, out prettyInput, out prettySimplifiedInput, out steps, out stepDescriptions, out _); // will call a nicer writeline
 
 			Console.WriteLine($"Pretty input: {prettyInput}");
 			Console.WriteLine($"Pretty simplified input: {prettySimplifiedInput}");

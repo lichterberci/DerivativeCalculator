@@ -21,10 +21,11 @@ namespace DerivativeCalculatorAPI.Controllers
 			string inputAsLatex, simplifiedInputAsLatex, outputAsLatex;
 			List<string> stepsAsLatex;
 			List<StepDescription> stepDescriptions;
+			char varToDiff;
 
 			try
 			{
-				outputAsLatex = DerivativeCalculator.DerivativeManager.DifferentiateString(input, out inputAsLatex, out simplifiedInputAsLatex, out stepsAsLatex, out stepDescriptions);
+				outputAsLatex = DerivativeCalculator.DerivativeManager.DifferentiateString(input, out inputAsLatex, out simplifiedInputAsLatex, out stepsAsLatex, out stepDescriptions, out varToDiff);
 			}
 			catch (ParsingError e)
 			{
@@ -71,7 +72,7 @@ namespace DerivativeCalculatorAPI.Controllers
 				return new ResponseData();
 			}
 
-			return new ResponseData(inputAsLatex, simplifiedInputAsLatex, outputAsLatex, stepsAsLatex, stepDescriptions);
+			return new ResponseData(inputAsLatex, simplifiedInputAsLatex, outputAsLatex, stepsAsLatex, stepDescriptions, varToDiff);
 		}
 
 		// without data, the request is invalid
@@ -94,6 +95,7 @@ namespace DerivativeCalculatorAPI.Controllers
 			string inputAsLatex, simplifiedInputAsLatex, outputAsLatex;
 			List<string> stepsAsLatex;
 			List<StepDescription> stepDescriptions;
+			char varToDiff;
 
 			try
 			{
@@ -102,7 +104,8 @@ namespace DerivativeCalculatorAPI.Controllers
 					out inputAsLatex, 
 					out simplifiedInputAsLatex, 
 					out stepsAsLatex, 
-					out stepDescriptions
+					out stepDescriptions,
+					out varToDiff
 				);
 			}
 			catch (ParsingError e)
@@ -150,7 +153,7 @@ namespace DerivativeCalculatorAPI.Controllers
 				return new ResponseData();
 			}
 
-			return new ResponseData(inputAsLatex, simplifiedInputAsLatex, outputAsLatex, stepsAsLatex, stepDescriptions);
+			return new ResponseData(inputAsLatex, simplifiedInputAsLatex, outputAsLatex, stepsAsLatex, stepDescriptions, varToDiff);
 		}
 	}
 }

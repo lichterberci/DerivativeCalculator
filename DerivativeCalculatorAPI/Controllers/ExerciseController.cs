@@ -45,10 +45,18 @@ namespace DerivativeCalculatorAPI.Controllers
 			string inputAsLatex, simplifiedInputAsLatex, outputAsLatex;
 			List<string> stepsAsLatex;
 			List<StepDescription> stepDescriptions;
+			char varToDiff = 'x';
 
 			try
 			{
-				outputAsLatex = DerivativeManager.DifferentiateTree(tree, 'x', out inputAsLatex, out simplifiedInputAsLatex, out stepsAsLatex, out stepDescriptions);
+				outputAsLatex = DerivativeManager.DifferentiateTree(
+					tree,
+					'x', 
+					out inputAsLatex, 
+					out simplifiedInputAsLatex, 
+					out stepsAsLatex, 
+					out stepDescriptions
+				);
 			}
 			catch (ParsingError e)
 			{
@@ -95,7 +103,7 @@ namespace DerivativeCalculatorAPI.Controllers
 				return new ResponseData();
 			}
 
-			return new ResponseData(inputAsLatex, simplifiedInputAsLatex, outputAsLatex, stepsAsLatex, stepDescriptions);
+			return new ResponseData(inputAsLatex, simplifiedInputAsLatex, outputAsLatex, stepsAsLatex, stepDescriptions, varToDiff);
 		}
 
 		// without data, the request is invalid
@@ -136,6 +144,7 @@ namespace DerivativeCalculatorAPI.Controllers
 			string inputAsLatex, simplifiedInputAsLatex, outputAsLatex;
 			List<string> stepsAsLatex;
 			List<StepDescription?> stepDescriptions;
+			char varToDiff = 'x';
 
 			try
 			{
@@ -193,7 +202,7 @@ namespace DerivativeCalculatorAPI.Controllers
 				return new ResponseData();
 			}
 
-			return new ResponseData(inputAsLatex, simplifiedInputAsLatex, outputAsLatex, stepsAsLatex, stepDescriptions);
+			return new ResponseData(inputAsLatex, simplifiedInputAsLatex, outputAsLatex, stepsAsLatex, stepDescriptions, varToDiff);
 		}
 
 		[HttpGet("generate-exercise/{level}")]
@@ -240,6 +249,7 @@ namespace DerivativeCalculatorAPI.Controllers
 			string inputAsLatex, simplifiedInputAsLatex, outputAsLatex;
 			List<string> stepsAsLatex;
 			List<StepDescription> stepDescriptions;
+			char varToDiff = 'x';
 
 			try
 			{
@@ -294,7 +304,7 @@ namespace DerivativeCalculatorAPI.Controllers
 				return new ResponseData();
 			}
 
-			return new ResponseData(inputAsLatex, simplifiedInputAsLatex, outputAsLatex, stepsAsLatex, stepDescriptions);
+			return new ResponseData(inputAsLatex, simplifiedInputAsLatex, outputAsLatex, stepsAsLatex, stepDescriptions, varToDiff);
 		}
 	}
 }
