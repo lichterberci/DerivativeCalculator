@@ -317,6 +317,8 @@ namespace DerivativeCalculator
 
 			var operands = TreeUtils.GetAssociativeOperands(this, type, inverseType);
 
+			operands = operands.Select(item => (TreeUtils.GetSimplestForm(item.Item1), item.Item2)).ToList();
+
 			Dictionary<char, TreeNode> wildcards;
 
 			if (operands.Count >= 2)
@@ -614,16 +616,33 @@ namespace DerivativeCalculator
 
 				foreach ((var key, var coeff) in coefficientDict)
 				{
+					if (key is Constant { value: 0 } || coeff is Constant { value: 0 })
+						continue;
+
 					if (coeff.Eval() is Constant { value: < 0 } c)
 					{
+						if (key is Mult)
+						{
+							List<(TreeNode, bool)> multiplicants = TreeUtils.GetAssociativeOperands(key, OperatorType.Mult, OperatorType.Div);
+
+							// simplify the *2 * a * x * 32 down before adding it to the list
+
+							if (multiplicants.Any(item => item.Item1 is Constant { value: < 0 }))
+							{
+								TreeNode simplifiedKey = new Mult(key, coeff).Simplify().Eval();
+
+								additionList.Add((simplifiedKey, new Constant(1)));
+
+								continue;
+							}
+						}
+
 						c.value *= -1;
 
 						subtractionList.Add((key, c));
 					}
-					else if (coeff.Eval() is not Constant { value: 0 })
-					{
-						additionList.Add((key, coeff));
-					}
+
+					additionList.Add((key, coeff));
 				}
 
 				Operator head = new Add(null, null);
