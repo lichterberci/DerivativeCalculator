@@ -1552,7 +1552,8 @@ namespace DerivativeCalculator
 
 			bool switchOperandOrder = operand2 is Constant && operand1 is not Constant
 										|| (operand1 is Operator op1 && operand2 is Operator op2 && op1.basePriority > op2.basePriority)
-										|| (operand2 is Variable && operand1 is Operator);
+										|| (operand2 is Variable && operand1 is Operator)
+										|| operand2 is Pow { operand2: Constant { value: 0.5 } };
 
 			var leftOperand = switchOperandOrder ? operand2 : operand1;
 			var rightOperand = switchOperandOrder ? operand1 : operand2;
@@ -1581,6 +1582,10 @@ namespace DerivativeCalculator
 				leftPart = "-";
 				leaveMultiplicationSignOut = true;
 			}
+
+			// after square root, there should be a dot
+			if (leftOperand is Pow { operand2: Constant { value: 0.5 } })
+				leaveMultiplicationSignOut = false;
 
 			string rightPart = $"{{{(leaveRightParenthesisOut ? "" : @"\left(")}" +
 								$"{rightOperand.ToLatexString()}" +
