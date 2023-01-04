@@ -1215,6 +1215,43 @@ namespace DerivativeCalculator
 									}
 								}
 							}
+
+							// a^c * b^c ---> (a*b)^c
+							if (TreeUtils.MatchPattern(
+								new Mult(
+									node,
+									new Pow(
+										otherNode,
+										powerDict[otherNode]
+									).Simplify() // simplify, because it might have nested pows,which can be simplified down
+								),
+								new Mult(
+									new Pow(
+										new Wildcard('a'),
+										new Wildcard('c')
+									),
+									new Pow(
+										new Wildcard('b'),
+										new Wildcard('c')
+									)
+								),
+								out wildcards
+							))
+							{
+								powerDict.Remove(otherNode);
+
+								powerDict.Add(
+									new Mult(
+										wildcards['a'],
+										wildcards['b']
+									),
+									wildcards['c']
+								);
+
+								addToDict = false;
+
+								break;
+							}
 						}
 						else
 						{
@@ -1341,6 +1378,43 @@ namespace DerivativeCalculator
 										break;
 									}
 								}
+							}
+
+							// a^c / b^c ---> (a/b)^c
+							if (TreeUtils.MatchPattern(
+								new Div(
+									node,
+									new Pow(
+										otherNode,
+										powerDict[otherNode]
+									)
+								),
+								new Div(
+									new Pow(
+										new Wildcard('a'),
+										new Wildcard('c')
+									),
+									new Pow(
+										new Wildcard('b'),
+										new Wildcard('c')
+									)
+								),
+								out wildcards
+							))
+							{
+								powerDict.Remove(otherNode);
+
+								powerDict.Add(
+									new Div(
+										wildcards['a'], 
+										wildcards['b']
+									), 
+									wildcards['c']
+								);
+
+								addToDict = false;
+
+								break;
 							}
 						}
 					}
