@@ -273,7 +273,7 @@ namespace DerivativeCalculator
 			string prevLatexString = "";
 
 			const int maxIterations = 10;
-			const int minIterations = 5;
+			const int minIterations = 1;
 
 			for (int i = 0; i < maxIterations; i++)
 			{

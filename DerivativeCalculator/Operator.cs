@@ -347,7 +347,8 @@ namespace DerivativeCalculator
 
 			var operands = TreeUtils.GetAssociativeOperands(this, type, inverseType);
 
-			operands = operands.Select(item => (TreeUtils.GetSimplestForm(item.Item1), item.Item2)).ToList();
+			// !!! THIS LINE REALLY SLOWS DOWN THE WHOLE THING !!!
+			//operands = operands.Select(item => (TreeUtils.GetSimplestForm(item.Item1), item.Item2)).ToList();
 
 			Dictionary<char, TreeNode> wildcards;
 
