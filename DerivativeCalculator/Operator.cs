@@ -131,13 +131,9 @@ namespace DerivativeCalculator
 			switch (_type)
 			{
 				case OperatorType.Add:
-					return 2;
 				case OperatorType.Sub:
-					return 2;
 				case OperatorType.Mult:
-					return 2;
 				case OperatorType.Div:
-					return 2;
 				case OperatorType.Pow:
 					return 2;
 				default:
@@ -1414,6 +1410,35 @@ namespace DerivativeCalculator
 								);
 
 								addToDict = false;
+
+								break;
+							}
+
+							// sina / cosa = tana
+							if (
+								node is Operator { type: OperatorType.Cos } opCos
+								&&
+								otherNode is Operator { type: OperatorType.Sin } opSin
+								&&
+								TreeUtils.MatchPattern(
+									opCos.operand1,
+									opSin.operand1,
+									out _
+								)
+							)
+							{
+								// tan(a)
+
+								powerDict.Remove(otherNode);
+								
+								addToDict = false;
+
+								powerDict.Add(
+									   new Tan(
+										   opSin.operand1
+										), 
+									   new Constant(1)
+									);
 
 								break;
 							}

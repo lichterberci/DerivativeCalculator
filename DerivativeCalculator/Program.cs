@@ -11,51 +11,45 @@ public partial class Program
 
 		//DerivativeManager.DifferentiateFromConsole();
 
-		//TreeNode tree = new Div(
-		//	new Pow(
-		//		new Variable('a'),
-		//		new Variable('c')
-		//	),
-		//	new Pow(
-		//		new Variable('b'),
-		//		new Variable('c')
-		//	)
-		//);
+		TreeNode tree = new Div(
+			new Sin(new Variable('a')),
+			new Cos(new Variable('a'))
+		);
 
-		////tree = new Mult(new Constant(1), new Mult(new Constant(-21), new Variable('x')));
+		//tree = new Mult(new Constant(1), new Mult(new Constant(-21), new Variable('x')));
 
-		//TreeUtils.PrintTree(tree);
+		TreeUtils.PrintTree(tree);
 
-		//tree = TreeUtils.GetSimplestForm(tree);
+		tree = TreeUtils.GetSimplestForm(tree);
 
-		//TreeUtils.PrintTree(tree);
+		TreeUtils.PrintTree(tree);
 
-		var sw = new Stopwatch();
+		//var sw = new Stopwatch();
 
-		const int iters = 10;
+		//const int iters = 10;
 
-		double[] times = new double[iters];
+		//double[] times = new double[iters];
 
-		for (int i = 0; i < iters; i++)
-		{
-			Console.WriteLine($"{i + 1}/{iters}");
+		//for (int i = 0; i < iters; i++)
+		//{
+		//	Console.WriteLine($"{i + 1}/{iters}");
 
-			sw.Start();
+		//	sw.Start();
 
-			var tree = ExerciseGenerator.GenerateRandomTree(DifficultyMetrics.Hardcore);
+		//	var tree = ExerciseGenerator.GenerateRandomTree(DifficultyMetrics.Hardcore);
 
-			tree.ToLatexString();
+		//	tree.ToLatexString();
 
-			sw.Stop();
+		//	sw.Stop();
 
-			times[i] = sw.ElapsedMilliseconds / 1000;
+		//	times[i] = sw.ElapsedMilliseconds / 1000;
 
-			sw.Reset();
-		}
+		//	sw.Reset();
+		//}
 
-		Console.WriteLine($"min: {times.Min()}s");
-		Console.WriteLine($"max: {times.Max()}s");
-		Console.WriteLine($"avg: {times.Sum() / iters}s");
-		Console.WriteLine($"std: {Math.Sqrt(times.Select(t => Math.Pow(t - (times.Sum() / iters), 2)).ToArray().Sum())}s");
+		//Console.WriteLine($"min: {times.Min()}s");
+		//Console.WriteLine($"max: {times.Max()}s");
+		//Console.WriteLine($"avg: {times.Sum() / iters}s");
+		//Console.WriteLine($"std: {Math.Sqrt(times.Select(t => Math.Pow(t - (times.Sum() / iters), 2)).ToArray().Sum())}s");
 	}
 }
