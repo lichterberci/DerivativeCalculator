@@ -11,16 +11,23 @@ public partial class Program
 
 		//DerivativeManager.DifferentiateFromConsole();
 
-		TreeNode tree = new Div(
+		TreeNode tree = new Mult(
 			new Sin(new Variable('a')),
-			new Cos(new Variable('a'))
+			new Pow(
+				new Cos(new Variable('a')),
+				new Constant(-1)
+			)
 		);
 
 		//tree = new Mult(new Constant(1), new Mult(new Constant(-21), new Variable('x')));
 
+		Console.WriteLine(TreeUtils.CollapseTreeToString(tree));
+
 		TreeUtils.PrintTree(tree);
 
 		tree = TreeUtils.GetSimplestForm(tree);
+
+		Console.WriteLine(TreeUtils.CollapseTreeToString(tree));
 
 		TreeUtils.PrintTree(tree);
 

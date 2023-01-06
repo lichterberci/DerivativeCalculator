@@ -1943,7 +1943,9 @@ namespace DerivativeCalculator
 				new Pow(
 					Constant.E,
 					new Mult(
-						new Ln(new Wildcard('a')),
+						new Ln(
+							new Wildcard('a')
+						),
 						new Wildcard('b')
 					)
 				),
@@ -1962,7 +1964,9 @@ namespace DerivativeCalculator
 				new Pow(
 					new Constant(10),
 					new Mult(
-						new Log(new Wildcard('a')),
+						new Log(
+							 new Wildcard('a')
+							),
 						new Wildcard('b')
 					)
 				),

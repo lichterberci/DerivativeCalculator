@@ -202,7 +202,11 @@ namespace DerivativeCalculator
 				return v1.name == v2.name;
 
 			if (pattern is DerivativeSymbol d1 && tree is DerivativeSymbol d2)
-				return d1.expression == d2.expression;
+				return MatchPattern(
+					d1.expression,
+					d2.expression,
+					out _ // could cause problems later...
+				);
 
 			if (tree is not Operator || pattern is not Operator)
 				throw new ArgumentException("Unhandled type");
