@@ -2227,7 +2227,7 @@ namespace DerivativeCalculator
 			}
 
 			Differentiator.AddStepDescription(new StepDescription(
-				$@"\frac{{d}}{{dx}}\log(x) = \frac{{1}}{{\ln\left(10\right)\cdotx}}",
+				$@"\frac{{d}}{{dx}}\log_{{10}}(x) = \frac{{1}}{{\ln\left(10\right)\cdotx}}",
 				operand1.GetSimplestForm().ToLatexString()
 			));
 
@@ -2242,7 +2242,7 @@ namespace DerivativeCalculator
 
 		public override string ToLatexString()
 		{
-			return $@"\log\left({{{operand1.ToLatexString()}}}\right)";
+			return $@"\log_{{10}}\left({{{operand1.ToLatexString()}}}\right)";
 		}
 
 		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
@@ -2332,7 +2332,7 @@ namespace DerivativeCalculator
 			}
 
 			Differentiator.AddStepDescription(new StepDescription(
-				$@"\frac{{d}}{{dx}}arcsin(x) = \frac{{1}}{{\sqrt{{1-x^2}}}}",
+				$@"\frac{{d}}{{dx}}\arcsin(x) = \frac{{1}}{{\sqrt{{1-x^2}}}}",
 				operand1.GetSimplestForm().ToLatexString()
 			));
 
@@ -2353,7 +2353,7 @@ namespace DerivativeCalculator
 
 		public override string ToLatexString()
 		{
-			return $@"arcsin\left({{{operand1.ToLatexString()}}}\right)";
+			return $@"\arcsin\left({{{operand1.ToLatexString()}}}\right)";
 		}
 
 		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
@@ -2389,7 +2389,7 @@ namespace DerivativeCalculator
 			}
 
 			Differentiator.AddStepDescription(new StepDescription(
-				$@"\frac{{d}}{{dx}}arccos(x) = \frac{{1}}{{\sqrt{{x^2-1}}}}",
+				$@"\frac{{d}}{{dx}}\arccos(x) = \frac{{1}}{{\sqrt{{x^2-1}}}}",
 				operand1.GetSimplestForm().ToLatexString()
 			));
 
@@ -2413,7 +2413,7 @@ namespace DerivativeCalculator
 
 		public override string ToLatexString()
 		{
-			return $@"arccos\left({{{operand1.ToLatexString()}}}\right)";
+			return $@"\arccos\left({{{operand1.ToLatexString()}}}\right)";
 		}
 
 		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
@@ -2449,7 +2449,7 @@ namespace DerivativeCalculator
 			}
 
 			Differentiator.AddStepDescription(new StepDescription(
-				$@"\frac{{d}}{{dx}}arctan(x) = \frac{{1}}{{x^2+1}}",
+				$@"\frac{{d}}{{dx}}\arctan(x) = \frac{{1}}{{x^2+1}}",
 				operand1.GetSimplestForm().ToLatexString()
 			));
 
@@ -2467,7 +2467,7 @@ namespace DerivativeCalculator
 
 		public override string ToLatexString()
 		{
-			return $@"arctan\left({{{operand1.ToLatexString()}}}\right)";
+			return $@"\arctan\left({{{operand1.ToLatexString()}}}\right)";
 		}
 
 		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
@@ -2503,7 +2503,7 @@ namespace DerivativeCalculator
 			}
 
 			Differentiator.AddStepDescription(new StepDescription(
-				$@"\frac{{d}}{{dx}}arccot(x) = \frac{{-1}}{{\sqrt{{1-x^2}}}}",
+				$@"\frac{{d}}{{dx}}\arccot(x) = \frac{{-1}}{{\sqrt{{1-x^2}}}}",
 				operand1.GetSimplestForm().ToLatexString()
 			));
 
@@ -2524,7 +2524,7 @@ namespace DerivativeCalculator
 
 		public override string ToLatexString()
 		{
-			return $@"arccot\left({{{operand1.ToLatexString()}}}\right)";
+			return $@"\arccot\left({{{operand1.ToLatexString()}}}\right)";
 		}
 
 		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
@@ -2560,7 +2560,7 @@ namespace DerivativeCalculator
 			}
 
 			Differentiator.AddStepDescription(new StepDescription(
-				$@"\frac{{d}}{{dx}}sinh(x) = cosh(x)",
+				$@"\frac{{d}}{{dx}}\sinh(x) = \cosh(x)",
 				operand1.GetSimplestForm().ToLatexString()
 			));
 
@@ -2572,7 +2572,7 @@ namespace DerivativeCalculator
 
 		public override string ToLatexString()
 		{
-			return $@"sinh\left({{{operand1.ToLatexString()}}}\right)";
+			return $@"\sinh\left({{{operand1.ToLatexString()}}}\right)";
 		}
 
 		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
@@ -2608,7 +2608,7 @@ namespace DerivativeCalculator
 			}
 
 			Differentiator.AddStepDescription(new StepDescription(
-				$@"\frac{{d}}{{dx}}cosh(x) = sinh(x)",
+				$@"\frac{{d}}{{dx}}\cosh(x) = \sinh(x)",
 				operand1.GetSimplestForm().ToLatexString()
 			));
 
@@ -2620,7 +2620,7 @@ namespace DerivativeCalculator
 
 		public override string ToLatexString()
 		{
-			return $@"cosh\left({{{operand1.ToLatexString()}}}\right)";
+			return $@"\cosh\left({{{operand1.ToLatexString()}}}\right)";
 		}
 
 		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
@@ -2656,7 +2656,7 @@ namespace DerivativeCalculator
 			}
 
 			Differentiator.AddStepDescription(new StepDescription(
-				$@"\frac{{d}}{{dx}}tanh(x) = \frac{{1}}{{{{cosh\left(x\right)}}^2}}",
+				$@"\frac{{d}}{{dx}}\tanh(x) = \frac{{1}}{{{{\cosh\left(x\right)}}^2}}",
 				operand1.GetSimplestForm().ToLatexString()
 			));
 
@@ -2671,7 +2671,7 @@ namespace DerivativeCalculator
 
 		public override string ToLatexString()
 		{
-			return $@"tanh\left({{{operand1.ToLatexString()}}}\right)";
+			return $@"\tanh\left({{{operand1.ToLatexString()}}}\right)";
 		}
 
 		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
@@ -2707,7 +2707,7 @@ namespace DerivativeCalculator
 			}
 
 			Differentiator.AddStepDescription(new StepDescription(
-				$@"\frac{{d}}{{dx}}coth(x) = \frac{{-1}}{{{{cosh\left(x\right)}}^2}}",
+				$@"\frac{{d}}{{dx}}\coth(x) = \frac{{-1}}{{{{\cosh\left(x\right)}}^2}}",
 				operand1.GetSimplestForm().ToLatexString()
 			));
 
@@ -2725,7 +2725,7 @@ namespace DerivativeCalculator
 
 		public override string ToLatexString()
 		{
-			return $@"coth\left({{{operand1.ToLatexString()}}}\right)";
+			return $@"\coth\left({{{operand1.ToLatexString()}}}\right)";
 		}
 
 		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
