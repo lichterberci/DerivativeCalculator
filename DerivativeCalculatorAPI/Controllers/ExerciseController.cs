@@ -91,6 +91,17 @@ namespace DerivativeCalculatorAPI.Controllers
 				Response.StatusCode = (int)HttpStatusCode.BadRequest;
 				return new ResponseData();
 			}
+			catch (NotFiniteNumberException e)
+			{
+				Console.WriteLine(e.Message);
+
+				Response.Headers.Add("Access-Control-Expose-Headers", "x-exception-type, x-exception-message");
+				Response.Headers.Add("x-exception-type", "EVALUATION ERROR");
+				Response.Headers.Add("x-exception-message", e.Message);
+
+				Response.StatusCode = (int)HttpStatusCode.BadRequest;
+				return new ResponseData();
+			}
 			catch (Exception e)
 			{
 				Console.WriteLine(e.Message);
@@ -185,6 +196,17 @@ namespace DerivativeCalculatorAPI.Controllers
 
 				Response.Headers.Add("Access-Control-Expose-Headers", "x-exception-type, x-exception-message");
 				Response.Headers.Add("x-exception-type", "SIMPLIFICATION ERROR");
+				Response.Headers.Add("x-exception-message", e.Message);
+
+				Response.StatusCode = (int)HttpStatusCode.BadRequest;
+				return new ResponseData();
+			}
+			catch (NotFiniteNumberException e)
+			{
+				Console.WriteLine(e.Message);
+
+				Response.Headers.Add("Access-Control-Expose-Headers", "x-exception-type, x-exception-message");
+				Response.Headers.Add("x-exception-type", "EVALUATION ERROR");
 				Response.Headers.Add("x-exception-message", e.Message);
 
 				Response.StatusCode = (int)HttpStatusCode.BadRequest;
@@ -288,6 +310,17 @@ namespace DerivativeCalculatorAPI.Controllers
 				Console.WriteLine(e.Message);
 
 				Response.Headers.Add("x-exception-type", "SIMPLIFICATION ERROR");
+				Response.Headers.Add("x-exception-message", e.Message);
+
+				Response.StatusCode = (int)HttpStatusCode.BadRequest;
+				return new ResponseData();
+			}
+			catch (NotFiniteNumberException e)
+			{
+				Console.WriteLine(e.Message);
+
+				Response.Headers.Add("Access-Control-Expose-Headers", "x-exception-type, x-exception-message");
+				Response.Headers.Add("x-exception-type", "EVALUATION ERROR");
 				Response.Headers.Add("x-exception-message", e.Message);
 
 				Response.StatusCode = (int)HttpStatusCode.BadRequest;

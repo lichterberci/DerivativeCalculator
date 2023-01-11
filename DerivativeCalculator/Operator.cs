@@ -2173,7 +2173,7 @@ namespace DerivativeCalculator
 			if (operand1 is Constant c)
 			{
 				if (c.value <= 0)
-					throw new ArgumentOutOfRangeException("value", "Ln can only be positive");
+					throw new NotFiniteNumberException("Ln only takes in positive!");
 
 				return new Constant(Math.Log(c.value));
 			}
@@ -2226,7 +2226,7 @@ namespace DerivativeCalculator
 			if (operand1 is Constant c)
 			{
 				if (c.value <= 0)
-					throw new ArgumentOutOfRangeException("value", "Log can only be positive");
+					throw new NotFiniteNumberException("Log only takes in positive!");
 
 				return new Constant(Math.Log10(c.value));
 			}
