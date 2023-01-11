@@ -2166,7 +2166,12 @@ namespace DerivativeCalculator
 			operand1 = operand1.Eval();
 
 			if (operand1 is Constant c)
+			{
+				if (c.value <= 0)
+					throw new ArgumentOutOfRangeException("value", "Ln can only be positive");
+
 				return new Constant(Math.Log(c.value));
+			}
 			else
 				return this;
 		}
@@ -2214,7 +2219,12 @@ namespace DerivativeCalculator
 			operand1 = operand1.Eval();
 
 			if (operand1 is Constant c)
+			{
+				if (c.value <= 0)
+					throw new ArgumentOutOfRangeException("value", "Log can only be positive");
+
 				return new Constant(Math.Log10(c.value));
+			}
 			else
 				return this;
 		}
