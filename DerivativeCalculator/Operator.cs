@@ -1658,8 +1658,13 @@ namespace DerivativeCalculator
 			var leftOperand = switchOperandOrder ? operand2 : operand1;
 			var rightOperand = switchOperandOrder ? operand1 : operand2;
 
-			bool leaveLeftParenthesisOut = leftOperand is not Operator || leftOperand is Operator { basePriority: > 1 };
-			bool leaveRightParenthesisOut = rightOperand is not Operator || rightOperand is Operator { basePriority: > 1 };
+			bool leaveLeftParenthesisOut = leftOperand is not Operator 
+											|| leftOperand is Operator { basePriority: > 1 };
+			bool leaveRightParenthesisOut = (
+												rightOperand is not Operator 
+												|| rightOperand is Operator { basePriority: > 1 }
+											) 
+											&& rightOperand is not Pow { operand1: Constant };
 
 			bool leaveMultiplicationSignOut = (
 												(leftOperand is Constant ^ rightOperand is Constant)
