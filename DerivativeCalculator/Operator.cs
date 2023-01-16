@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data;
 using System.Dynamic;
 using System.Linq;
@@ -1499,6 +1500,14 @@ namespace DerivativeCalculator
 						multList.Add((key, power));
 					}
 				}
+
+				// sort them IN REVERSE ORDER
+
+				multList = TreeUtils.SortBasePowPairsByVarNames(multList);
+				divList = TreeUtils.SortBasePowPairsByVarNames(divList);
+
+				multList.Reverse();
+				divList.Reverse();
 
 				Operator head = new Mult(null, null);
 

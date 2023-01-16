@@ -9,27 +9,47 @@ public partial class Program
 	public static void Main()
 	{
 
-		//DerivativeManager.DifferentiateFromConsole();
+		DerivativeManager.DifferentiateFromConsole();
 
-		TreeNode tree = new Mult(
-			new Sin(new Variable('a')),
-			new Pow(
-				new Cos(new Variable('a')),
-				new Constant(-1)
-			)
-		);
+		//var list = new List<TreeNode>()
+		//{
+		//	new Variable('b'),
+		//	new Constant(3),
+		//	new Variable('c'),
+		//	new Pow(new Variable('a'), new Variable('v')),
+		//	new Mult(new Variable('j'), new Variable('v')),
+		//	new Constant(1),
+		//	new Variable('a'),
+		//	new Variable('g'),
+		//	new Variable('j'),
+		//	new Variable('r'),
+		//	new Variable('j'),
+		//	new Variable('x'),
+		//};
 
-		//tree = new Mult(new Constant(1), new Mult(new Constant(-21), new Variable('x')));
+		//list = TreeUtils.SortNodesByVarNames(list, 'x');
 
-		Console.WriteLine(TreeUtils.CollapseTreeToString(tree));
+		//list.ForEach(n => Console.WriteLine(n));
 
-		TreeUtils.PrintTree(tree);
+		//TreeNode tree = new Mult(
+		//	new Sin(new Variable('a')),
+		//	new Pow(
+		//		new Cos(new Variable('a')),
+		//		new Constant(-1)
+		//	)
+		//);
 
-		tree = TreeUtils.GetSimplestForm(tree);
+		////tree = new Mult(new Constant(1), new Mult(new Constant(-21), new Variable('x')));
 
-		Console.WriteLine(TreeUtils.CollapseTreeToString(tree));
+		//Console.WriteLine(TreeUtils.CollapseTreeToString(tree));
 
-		TreeUtils.PrintTree(tree);
+		//TreeUtils.PrintTree(tree);
+
+		//tree = TreeUtils.GetSimplestForm(tree);
+
+		//Console.WriteLine(TreeUtils.CollapseTreeToString(tree));
+
+		//TreeUtils.PrintTree(tree);
 
 		//var sw = new Stopwatch();
 
