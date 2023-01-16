@@ -42,6 +42,8 @@ namespace DerivativeCalculator
 
 			varToDiff = _varToDiff;
 
+			//Console.WriteLine(TreeUtils.CollapseTreeToString(TreeUtils.GetSimplestForm(root)));
+
 			steps = new List<string>();
 			stepDescriptions = new List<StepDescription?>();
 

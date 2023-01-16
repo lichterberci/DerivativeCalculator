@@ -543,6 +543,7 @@ namespace DerivativeCalculator
 			if (pivot == (null, null))
 				return list;
 
+			List<(TreeNode, TreeNode)> constList = new();
 			List<(TreeNode, TreeNode)> leftList = new();
 			List<(TreeNode, TreeNode)> rightList = new();
 			List<(TreeNode, TreeNode)> expressionList = new();
@@ -619,6 +620,13 @@ namespace DerivativeCalculator
 					continue;
 				}
 
+				if (key is Constant)
+				{
+					constList.Add((key, pow));
+
+					continue;
+				}
+
 				expressionList.Add((key, pow));
 			}
 
@@ -626,9 +634,9 @@ namespace DerivativeCalculator
 			rightList = SortBasePowPairsByVarNames(rightList, varToLeaveLast);
 
 			if (pivotName == varToLeaveLast)
-				return leftList.Concat(rightList).Concat(new List<(TreeNode, TreeNode)> { pivot }).Concat(expressionList).ToList();
+				return constList.Concat(leftList).Concat(rightList).Concat(new List<(TreeNode, TreeNode)> { pivot }).Concat(expressionList).ToList();
 
-			return leftList.Concat(new List<(TreeNode, TreeNode)> { pivot }).Concat(rightList).Concat(expressionList).ToList();
+			return constList.Concat(leftList).Concat(new List<(TreeNode, TreeNode)> { pivot }).Concat(rightList).Concat(expressionList).ToList();
 		}
 	}
 }
