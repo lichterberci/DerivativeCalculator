@@ -625,6 +625,9 @@ namespace DerivativeCalculator
 			leftList = SortBasePowPairsByVarNames(leftList, varToLeaveLast);
 			rightList = SortBasePowPairsByVarNames(rightList, varToLeaveLast);
 
+			if (pivotName == varToLeaveLast)
+				return leftList.Concat(rightList).Concat(new List<(TreeNode, TreeNode)> { pivot }).Concat(expressionList).ToList();
+
 			return leftList.Concat(new List<(TreeNode, TreeNode)> { pivot }).Concat(rightList).Concat(expressionList).ToList();
 		}
 	}

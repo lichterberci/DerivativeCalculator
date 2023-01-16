@@ -16,6 +16,8 @@ namespace DerivativeCalculator
 		public static int numStapsTaken = 0;
 		public static int maxSteps = int.MaxValue;
 
+		public static char? varToDiff = null;
+
 		static Differentiator()
 		{
 			steps = new List<string>();
@@ -32,18 +34,20 @@ namespace DerivativeCalculator
 			stepDescriptions.Add(stepDesc);
 		}
 
-		public static TreeNode DifferentiateWithStepsRecorded (TreeNode root, char varToDiff)
+		public static TreeNode DifferentiateWithStepsRecorded (TreeNode root, char _varToDiff)
 		{
 			TreeNode diffTree = root;
 
 			maxSteps = 0;
+
+			varToDiff = _varToDiff;
 
 			steps = new List<string>();
 			stepDescriptions = new List<StepDescription?>();
 
 			// initial step
 			steps.Add(
-				new DerivativeSymbol(diffTree, varToDiff).ToLatexString()
+				new DerivativeSymbol(diffTree, _varToDiff).ToLatexString()
 			);
 
 			stepDescriptions = new List<StepDescription?>() { null };
@@ -55,7 +59,7 @@ namespace DerivativeCalculator
 				numStapsTaken = 0;
 				maxSteps++;
 
-				diffTree = TreeUtils.CopyTree(root).Diff(varToDiff);
+				diffTree = TreeUtils.CopyTree(root).Diff(_varToDiff);
 
 				diffTree = TreeUtils.GetSimplestForm(diffTree);
 
@@ -71,6 +75,8 @@ namespace DerivativeCalculator
 			stepDescriptions.Add(null);
 
 			maxSteps = int.MaxValue;
+
+			varToDiff = null;
 
 			return diffTree;
 		}

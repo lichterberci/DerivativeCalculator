@@ -1503,8 +1503,8 @@ namespace DerivativeCalculator
 
 				// sort them IN REVERSE ORDER
 
-				multList = TreeUtils.SortBasePowPairsByVarNames(multList);
-				divList = TreeUtils.SortBasePowPairsByVarNames(divList);
+				multList = TreeUtils.SortBasePowPairsByVarNames(multList, Differentiator.varToDiff);
+				divList = TreeUtils.SortBasePowPairsByVarNames(divList, Differentiator.varToDiff);
 
 				multList.Reverse();
 				divList.Reverse();
