@@ -603,7 +603,7 @@ namespace DerivativeCalculator
 
 				if (key is Pow { operand1: Variable } powOp)
 				{
-					Variable powBase = powOp.operand2 as Variable;
+					Variable powBase = powOp.operand1 as Variable;
 
 					if (powBase.name == varToLeaveLast)
 					{
