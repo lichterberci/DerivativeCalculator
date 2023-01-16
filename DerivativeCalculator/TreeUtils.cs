@@ -601,6 +601,24 @@ namespace DerivativeCalculator
 					continue;
 				}
 
+				if (key is Pow { operand1: Variable } powOp)
+				{
+					Variable powBase = powOp.operand2 as Variable;
+
+					if (powBase.name == varToLeaveLast)
+					{
+						rightList.Add((key, pow));
+						continue;
+					}
+
+					if (powBase.name > pivotName)
+						rightList.Add((key, pow));
+					else
+						leftList.Add((key, pow));
+
+					continue;
+				}
+
 				expressionList.Add((key, pow));
 			}
 
