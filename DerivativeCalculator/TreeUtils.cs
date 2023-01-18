@@ -526,15 +526,34 @@ namespace DerivativeCalculator
 			if (list.Count <= 1)
 				return list;
 
-			(Variable, TreeNode) pivot = (null, null);
+			Func<TreeNode, char?> GetVarName = key =>
+			{
+				if (key is Variable v)
+					return v.name;
+
+				if (key is Mult { operand1: Variable } mult1)
+					return (mult1.operand1 as Variable).name;
+
+				if (key is Mult { operand2: Variable } mult2)
+					return (mult2.operand2 as Variable).name;
+
+				if (key is Pow { operand1: Variable } pow1)
+					return (pow1.operand1 as Variable).name;
+
+				return null;
+			};
+
+			(TreeNode, TreeNode) pivot = (null, null);
 			char pivotName = 'a';
 
 			foreach ((var key, var pow) in list)
 			{
-				if (key is Variable v)
+				char? varName = GetVarName(key);
+
+				if (varName is not null)
 				{
-					pivot = (v, pow);
-					pivotName = v.name;
+					pivot = (key, pow);
+					pivotName = (char)varName;
 					list.Remove((key, pow));
 					break;
 				}
@@ -550,69 +569,17 @@ namespace DerivativeCalculator
 
 			foreach ((var key, var pow) in list)
 			{
-				if (key is Variable v)
+				char? varName = GetVarName(key);
+
+				if (varName is not null)
 				{
-					if (v.name == varToLeaveLast)
+					if (varName == varToLeaveLast)
 					{
 						rightList.Add((key, pow));
 						continue;
 					}
 
-					if (v.name > pivotName)
-						rightList.Add((key, pow));
-					else
-						leftList.Add((key, pow));
-
-					continue;
-				}
-
-				if (key is Mult { operand1: Variable } mult1)
-				{
-					Variable multiplicant1 = mult1.operand1 as Variable;
-
-					if (multiplicant1.name == varToLeaveLast)
-					{
-						rightList.Add((key, pow));
-						continue;
-					}
-
-					if (multiplicant1.name > pivotName)
-						rightList.Add((key, pow));
-					else
-						leftList.Add((key, pow));
-
-					continue;
-				}
-
-				if (key is Mult { operand2: Variable } mult2)
-				{
-					Variable multiplicant2 = mult2.operand2 as Variable;
-
-					if (multiplicant2.name == varToLeaveLast)
-					{
-						rightList.Add((key, pow));
-						continue;
-					}
-
-					if (multiplicant2.name > pivotName)
-						rightList.Add((key, pow));
-					else
-						leftList.Add((key, pow));
-
-					continue;
-				}
-
-				if (key is Pow { operand1: Variable } powOp)
-				{
-					Variable powBase = powOp.operand1 as Variable;
-
-					if (powBase.name == varToLeaveLast)
-					{
-						rightList.Add((key, pow));
-						continue;
-					}
-
-					if (powBase.name > pivotName)
+					if (varName > pivotName)
 						rightList.Add((key, pow));
 					else
 						leftList.Add((key, pow));

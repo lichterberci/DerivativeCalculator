@@ -31,6 +31,33 @@ public partial class Program
 
 		//list.ForEach(n => Console.WriteLine(n));
 
+		var list = new List<(TreeNode, TreeNode)>
+		{
+			(new Variable('a'), new Constant(1)),
+			(new Variable('d'), new Constant(1)),
+			(new Variable('c'), new Constant(1)),
+			(new Variable('b'), new Constant(1)),
+			(new Mult(
+					new Variable('b'),
+					new Constant(1)
+				), new Constant(1)
+			),
+			(new Mult(
+					new Constant(1),
+					new Variable('a')
+				), new Constant(1)
+			),
+			(new Pow(
+					new Variable('j'),
+					new Constant(1)
+				), new Constant(1)
+			)
+		};
+
+		list = TreeUtils.SortBasePowPairsByVarNames(list);
+
+		list.ForEach(item => Console.WriteLine(TreeUtils.CollapseTreeToString(new Pow(item.Item1, item.Item2))));
+
 		//TreeNode tree = new Mult(
 		//	new Sin(new Variable('a')),
 		//	new Pow(
