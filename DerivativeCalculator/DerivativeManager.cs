@@ -73,7 +73,7 @@ namespace DerivativeCalculator
 
 			try
 			{
-				diffTree = Differentiator.DifferentiateWithStepsRecorded(tree, varToDifferentiate);
+				diffTree = Differentiator.DifferentiateWithStepsRecorded(tree, varToDifferentiate, new SimplificationParams());
 
 				Console.WriteLine(TreeUtils.CollapseTreeToString(diffTree));
 
@@ -107,7 +107,7 @@ namespace DerivativeCalculator
 
 			try
 			{
-				diffTree = Differentiator.DifferentiateWithStepsRecorded(tree, varToDifferentiate);
+				diffTree = Differentiator.DifferentiateWithStepsRecorded(tree, varToDifferentiate, new SimplificationParams());
 
 				Console.WriteLine(TreeUtils.CollapseTreeToString(diffTree));
 

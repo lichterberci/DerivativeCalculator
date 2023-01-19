@@ -34,15 +34,13 @@ namespace DerivativeCalculator
 			stepDescriptions.Add(stepDesc);
 		}
 
-		public static TreeNode DifferentiateWithStepsRecorded (TreeNode root, char _varToDiff)
+		public static TreeNode DifferentiateWithStepsRecorded (TreeNode root, char _varToDiff, SimplificationParams simplificationParams)
 		{
 			TreeNode diffTree = root;
 
 			maxSteps = 0;
 
 			varToDiff = _varToDiff;
-
-			//Console.WriteLine(TreeUtils.CollapseTreeToString(TreeUtils.GetSimplestForm(root)));
 
 			steps = new List<string>();
 			stepDescriptions = new List<StepDescription?>();
@@ -56,8 +54,6 @@ namespace DerivativeCalculator
 
 			string prevStepString = "";
 
-			var simplificationParameters = new SimplificationParams(varToDiff);
-
 			while (true)
 			{
 				numStapsTaken = 0;
@@ -65,7 +61,7 @@ namespace DerivativeCalculator
 
 				diffTree = TreeUtils.CopyTree(root).Diff(_varToDiff);
 
-				diffTree = TreeUtils.GetSimplestForm(diffTree, simplificationParameters);
+				diffTree = TreeUtils.GetSimplestForm(diffTree, simplificationParams);
 
 				if (prevStepString == diffTree.ToLatexString())
 					break;
