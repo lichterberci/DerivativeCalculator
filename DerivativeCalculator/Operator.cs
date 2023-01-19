@@ -297,6 +297,16 @@ namespace DerivativeCalculator
 			else
 				return $@"\left({{{operand1.ToLatexString()}}}\right){this.GetTypeString()}\left({{{operand2.ToLatexString()}}}\right)";
 		}
+		protected bool ShouldEval (SimplificationParams? simplificationParams)
+		{
+			if (simplificationParams is null)
+				return true;
+
+			if (simplificationParams.opsNotToEval is null)
+				return true;
+
+			return simplificationParams.opsNotToEval.Any(type => type == this.type) == false;
+		}
 	}
 
 	public sealed class Add : Operator
@@ -307,6 +317,9 @@ namespace DerivativeCalculator
 		{
 			operand1 = operand1.Eval(simplificationParams);
 			operand2 = operand2.Eval(simplificationParams);
+
+			if (this.ShouldEval(simplificationParams) == false)
+				return this;
 
 			if (operand1 is Constant l && operand2 is Constant r)
 				return new Constant(l.value + r.value);
@@ -773,6 +786,9 @@ namespace DerivativeCalculator
 			operand1 = operand1.Eval(simplificationParams);
 			operand2 = operand2.Eval(simplificationParams);
 
+			if (this.ShouldEval(simplificationParams) == false)
+				return this;
+
 			if (operand1 is Constant l && operand2 is Constant r)
 				return new Constant(l.value - r.value);
 			else
@@ -886,6 +902,9 @@ namespace DerivativeCalculator
 		{
 			operand1 = operand1.Eval(simplificationParams);
 			operand2 = operand2.Eval(simplificationParams);
+
+			if (this.ShouldEval(simplificationParams) == false)
+				return this;
 
 			if (operand1 is Constant l && operand2 is Constant r)
 				return new Constant(l.value * r.value);
@@ -1565,6 +1584,9 @@ namespace DerivativeCalculator
 			operand1 = operand1.Eval(simplificationParams);
 			operand2 = operand2.Eval(simplificationParams);
 
+			if (this.ShouldEval(simplificationParams) == false)
+				return this;
+
 			if (operand1 is Constant l && operand2 is Constant r)
 				return new Constant(l.value / r.value);
 			else
@@ -1633,6 +1655,9 @@ namespace DerivativeCalculator
 		{
 			operand1 = operand1.Eval(simplificationParams);
 			operand2 = operand2.Eval(simplificationParams);
+
+			if (this.ShouldEval(simplificationParams) == false)
+				return this;
 
 			if (operand1 is Constant l && operand2 is Constant r)
 				return new Constant(Math.Pow(l.value, r.value));
@@ -1875,6 +1900,9 @@ namespace DerivativeCalculator
 		{
 			operand1 = operand1.Eval(simplificationParams);
 
+			if (this.ShouldEval(simplificationParams) == false)
+				return this;
+
 			if (operand1 is Constant c)
 				return new Constant(Math.Sin(c.value));
 			else
@@ -1922,6 +1950,9 @@ namespace DerivativeCalculator
 		public override TreeNode Eval(SimplificationParams simplificationParams = null)
 		{
 			operand1 = operand1.Eval(simplificationParams);
+
+			if (this.ShouldEval(simplificationParams) == false)
+				return this;
 
 			if (operand1 is Constant c)
 				return new Constant(Math.Cos(c.value));
@@ -1974,6 +2005,9 @@ namespace DerivativeCalculator
 		{
 			operand1 = operand1.Eval(simplificationParams);
 
+			if (this.ShouldEval(simplificationParams) == false)
+				return this;
+
 			if (operand1 is Constant c)
 				return new Constant(Math.Tan(c.value));
 			else
@@ -2024,6 +2058,9 @@ namespace DerivativeCalculator
 		public override TreeNode Eval(SimplificationParams simplificationParams = null)
 		{
 			operand1 = operand1.Eval(simplificationParams);
+
+			if (this.ShouldEval(simplificationParams) == false)
+				return this;
 
 			if (operand1 is Constant c)
 			{
@@ -2080,6 +2117,9 @@ namespace DerivativeCalculator
 		public override TreeNode Eval(SimplificationParams simplificationParams = null)
 		{
 			operand1 = operand1.Eval(simplificationParams);
+
+			if (this.ShouldEval(simplificationParams) == false)
+				return this;
 
 			if (operand1 is Constant c)
 			{
@@ -2140,6 +2180,9 @@ namespace DerivativeCalculator
 		{
 			operand1 = operand1.Eval(simplificationParams);
 
+			if (this.ShouldEval(simplificationParams) == false)
+				return this;
+
 			if (operand1 is Constant c)
 				return new Constant(Math.Tan(1.0d / c.value));
 			else
@@ -2193,6 +2236,9 @@ namespace DerivativeCalculator
 		public override TreeNode Eval(SimplificationParams simplificationParams = null)
 		{
 			operand1 = operand1.Eval(simplificationParams);
+
+			if (this.ShouldEval(simplificationParams) == false)
+				return this;
 
 			if (operand1 is Constant c)
 				return new Constant(Math.Asin(c.value));
@@ -2250,6 +2296,9 @@ namespace DerivativeCalculator
 		public override TreeNode Eval(SimplificationParams simplificationParams = null)
 		{
 			operand1 = operand1.Eval(simplificationParams);
+
+			if (this.ShouldEval(simplificationParams) == false)
+				return this;
 
 			if (operand1 is Constant c)
 				return new Constant(Math.Acos(c.value));
@@ -2311,6 +2360,9 @@ namespace DerivativeCalculator
 		{
 			operand1 = operand1.Eval(simplificationParams);
 
+			if (this.ShouldEval(simplificationParams) == false)
+				return this;
+
 			if (operand1 is Constant c)
 				return new Constant(Math.Atan(c.value));
 			else
@@ -2364,6 +2416,9 @@ namespace DerivativeCalculator
 		public override TreeNode Eval(SimplificationParams simplificationParams = null)
 		{
 			operand1 = operand1.Eval(simplificationParams);
+
+			if (this.ShouldEval(simplificationParams) == false)
+				return this;
 
 			if (operand1 is Constant c)
 				return new Constant(Math.Atan(1.0d / c.value));
@@ -2422,6 +2477,9 @@ namespace DerivativeCalculator
 		{
 			operand1 = operand1.Eval(simplificationParams);
 
+			if (this.ShouldEval(simplificationParams) == false)
+				return this;
+
 			if (operand1 is Constant c)
 				return new Constant(Math.Sinh(c.value));
 			else
@@ -2470,6 +2528,9 @@ namespace DerivativeCalculator
 		{
 			operand1 = operand1.Eval(simplificationParams);
 
+			if (this.ShouldEval(simplificationParams) == false)
+				return this;
+
 			if (operand1 is Constant c)
 				return new Constant(Math.Cosh(c.value));
 			else
@@ -2517,6 +2578,9 @@ namespace DerivativeCalculator
 		public override TreeNode Eval(SimplificationParams simplificationParams = null)
 		{
 			operand1 = operand1.Eval(simplificationParams);
+
+			if (this.ShouldEval(simplificationParams) == false)
+				return this;
 
 			if (operand1 is Constant c)
 				return new Constant(Math.Tanh(c.value));
@@ -2568,6 +2632,9 @@ namespace DerivativeCalculator
 		public override TreeNode Eval(SimplificationParams simplificationParams = null)
 		{
 			operand1 = operand1.Eval(simplificationParams);
+
+			if (this.ShouldEval(simplificationParams) == false)
+				return this;
 
 			if (operand1 is Constant c)
 				return new Constant(Math.Tanh(1.0d / c.value));
@@ -2622,6 +2689,9 @@ namespace DerivativeCalculator
 		public override TreeNode Eval(SimplificationParams simplificationParams = null)
 		{
 			operand1 = operand1.Eval(simplificationParams);
+
+			if (this.ShouldEval(simplificationParams) == false)
+				return this;
 
 			if (operand1 is Constant c)
 				return new Constant(Math.Asinh(c.value));
@@ -2680,6 +2750,9 @@ namespace DerivativeCalculator
 		{
 			operand1 = operand1.Eval(simplificationParams);
 
+			if (this.ShouldEval(simplificationParams) == false)
+				return this;
+
 			if (operand1 is Constant c)
 				return new Constant(Math.Acosh(c.value));
 			else
@@ -2737,6 +2810,9 @@ namespace DerivativeCalculator
 		{
 			operand1 = operand1.Eval(simplificationParams);
 
+			if (this.ShouldEval(simplificationParams) == false)
+				return this;
+
 			if (operand1 is Constant c)
 				return new Constant(Math.Atanh(c.value));
 			else
@@ -2790,6 +2866,9 @@ namespace DerivativeCalculator
 		public override TreeNode Eval(SimplificationParams simplificationParams = null)
 		{
 			operand1 = operand1.Eval(simplificationParams);
+
+			if (this.ShouldEval(simplificationParams) == false)
+				return this;
 
 			if (operand1 is Constant c)
 				return new Constant(Math.Atanh(1.0d / c.value));
