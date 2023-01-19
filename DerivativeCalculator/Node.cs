@@ -33,21 +33,19 @@ namespace DerivativeCalculator
 
 	public sealed class NullTreeNode : TreeNode
 	{
-		public override string ToString()
-		{
-			return "NULL_NODE";
-		}
+		public override string ToString() => "NULL_NODE";
 	}
 
 	public abstract class TreeNode : Node
 	{
 		public virtual string ToPrettyString() { return "Unimplemented!"; }
-		public virtual TreeNode Eval() => throw new NotImplementedException();
+		public virtual TreeNode Eval(SimplificationParams simplificationParams = null) => throw new NotImplementedException();
 		public virtual TreeNode Diff(char varToDiff) => throw new NotImplementedException();
 		public bool IsConstant (char varToDiff) => TreeUtils.IsExpressionConstant(this, varToDiff);
-		public virtual TreeNode Simplify(SimplificationParams parameters, bool skipSimplificationOfChildren = false) => this;
+		public virtual TreeNode Simplify(SimplificationParams simplificationParams, bool skipSimplificationOfChildren = false) => this;
 		public virtual string ToLatexString () => this.ToPrettyString();
-		public TreeNode GetSimplestForm (SimplificationParams parameters) => TreeUtils.GetSimplestForm(this, parameters);
+		public TreeNode GetSimplestForm (SimplificationParams simplificationParams) => TreeUtils.GetSimplestForm(this, simplificationParams);
+		public TreeNode Copy() => TreeUtils.CopyTree(this);
 	}
 
 	public sealed class DerivativeSymbol : TreeNode
@@ -76,7 +74,7 @@ namespace DerivativeCalculator
 			return @$"\frac{{d}}{{d{varToDifferentiate}}}{(leaveOutParenthesis ? "" : @"\left(")}{expression.ToLatexString()}{(leaveOutParenthesis ? "" : @"\right)")}";
 		}
 
-		public override TreeNode Eval()
+		public override TreeNode Eval(SimplificationParams simplificationParams = null)
 		{
 			return this;
 		}
@@ -86,11 +84,11 @@ namespace DerivativeCalculator
 			return expression.Diff(varToDiff);
 		}
 
-		public override TreeNode Simplify(SimplificationParams parameters, bool skipSimplificationOfChildren = false)
+		public override TreeNode Simplify(SimplificationParams simplificationParams, bool skipSimplificationOfChildren = false)
 		{
 			if (skipSimplificationOfChildren == false)
 			{
-				expression = expression.Simplify(parameters);
+				expression = expression.Simplify(simplificationParams);
 			}
 
 			return this;
@@ -117,7 +115,7 @@ namespace DerivativeCalculator
 		{
 			return value == Math.E ? "e" : value.ToString("0.###");
 		}
-		public override TreeNode Eval()
+		public override TreeNode Eval(SimplificationParams simplificationParams = null)
 		{
 			return this;
 		}
@@ -148,7 +146,7 @@ namespace DerivativeCalculator
 			return $"Var({name})";
 		}
 
-		public override TreeNode Eval()
+		public override TreeNode Eval(SimplificationParams simplificationParams = null)
 		{
 			return this;
 		}
@@ -171,13 +169,13 @@ namespace DerivativeCalculator
 		{
 			return base.Diff(varToDiff);
 		}
-		public override TreeNode Eval()
+		public override TreeNode Eval(SimplificationParams simplificationParams = null)
 		{
-			return base.Eval();
+			return base.Eval(simplificationParams);
 		}
-		public override TreeNode Simplify(SimplificationParams parameters, bool skipSimplificationOfChildren = false)
+		public override TreeNode Simplify(SimplificationParams simplificationParams, bool skipSimplificationOfChildren = false)
 		{
-			return base.Simplify(parameters);
+			return base.Simplify(simplificationParams);
 		}
 		public override string ToPrettyString()
 		{

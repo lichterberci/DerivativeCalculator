@@ -1,16 +1,22 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.RegularExpressions;
-using System.Threading.Tasks;
+﻿using System.Text.RegularExpressions;
 
 namespace DerivativeCalculator
 {
 	public static class DerivativeManager
 	{
-		public static string DifferentiateString(string input, out string inputAsLatex, out string simplifiedInputAsLatex, out List<string> stepsAsLatex, out List<StepDescription> stepDescriptions, out char varToDiff)
+		public static string DifferentiateString(
+			string input, 
+			out string inputAsLatex, 
+			out string simplifiedInputAsLatex, 
+			out List<string> stepsAsLatex, 
+			out List<StepDescription> stepDescriptions, 
+			out char varToDiff,
+			SimplificationParams? simplificationParams = null
+		)
 		{
+			if (simplificationParams == null)
+				simplificationParams = SimplificationParams.Default;
+
 			simplifiedInputAsLatex = "";
 			inputAsLatex = "";
 			stepsAsLatex = new List<string>();
@@ -29,8 +35,6 @@ namespace DerivativeCalculator
 
 			List<Node> nodes;
 			TreeNode tree;
-
-			var simplificationParameters = new SimplificationParams(varToDiff, null);
 
 			try
 			{
@@ -51,7 +55,7 @@ namespace DerivativeCalculator
 
 				inputAsLatex = new DerivativeSymbol(tree, varToDifferentiate).ToLatexString();
 
-				tree = TreeUtils.GetSimplestForm(tree, simplificationParameters);
+				tree = TreeUtils.GetSimplestForm(tree, simplificationParams);
 
 				simplifiedInputAsLatex = new DerivativeSymbol(tree, varToDifferentiate).ToLatexString();
 
@@ -80,7 +84,7 @@ namespace DerivativeCalculator
 				stepsAsLatex = Differentiator.steps;
 				stepDescriptions = Differentiator.stepDescriptions;
 
-				diffTree = TreeUtils.GetSimplestForm(diffTree, simplificationParameters);
+				diffTree = TreeUtils.GetSimplestForm(diffTree, simplificationParams);
 			}
 			catch (Exception e)
 			{
@@ -91,15 +95,24 @@ namespace DerivativeCalculator
 			return diffTree.ToLatexString();
 		}
 
-		public static string DifferentiateTree (TreeNode input, char varToDifferentiate, out string inputAsLatex, out string simplifiedInputAsLatex, out List<string> stepsAsLatex, out List<StepDescription?> stepDescriptions)
+		public static string DifferentiateTree (
+			TreeNode input, 
+			char varToDifferentiate, 
+			out string inputAsLatex, 
+			out string simplifiedInputAsLatex, 
+			out List<string> stepsAsLatex, 
+			out List<StepDescription?> stepDescriptions,
+			SimplificationParams? simplificationParams = null
+		)
 		{
+			if (simplificationParams == null)
+				simplificationParams = SimplificationParams.Default;
+
 			TreeNode tree = TreeUtils.CopyTree(input);
 
 			inputAsLatex = new DerivativeSymbol(tree, varToDifferentiate).ToLatexString();
 
-			var simplificationParameters = new SimplificationParams();
-
-			tree = TreeUtils.GetSimplestForm(tree, simplificationParameters);
+			tree = TreeUtils.GetSimplestForm(tree, simplificationParams);
 
 			simplifiedInputAsLatex = new DerivativeSymbol(tree, varToDifferentiate).ToLatexString();
 
@@ -114,7 +127,7 @@ namespace DerivativeCalculator
 				stepsAsLatex = Differentiator.steps;
 				stepDescriptions = Differentiator.stepDescriptions;
 
-				diffTree = TreeUtils.GetSimplestForm(diffTree, simplificationParameters);
+				diffTree = TreeUtils.GetSimplestForm(diffTree, simplificationParams);
 			}
 			catch (Exception e)
 			{

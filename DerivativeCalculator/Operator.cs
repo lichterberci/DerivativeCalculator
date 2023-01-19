@@ -303,10 +303,10 @@ namespace DerivativeCalculator
 	{
 		public Add(TreeNode? left = null, TreeNode? right = null, int? priority = null) : base(OperatorType.Add, left, right, priority) { }
 
-		public override TreeNode Eval()
+		public override TreeNode Eval(SimplificationParams simplificationParams = null)
 		{
-			operand1 = operand1.Eval();
-			operand2 = operand2.Eval();
+			operand1 = operand1.Eval(simplificationParams);
+			operand2 = operand2.Eval(simplificationParams);
 
 			if (operand1 is Constant l && operand2 is Constant r)
 				return new Constant(l.value + r.value);
@@ -334,12 +334,12 @@ namespace DerivativeCalculator
 			);
 		}
 
-		public override TreeNode Simplify(SimplificationParams parameters, bool skipSimplificationOfChildren = false)
+		public override TreeNode Simplify(SimplificationParams simplificationParams, bool skipSimplificationOfChildren = false)
 		{
 			if (skipSimplificationOfChildren == false)
 			{
-				operand1 = operand1.Simplify(parameters);
-				operand2 = operand2.Simplify(parameters);
+				operand1 = operand1.Simplify(simplificationParams);
+				operand2 = operand2.Simplify(simplificationParams);
 			}
 
 			// associative things
@@ -352,7 +352,7 @@ namespace DerivativeCalculator
 			if (operands.Count < 2)
 				return this;
 
-			var coefficientDict = ApplyRules(operands, parameters);			
+			var coefficientDict = ApplyRules(operands, simplificationParams);			
 			
 			if (coefficientDict.Keys.Count == 0)
 				return new Constant(0);
@@ -369,21 +369,21 @@ namespace DerivativeCalculator
 			// everything that has a negative coefficient, goes in the subtraction tree,
 			// everythnig else into the addition tree
 
-			var (additionList, subtractionList) = SplitCoeffDictToLists(coefficientDict);
+			var (additionList, subtractionList) = SplitCoeffDictToLists(coefficientDict, simplificationParams);
 
-			TreeNode additionRoot = BuildTreeFromKeyCoeffPairs(additionList);
+			TreeNode additionRoot = BuildTreeFromKeyCoeffPairs(additionList, simplificationParams);
 
 			// build the subtraction tree
 
 			if (subtractionList.Count == 0)
 				return additionRoot;
 
-			var subtractionRoot = BuildTreeFromKeyCoeffPairs(subtractionList);
+			var subtractionRoot = BuildTreeFromKeyCoeffPairs(subtractionList, simplificationParams);
 
 			return new Sub(additionRoot, subtractionRoot);
 		}
 
-		private (List<(TreeNode, TreeNode)> additionList, List<(TreeNode, TreeNode)> subtractionList) SplitCoeffDictToLists(Dictionary<TreeNode, TreeNode> coefficientDict)
+		private (List<(TreeNode, TreeNode)> additionList, List<(TreeNode, TreeNode)> subtractionList) SplitCoeffDictToLists(Dictionary<TreeNode, TreeNode> coefficientDict, SimplificationParams simplificationParams)
 		{
 			var additionList = new List<(TreeNode, TreeNode)>();
 			var subtractionList = new List<(TreeNode, TreeNode)>();
@@ -393,7 +393,7 @@ namespace DerivativeCalculator
 				if (key is Constant { value: 0 } || coeff is Constant { value: 0 })
 					continue;
 
-				if (coeff.Eval() is Constant { value: < 0 } c)
+				if (coeff.Eval(simplificationParams) is Constant { value: < 0 } c)
 				{
 					if (key is Mult)
 					{
@@ -403,7 +403,7 @@ namespace DerivativeCalculator
 
 						if (multiplicants.Any(item => item.Item1 is Constant { value: < 0 }))
 						{
-							TreeNode simplifiedKey = new Mult(key, coeff).Simplify(parameters).Eval();
+							TreeNode simplifiedKey = new Mult(key, coeff).Simplify(simplificationParams).Eval(simplificationParams);
 
 							additionList.Add((simplifiedKey, new Constant(1)));
 
@@ -426,7 +426,7 @@ namespace DerivativeCalculator
 
 					if (multiplicants.Any(item => item.Item1 is Constant { value: < 0 }))
 					{
-						TreeNode simplifiedKey = new Mult(new Mult(key, coeff), new Constant(-1)).Simplify(parameters).Eval();
+						TreeNode simplifiedKey = new Mult(new Mult(key, coeff), new Constant(-1)).Simplify(simplificationParams).Eval(simplificationParams);
 
 						subtractionList.Add((simplifiedKey, new Constant(1)));
 
@@ -440,7 +440,7 @@ namespace DerivativeCalculator
 			return (additionList, subtractionList);
 		}
 
-		private Dictionary<TreeNode, TreeNode> ApplyRules(List<(TreeNode, bool)> operands, SimplificationParams parameters)
+		private Dictionary<TreeNode, TreeNode> ApplyRules(List<(TreeNode, bool)> operands, SimplificationParams simplificationParams)
 		{
 			Dictionary<char, TreeNode> wildcards;
 
@@ -456,7 +456,7 @@ namespace DerivativeCalculator
 					{
 						// +0 --> just skip
 						if (TreeUtils.MatchPattern(
-							node.Eval(),
+							node.Eval(simplificationParams),
 							new Constant(0),
 							out wildcards
 						))
@@ -583,7 +583,7 @@ namespace DerivativeCalculator
 
 						// -0 --> just skip
 						if (TreeUtils.MatchPattern(
-							node.Eval(),
+							node.Eval(simplificationParams),
 							new Constant(0),
 							out wildcards
 						))
@@ -720,21 +720,21 @@ namespace DerivativeCalculator
 			return coefficientDict;
 		}
 
-		private TreeNode BuildTreeFromKeyCoeffPairs (List<(TreeNode, TreeNode)> list)
+		private TreeNode BuildTreeFromKeyCoeffPairs (List<(TreeNode, TreeNode)> list, SimplificationParams? simplificationParams)
 		{
 			if (list.Count == 0)
 				return new Constant(0);
 
 			if (list.Count == 1)
-				return DeconstructKeyCoeffPair(list[0]);
+				return DeconstructKeyCoeffPair(list[0], simplificationParams);
 
 			return new Add(
-				DeconstructKeyCoeffPair(list[0]),
-				BuildTreeFromKeyCoeffPairs(list.Where((_, i) => i > 0).ToList())
+				DeconstructKeyCoeffPair(list[0], simplificationParams),
+				BuildTreeFromKeyCoeffPairs(list.Where((_, i) => i > 0).ToList(), simplificationParams)
 			);
 		}
 
-		private TreeNode DeconstructKeyCoeffPair ((TreeNode, TreeNode) pair)
+		private TreeNode DeconstructKeyCoeffPair ((TreeNode, TreeNode) pair, SimplificationParams? simplificationParams)
 		{
 			var (key, coeff) = pair;
 
@@ -745,7 +745,7 @@ namespace DerivativeCalculator
 				return new Constant(0);
 
 			if (key is Constant)
-				return new Mult(key, coeff).Eval();
+				return new Mult(key, coeff).Eval(simplificationParams);
 
 			return new Mult(
 				coeff,
@@ -768,10 +768,10 @@ namespace DerivativeCalculator
 	{
 		public Sub(TreeNode? left = null, TreeNode? right = null, int? priority = null) : base(OperatorType.Sub, left, right, priority) { }
 
-		public override TreeNode Eval()
+		public override TreeNode Eval(SimplificationParams simplificationParams = null)
 		{
-			operand1 = operand1.Eval();
-			operand2 = operand2.Eval();
+			operand1 = operand1.Eval(simplificationParams);
+			operand2 = operand2.Eval(simplificationParams);
 
 			if (operand1 is Constant l && operand2 is Constant r)
 				return new Constant(l.value - r.value);
@@ -795,12 +795,12 @@ namespace DerivativeCalculator
 			return new Sub(operand1.Diff(varToDiff), operand2.Diff(varToDiff));
 		}
 
-		public override TreeNode Simplify(SimplificationParams parameters, bool skipSimplificationOfChildren = false)
+		public override TreeNode Simplify(SimplificationParams simplificationParams, bool skipSimplificationOfChildren = false)
 		{
 			if (skipSimplificationOfChildren == false)
 			{
-				operand1 = operand1.Simplify(parameters);
-				operand2 = operand2.Simplify(parameters);
+				operand1 = operand1.Simplify(simplificationParams);
+				operand2 = operand2.Simplify(simplificationParams);
 			}
 
 			Dictionary<char, TreeNode> wildcards;
@@ -815,7 +815,7 @@ namespace DerivativeCalculator
 				out wildcards
 			))
 			{
-				return new Add(operand1, wildcards['a']).Simplify(parameters, false);
+				return new Add(operand1, wildcards['a']).Simplify(simplificationParams, false);
 			}
 
 			// b-(0-a) = b+a
@@ -828,13 +828,13 @@ namespace DerivativeCalculator
 				out wildcards
 			))
 			{
-				return new Add(operand1, wildcards['a']).Simplify(parameters, false);
+				return new Add(operand1, wildcards['a']).Simplify(simplificationParams, false);
 			}
 
 			return new Add(
 				new Constant(0),
 				this
-			).Simplify(parameters, true);
+			).Simplify(simplificationParams, true);
 		}
 
 		public override string ToLatexString()
@@ -882,10 +882,10 @@ namespace DerivativeCalculator
 	{
 		public Mult(TreeNode? left = null, TreeNode? right = null, int? priority = null) : base(OperatorType.Mult, left, right, priority) { }
 
-		public override TreeNode Eval()
+		public override TreeNode Eval(SimplificationParams simplificationParams = null)
 		{
-			operand1 = operand1.Eval();
-			operand2 = operand2.Eval();
+			operand1 = operand1.Eval(simplificationParams);
+			operand2 = operand2.Eval(simplificationParams);
 
 			if (operand1 is Constant l && operand2 is Constant r)
 				return new Constant(l.value * r.value);
@@ -929,19 +929,19 @@ namespace DerivativeCalculator
 			);
 		}
 
-		public override TreeNode Simplify(SimplificationParams parameters, bool skipSimplificationOfChildren = false)
+		public override TreeNode Simplify(SimplificationParams simplificationParams, bool skipSimplificationOfChildren = false)
 		{
 			if (skipSimplificationOfChildren == false)
 			{
-				operand1 = operand1.Simplify(parameters);
-				operand2 = operand2.Simplify(parameters);
+				operand1 = operand1.Simplify(simplificationParams);
+				operand2 = operand2.Simplify(simplificationParams);
 			}
 
 			var operands = TreeUtils.GetAssociativeOperands(this, type, inverseType);
 
 			foreach ((var node, bool isNodeInverse) in operands)
 			{
-				if (node.Eval() is Constant { value: 0.0 } || node.Eval() is Constant { value: -0.0 })
+				if (node.Eval(simplificationParams) is Constant { value: 0.0 } || node.Eval(simplificationParams) is Constant { value: -0.0 })
 				{
 					if (isNodeInverse)
 						throw new DivideByZeroException();
@@ -953,7 +953,7 @@ namespace DerivativeCalculator
 			if (operands.Count < 2)
 				return this;
 
-			var (powerDict, constantPart) = ApplyRules(operands, parameters);
+			var (powerDict, constantPart) = ApplyRules(operands, simplificationParams);
 
 			if (constantPart != 1.0)
 				powerDict.Add(new Constant(constantPart), new Constant(1));
@@ -985,7 +985,7 @@ namespace DerivativeCalculator
 
 			foreach ((var key, var power) in powerDict)
 			{
-				if (power.Eval() is Constant { value: < 0 } pow)
+				if (power.Eval(simplificationParams) is Constant { value: < 0 } pow)
 				{
 					pow.value *= -1;
 
@@ -997,8 +997,8 @@ namespace DerivativeCalculator
 				}
 			}
 
-			multList = SortKeyPowPairsByVarNames(multList, parameters.varToDiff);
-			divList = SortKeyPowPairsByVarNames(divList, parameters.varToDiff);
+			multList = SortKeyPowPairsByVarNames(multList, simplificationParams.varToDiff);
+			divList = SortKeyPowPairsByVarNames(divList, simplificationParams.varToDiff);
 
 			var multRoot = BuildTreeFromKeyPowPais(multList);
 
@@ -1010,7 +1010,7 @@ namespace DerivativeCalculator
 			return new Div(multRoot, divRoot);
 		}
 
-		private (Dictionary<TreeNode, TreeNode> powerDict, double constantPart) ApplyRules (List<(TreeNode, bool)> operands, SimplificationParams parameters)
+		private (Dictionary<TreeNode, TreeNode> powerDict, double constantPart) ApplyRules (List<(TreeNode, bool)> operands, SimplificationParams simplificationParams)
 		{
 			Dictionary<char, TreeNode> wildcards;
 
@@ -1028,7 +1028,7 @@ namespace DerivativeCalculator
 					{
 						// *1 ---> skip
 						if (TreeUtils.MatchPattern(
-							node.Eval(),
+							node.Eval(simplificationParams),
 							new Constant(1),
 							out wildcards
 						))
@@ -1038,7 +1038,7 @@ namespace DerivativeCalculator
 						}
 
 						// *0 = 0
-						if (node.Eval() is Constant { value: 0 })
+						if (node.Eval(simplificationParams) is Constant { value: 0 })
 						{
 							return (new (), 0.0);
 						}
@@ -1149,7 +1149,7 @@ namespace DerivativeCalculator
 								new Pow(
 									otherNode,
 						powerDict[otherNode]
-						).Simplify(parameters) // simplify, because it might have nested pows,which can be simplified down
+						).Simplify(simplificationParams) // simplify, because it might have nested pows,which can be simplified down
 							),
 							new Mult(
 								new Pow(
@@ -1185,7 +1185,7 @@ namespace DerivativeCalculator
 
 						// /1 ---> skip
 						if (TreeUtils.MatchPattern(
-							node.Eval(),
+							node.Eval(simplificationParams),
 							new Constant(1),
 							out wildcards
 						))
@@ -1197,7 +1197,7 @@ namespace DerivativeCalculator
 
 						// /0 = ERR
 						if (TreeUtils.MatchPattern(
-							node.Eval(),
+							node.Eval(simplificationParams),
 							new Constant(0),
 							out wildcards
 						))
@@ -1560,10 +1560,10 @@ namespace DerivativeCalculator
 	{
 		public Div(TreeNode? left = null, TreeNode? right = null, int? priority = null) : base(OperatorType.Div, left, right, priority) { }
 
-		public override TreeNode Eval()
+		public override TreeNode Eval(SimplificationParams simplificationParams = null)
 		{
-			operand1 = operand1.Eval();
-			operand2 = operand2.Eval();
+			operand1 = operand1.Eval(simplificationParams);
+			operand2 = operand2.Eval(simplificationParams);
 
 			if (operand1 is Constant l && operand2 is Constant r)
 				return new Constant(l.value / r.value);
@@ -1602,21 +1602,21 @@ namespace DerivativeCalculator
 			);
 		}
 
-		public override TreeNode Simplify(SimplificationParams parameters, bool skipSimplificationOfChildren = false)
+		public override TreeNode Simplify(SimplificationParams simplificationParams, bool skipSimplificationOfChildren = false)
 		{
 			if (skipSimplificationOfChildren == false)
 			{
-				operand1 = operand1.Simplify(parameters);
-				operand2 = operand2.Simplify(parameters);
+				operand1 = operand1.Simplify(simplificationParams);
+				operand2 = operand2.Simplify(simplificationParams);
 			}
 
-			if (operand1.Eval() is Constant { value: 0 })
+			if (operand1.Eval(simplificationParams) is Constant { value: 0 })
 				return new Constant(0);
 
 			return new Mult(
 				new Constant(1),
 				this
-			).Simplify(parameters, true);
+			).Simplify(simplificationParams, true);
 		}
 
 		public override string ToLatexString()
@@ -1629,10 +1629,10 @@ namespace DerivativeCalculator
 	{
 		public Pow(TreeNode? left = null, TreeNode? right = null, int? priority = null) : base(OperatorType.Pow, left, right, priority) { }
 
-		public override TreeNode Eval()
+		public override TreeNode Eval(SimplificationParams simplificationParams = null)
 		{
-			operand1 = operand1.Eval();
-			operand2 = operand2.Eval();
+			operand1 = operand1.Eval(simplificationParams);
+			operand2 = operand2.Eval(simplificationParams);
 
 			if (operand1 is Constant l && operand2 is Constant r)
 				return new Constant(Math.Pow(l.value, r.value));
@@ -1710,7 +1710,7 @@ namespace DerivativeCalculator
 			);
 		}
 
-		public override TreeNode Simplify(SimplificationParams parameters, bool skipSimplificationOfChildren = false)
+		public override TreeNode Simplify(SimplificationParams simplificationParams, bool skipSimplificationOfChildren = false)
 		{
 			Dictionary<char, TreeNode> wildcards;
 
@@ -1756,23 +1756,23 @@ namespace DerivativeCalculator
 
 			if (skipSimplificationOfChildren == false)
 			{
-				operand1 = operand1.Simplify(parameters);
-				operand2 = operand2.Simplify(parameters);
+				operand1 = operand1.Simplify(simplificationParams);
+				operand2 = operand2.Simplify(simplificationParams);
 			}
 
-			if (operand1.Eval() is Constant { value: 1 })
+			if (operand1.Eval(simplificationParams) is Constant { value: 1 })
 				return new Constant(1);
 
-			if (operand1.Eval() is Constant { value: 0 })
+			if (operand1.Eval(simplificationParams) is Constant { value: 0 })
 				return new Constant(0);
 
-			if (operand2.Eval() is Constant { value: 1 })
+			if (operand2.Eval(simplificationParams) is Constant { value: 1 })
 				return operand1;
 
-			if (operand2.Eval() is Constant { value: 0 })
+			if (operand2.Eval(simplificationParams) is Constant { value: 0 })
 				return new Constant(1);
 
-			if (operand2.Eval() is Constant { value: -1 })
+			if (operand2.Eval(simplificationParams) is Constant { value: -1 })
 				return new Div(new Constant(1), operand1);
 
 			// (a^b)^c = a^(b*c)
@@ -1871,9 +1871,9 @@ namespace DerivativeCalculator
 	{
 		public Sin(TreeNode? operand = null, int? priority = null) : base(OperatorType.Sin, operand, null, priority) { }
 
-		public override TreeNode Eval()
+		public override TreeNode Eval(SimplificationParams simplificationParams = null)
 		{
-			operand1 = operand1.Eval();
+			operand1 = operand1.Eval(simplificationParams);
 
 			if (operand1 is Constant c)
 				return new Constant(Math.Sin(c.value));
@@ -1904,11 +1904,11 @@ namespace DerivativeCalculator
 			return $@"\sin\left({{{operand1.ToLatexString()}}}\right)";
 		}
 
-		public override TreeNode Simplify(SimplificationParams parameters, bool skipSimplificationOfChildren = false)
+		public override TreeNode Simplify(SimplificationParams simplificationParams, bool skipSimplificationOfChildren = false)
 		{
 			if (skipSimplificationOfChildren == false)
 			{
-				operand1 = operand1.Simplify(parameters);
+				operand1 = operand1.Simplify(simplificationParams);
 			}
 
 			return this;
@@ -1919,9 +1919,9 @@ namespace DerivativeCalculator
 	{
 		public Cos(TreeNode? operand = null, int? priority = null) : base(OperatorType.Cos, operand, null, priority) { }
 
-		public override TreeNode Eval()
+		public override TreeNode Eval(SimplificationParams simplificationParams = null)
 		{
-			operand1 = operand1.Eval();
+			operand1 = operand1.Eval(simplificationParams);
 
 			if (operand1 is Constant c)
 				return new Constant(Math.Cos(c.value));
@@ -1955,11 +1955,11 @@ namespace DerivativeCalculator
 			return $@"\cos\left({{{operand1.ToLatexString()}}}\right)";
 		}
 
-		public override TreeNode Simplify(SimplificationParams parameters, bool skipSimplificationOfChildren = false)
+		public override TreeNode Simplify(SimplificationParams simplificationParams, bool skipSimplificationOfChildren = false)
 		{
 			if (skipSimplificationOfChildren == false)
 			{
-				operand1 = operand1.Simplify(parameters);
+				operand1 = operand1.Simplify(simplificationParams);
 			}
 
 			return this;
@@ -1970,9 +1970,9 @@ namespace DerivativeCalculator
 	{
 		public Tan(TreeNode? operand = null, int? priority = null) : base(OperatorType.Tan, operand, null, priority) { }
 
-		public override TreeNode Eval()
+		public override TreeNode Eval(SimplificationParams simplificationParams = null)
 		{
-			operand1 = operand1.Eval();
+			operand1 = operand1.Eval(simplificationParams);
 
 			if (operand1 is Constant c)
 				return new Constant(Math.Tan(c.value));
@@ -2006,11 +2006,11 @@ namespace DerivativeCalculator
 			return $@"\tan\left({{{operand1.ToLatexString()}}}\right)";
 		}
 
-		public override TreeNode Simplify(SimplificationParams parameters, bool skipSimplificationOfChildren = false)
+		public override TreeNode Simplify(SimplificationParams simplificationParams, bool skipSimplificationOfChildren = false)
 		{
 			if (skipSimplificationOfChildren == false)
 			{
-				operand1 = operand1.Simplify(parameters);
+				operand1 = operand1.Simplify(simplificationParams);
 			}
 
 			return this;
@@ -2021,9 +2021,9 @@ namespace DerivativeCalculator
 	{
 		public Ln(TreeNode? operand = null, int? priority = null) : base(OperatorType.Ln, operand, null, priority) { }
 
-		public override TreeNode Eval()
+		public override TreeNode Eval(SimplificationParams simplificationParams = null)
 		{
-			operand1 = operand1.Eval();
+			operand1 = operand1.Eval(simplificationParams);
 
 			if (operand1 is Constant c)
 			{
@@ -2062,11 +2062,11 @@ namespace DerivativeCalculator
 			return $@"\ln\left({{{operand1.ToLatexString()}}}\right)";
 		}
 
-		public override TreeNode Simplify(SimplificationParams parameters, bool skipSimplificationOfChildren = false)
+		public override TreeNode Simplify(SimplificationParams simplificationParams, bool skipSimplificationOfChildren = false)
 		{
 			if (skipSimplificationOfChildren == false)
 			{
-				operand1 = operand1.Simplify(parameters);
+				operand1 = operand1.Simplify(simplificationParams);
 			}
 
 			return this;
@@ -2077,9 +2077,9 @@ namespace DerivativeCalculator
 	{
 		public Log(TreeNode? operand = null, int? priority = null) : base(OperatorType.Log, operand, null, priority) { }
 
-		public override TreeNode Eval()
+		public override TreeNode Eval(SimplificationParams simplificationParams = null)
 		{
-			operand1 = operand1.Eval();
+			operand1 = operand1.Eval(simplificationParams);
 
 			if (operand1 is Constant c)
 			{
@@ -2121,11 +2121,11 @@ namespace DerivativeCalculator
 			return $@"\log_{{10}}\left({{{operand1.ToLatexString()}}}\right)";
 		}
 
-		public override TreeNode Simplify(SimplificationParams parameters, bool skipSimplificationOfChildren = false)
+		public override TreeNode Simplify(SimplificationParams simplificationParams, bool skipSimplificationOfChildren = false)
 		{
 			if (skipSimplificationOfChildren == false)
 			{
-				operand1 = operand1.Simplify(parameters);
+				operand1 = operand1.Simplify(simplificationParams);
 			}
 
 			return this;
@@ -2136,9 +2136,9 @@ namespace DerivativeCalculator
 	{
 		public Cot(TreeNode? operand = null, int? priority = null) : base(OperatorType.Cot, operand, null, priority) { }
 
-		public override TreeNode Eval()
+		public override TreeNode Eval(SimplificationParams simplificationParams = null)
 		{
-			operand1 = operand1.Eval();
+			operand1 = operand1.Eval(simplificationParams);
 
 			if (operand1 is Constant c)
 				return new Constant(Math.Tan(1.0d / c.value));
@@ -2175,11 +2175,11 @@ namespace DerivativeCalculator
 			return $@"\cot\left({{{operand1.ToLatexString()}}}\right)";
 		}
 
-		public override TreeNode Simplify(SimplificationParams parameters, bool skipSimplificationOfChildren = false)
+		public override TreeNode Simplify(SimplificationParams simplificationParams, bool skipSimplificationOfChildren = false)
 		{
 			if (skipSimplificationOfChildren == false)
 			{
-				operand1 = operand1.Simplify(parameters);
+				operand1 = operand1.Simplify(simplificationParams);
 			}
 
 			return this;
@@ -2190,9 +2190,9 @@ namespace DerivativeCalculator
 	{
 		public Arcsin(TreeNode? operand = null, int? priority = null) : base(OperatorType.Arcsin, operand, null, priority) { }
 
-		public override TreeNode Eval()
+		public override TreeNode Eval(SimplificationParams simplificationParams = null)
 		{
-			operand1 = operand1.Eval();
+			operand1 = operand1.Eval(simplificationParams);
 
 			if (operand1 is Constant c)
 				return new Constant(Math.Asin(c.value));
@@ -2232,11 +2232,11 @@ namespace DerivativeCalculator
 			return $@"\arcsin\left({{{operand1.ToLatexString()}}}\right)";
 		}
 
-		public override TreeNode Simplify(SimplificationParams parameters, bool skipSimplificationOfChildren = false)
+		public override TreeNode Simplify(SimplificationParams simplificationParams, bool skipSimplificationOfChildren = false)
 		{
 			if (skipSimplificationOfChildren == false)
 			{
-				operand1 = operand1.Simplify(parameters);
+				operand1 = operand1.Simplify(simplificationParams);
 			}
 
 			return this;
@@ -2247,9 +2247,9 @@ namespace DerivativeCalculator
 	{
 		public Arccos(TreeNode? operand = null, int? priority = null) : base(OperatorType.Arccos, operand, null, priority) { }
 
-		public override TreeNode Eval()
+		public override TreeNode Eval(SimplificationParams simplificationParams = null)
 		{
-			operand1 = operand1.Eval();
+			operand1 = operand1.Eval(simplificationParams);
 
 			if (operand1 is Constant c)
 				return new Constant(Math.Acos(c.value));
@@ -2292,11 +2292,11 @@ namespace DerivativeCalculator
 			return $@"\arccos\left({{{operand1.ToLatexString()}}}\right)";
 		}
 
-		public override TreeNode Simplify(SimplificationParams parameters, bool skipSimplificationOfChildren = false)
+		public override TreeNode Simplify(SimplificationParams simplificationParams, bool skipSimplificationOfChildren = false)
 		{
 			if (skipSimplificationOfChildren == false)
 			{
-				operand1 = operand1.Simplify(parameters);
+				operand1 = operand1.Simplify(simplificationParams);
 			}
 
 			return this;
@@ -2307,9 +2307,9 @@ namespace DerivativeCalculator
 	{
 		public Arctan(TreeNode? operand = null, int? priority = null) : base(OperatorType.Arctan, operand, null, priority) { }
 
-		public override TreeNode Eval()
+		public override TreeNode Eval(SimplificationParams simplificationParams = null)
 		{
-			operand1 = operand1.Eval();
+			operand1 = operand1.Eval(simplificationParams);
 
 			if (operand1 is Constant c)
 				return new Constant(Math.Atan(c.value));
@@ -2346,11 +2346,11 @@ namespace DerivativeCalculator
 			return $@"\arctan\left({{{operand1.ToLatexString()}}}\right)";
 		}
 
-		public override TreeNode Simplify(SimplificationParams parameters, bool skipSimplificationOfChildren = false)
+		public override TreeNode Simplify(SimplificationParams simplificationParams, bool skipSimplificationOfChildren = false)
 		{
 			if (skipSimplificationOfChildren == false)
 			{
-				operand1 = operand1.Simplify(parameters);
+				operand1 = operand1.Simplify(simplificationParams);
 			}
 
 			return this;
@@ -2361,9 +2361,9 @@ namespace DerivativeCalculator
 	{
 		public Arccot(TreeNode? operand = null, int? priority = null) : base(OperatorType.Arccot, operand, null, priority) { }
 
-		public override TreeNode Eval()
+		public override TreeNode Eval(SimplificationParams simplificationParams = null)
 		{
-			operand1 = operand1.Eval();
+			operand1 = operand1.Eval(simplificationParams);
 
 			if (operand1 is Constant c)
 				return new Constant(Math.Atan(1.0d / c.value));
@@ -2403,11 +2403,11 @@ namespace DerivativeCalculator
 			return $@"\arccot\left({{{operand1.ToLatexString()}}}\right)";
 		}
 
-		public override TreeNode Simplify(SimplificationParams parameters, bool skipSimplificationOfChildren = false)
+		public override TreeNode Simplify(SimplificationParams simplificationParams, bool skipSimplificationOfChildren = false)
 		{
 			if (skipSimplificationOfChildren == false)
 			{
-				operand1 = operand1.Simplify(parameters);
+				operand1 = operand1.Simplify(simplificationParams);
 			}
 
 			return this;
@@ -2418,9 +2418,9 @@ namespace DerivativeCalculator
 	{
 		public Sinh(TreeNode? operand = null, int? priority = null) : base(OperatorType.Sinh, operand, null, priority) { }
 
-		public override TreeNode Eval()
+		public override TreeNode Eval(SimplificationParams simplificationParams = null)
 		{
-			operand1 = operand1.Eval();
+			operand1 = operand1.Eval(simplificationParams);
 
 			if (operand1 is Constant c)
 				return new Constant(Math.Sinh(c.value));
@@ -2451,11 +2451,11 @@ namespace DerivativeCalculator
 			return $@"\sinh\left({{{operand1.ToLatexString()}}}\right)";
 		}
 
-		public override TreeNode Simplify(SimplificationParams parameters, bool skipSimplificationOfChildren = false)
+		public override TreeNode Simplify(SimplificationParams simplificationParams, bool skipSimplificationOfChildren = false)
 		{
 			if (skipSimplificationOfChildren == false)
 			{
-				operand1 = operand1.Simplify(parameters);
+				operand1 = operand1.Simplify(simplificationParams);
 			}
 
 			return this;
@@ -2466,9 +2466,9 @@ namespace DerivativeCalculator
 	{
 		public Cosh(TreeNode? operand = null, int? priority = null) : base(OperatorType.Cosh, operand, null, priority) { }
 
-		public override TreeNode Eval()
+		public override TreeNode Eval(SimplificationParams simplificationParams = null)
 		{
-			operand1 = operand1.Eval();
+			operand1 = operand1.Eval(simplificationParams);
 
 			if (operand1 is Constant c)
 				return new Constant(Math.Cosh(c.value));
@@ -2499,11 +2499,11 @@ namespace DerivativeCalculator
 			return $@"\cosh\left({{{operand1.ToLatexString()}}}\right)";
 		}
 
-		public override TreeNode Simplify(SimplificationParams parameters, bool skipSimplificationOfChildren = false)
+		public override TreeNode Simplify(SimplificationParams simplificationParams, bool skipSimplificationOfChildren = false)
 		{
 			if (skipSimplificationOfChildren == false)
 			{
-				operand1 = operand1.Simplify(parameters);
+				operand1 = operand1.Simplify(simplificationParams);
 			}
 
 			return this;
@@ -2514,9 +2514,9 @@ namespace DerivativeCalculator
 	{
 		public Tanh(TreeNode? operand = null, int? priority = null) : base(OperatorType.Tanh, operand, null, priority) { }
 
-		public override TreeNode Eval()
+		public override TreeNode Eval(SimplificationParams simplificationParams = null)
 		{
-			operand1 = operand1.Eval();
+			operand1 = operand1.Eval(simplificationParams);
 
 			if (operand1 is Constant c)
 				return new Constant(Math.Tanh(c.value));
@@ -2550,11 +2550,11 @@ namespace DerivativeCalculator
 			return $@"\tanh\left({{{operand1.ToLatexString()}}}\right)";
 		}
 
-		public override TreeNode Simplify(SimplificationParams parameters, bool skipSimplificationOfChildren = false)
+		public override TreeNode Simplify(SimplificationParams simplificationParams, bool skipSimplificationOfChildren = false)
 		{
 			if (skipSimplificationOfChildren == false)
 			{
-				operand1 = operand1.Simplify(parameters);
+				operand1 = operand1.Simplify(simplificationParams);
 			}
 
 			return this;
@@ -2565,9 +2565,9 @@ namespace DerivativeCalculator
 	{
 		public Coth(TreeNode? operand = null, int? priority = null) : base(OperatorType.Coth, operand, null, priority) { }
 
-		public override TreeNode Eval()
+		public override TreeNode Eval(SimplificationParams simplificationParams = null)
 		{
-			operand1 = operand1.Eval();
+			operand1 = operand1.Eval(simplificationParams);
 
 			if (operand1 is Constant c)
 				return new Constant(Math.Tanh(1.0d / c.value));
@@ -2604,11 +2604,11 @@ namespace DerivativeCalculator
 			return $@"\coth\left({{{operand1.ToLatexString()}}}\right)";
 		}
 
-		public override TreeNode Simplify(SimplificationParams parameters, bool skipSimplificationOfChildren = false)
+		public override TreeNode Simplify(SimplificationParams simplificationParams, bool skipSimplificationOfChildren = false)
 		{
 			if (skipSimplificationOfChildren == false)
 			{
-				operand1 = operand1.Simplify(parameters);
+				operand1 = operand1.Simplify(simplificationParams);
 			}
 
 			return this;
@@ -2619,9 +2619,9 @@ namespace DerivativeCalculator
 	{
 		public Arsinh(TreeNode? operand = null, int? priority = null) : base(OperatorType.Arsinh, operand, null, priority) { }
 
-		public override TreeNode Eval()
+		public override TreeNode Eval(SimplificationParams simplificationParams = null)
 		{
-			operand1 = operand1.Eval();
+			operand1 = operand1.Eval(simplificationParams);
 
 			if (operand1 is Constant c)
 				return new Constant(Math.Asinh(c.value));
@@ -2661,11 +2661,11 @@ namespace DerivativeCalculator
 			return $@"arsinh\left({{{operand1.ToLatexString()}}}\right)";
 		}
 
-		public override TreeNode Simplify(SimplificationParams parameters, bool skipSimplificationOfChildren = false)
+		public override TreeNode Simplify(SimplificationParams simplificationParams, bool skipSimplificationOfChildren = false)
 		{
 			if (skipSimplificationOfChildren == false)
 			{
-				operand1 = operand1.Simplify(parameters);
+				operand1 = operand1.Simplify(simplificationParams);
 			}
 
 			return this;
@@ -2676,9 +2676,9 @@ namespace DerivativeCalculator
 	{
 		public Arcosh(TreeNode? operand = null, int? priority = null) : base(OperatorType.Arcosh, operand, null, priority) { }
 
-		public override TreeNode Eval()
+		public override TreeNode Eval(SimplificationParams simplificationParams = null)
 		{
-			operand1 = operand1.Eval();
+			operand1 = operand1.Eval(simplificationParams);
 
 			if (operand1 is Constant c)
 				return new Constant(Math.Acosh(c.value));
@@ -2718,11 +2718,11 @@ namespace DerivativeCalculator
 			return $@"arcosh\left({{{operand1.ToLatexString()}}}\right)";
 		}
 
-		public override TreeNode Simplify(SimplificationParams parameters, bool skipSimplificationOfChildren = false)
+		public override TreeNode Simplify(SimplificationParams simplificationParams, bool skipSimplificationOfChildren = false)
 		{
 			if (skipSimplificationOfChildren == false)
 			{
-				operand1 = operand1.Simplify(parameters);
+				operand1 = operand1.Simplify(simplificationParams);
 			}
 
 			return this;
@@ -2733,9 +2733,9 @@ namespace DerivativeCalculator
 	{
 		public Artanh(TreeNode? operand = null, int? priority = null) : base(OperatorType.Artanh, operand, null, priority) { }
 
-		public override TreeNode Eval()
+		public override TreeNode Eval(SimplificationParams simplificationParams = null)
 		{
-			operand1 = operand1.Eval();
+			operand1 = operand1.Eval(simplificationParams);
 
 			if (operand1 is Constant c)
 				return new Constant(Math.Atanh(c.value));
@@ -2772,11 +2772,11 @@ namespace DerivativeCalculator
 			return $@"artanh\left({{{operand1.ToLatexString()}}}\right)";
 		}
 
-		public override TreeNode Simplify(SimplificationParams parameters, bool skipSimplificationOfChildren = false)
+		public override TreeNode Simplify(SimplificationParams simplificationParams, bool skipSimplificationOfChildren = false)
 		{
 			if (skipSimplificationOfChildren == false)
 			{
-				operand1 = operand1.Simplify(parameters);
+				operand1 = operand1.Simplify(simplificationParams);
 			}
 
 			return this;
@@ -2787,9 +2787,9 @@ namespace DerivativeCalculator
 	{
 		public Arcoth(TreeNode? operand = null, int? priority = null) : base(OperatorType.Arcoth, operand, null, priority) { }
 
-		public override TreeNode Eval()
+		public override TreeNode Eval(SimplificationParams simplificationParams = null)
 		{
-			operand1 = operand1.Eval();
+			operand1 = operand1.Eval(simplificationParams);
 
 			if (operand1 is Constant c)
 				return new Constant(Math.Atanh(1.0d / c.value));
@@ -2826,11 +2826,11 @@ namespace DerivativeCalculator
 			return $@"arcoth\left({{{operand1.ToLatexString()}}}\right)";
 		}
 
-		public override TreeNode Simplify(SimplificationParams parameters, bool skipSimplificationOfChildren = false)
+		public override TreeNode Simplify(SimplificationParams simplificationParams, bool skipSimplificationOfChildren = false)
 		{
 			if (skipSimplificationOfChildren == false)
 			{
-				operand1 = operand1.Simplify(parameters);
+				operand1 = operand1.Simplify(simplificationParams);
 			}
 
 			return this;

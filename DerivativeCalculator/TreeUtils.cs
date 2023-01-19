@@ -62,9 +62,9 @@ namespace DerivativeCalculator
 			return root.Simplify(parameters);
 		}
 
-		public static TreeNode Calculate(TreeNode root)
+		public static TreeNode Calculate(TreeNode root, SimplificationParams? simplificationParams)
 		{
-			return root.Eval();
+			return root.Eval(simplificationParams);
 		}
 
 		public static bool IsTreeCalculatable (TreeNode root)
@@ -282,7 +282,7 @@ namespace DerivativeCalculator
 
 			for (int i = 0; i < maxIterations; i++)
 			{
-				_tree = _tree.Eval().Simplify(parameters).Eval();
+				_tree = _tree.Eval(parameters).Simplify(parameters).Eval(parameters);
 
 				if (i >= minIterations && _tree.ToLatexString() == prevLatexString)
 				{

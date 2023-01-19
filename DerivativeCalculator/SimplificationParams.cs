@@ -2,5 +2,8 @@
 
 namespace DerivativeCalculator
 {
-	public sealed record SimplificationParams(char? varToDiff = null, List<OperatorType>? opsNotToSimplify = null);
+	public partial record SimplificationParams(char? varToDiff = null, List<OperatorType>? opsNotToSimplify = null)
+	{
+		public static readonly SimplificationParams Default = new(null, new () { OperatorType.Ln });
+	}
 }
