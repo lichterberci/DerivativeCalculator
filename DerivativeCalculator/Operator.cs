@@ -322,8 +322,8 @@ namespace DerivativeCalculator
 
 			Differentiator.AddStepDescription(new StepDescription(
 				$@"\frac{{d}}{{dx}}\left(f(x) + g(x)\right) = \frac{{d}}{{dx}}f(x) + \frac{{d}}{{dx}}g(x)",
-				operand1.GetSimplestForm().ToLatexString(),
-				operand2.GetSimplestForm().ToLatexString()
+				operand1.ToLatexString(),
+				operand2.ToLatexString()
 			));
 
 			return new Add(
@@ -332,12 +332,12 @@ namespace DerivativeCalculator
 			);
 		}
 
-		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
+		public override TreeNode Simplify(SimplificationParams parameters, bool skipSimplificationOfChildren = false)
 		{
 			if (skipSimplificationOfChildren == false)
 			{
-				operand1 = operand1.Simplify();
-				operand2 = operand2.Simplify();
+				operand1 = operand1.Simplify(parameters);
+				operand2 = operand2.Simplify(parameters);
 			}
 
 			// associative things
@@ -657,7 +657,7 @@ namespace DerivativeCalculator
 
 							if (multiplicants.Any(item => item.Item1 is Constant { value: < 0 }))
 							{
-								TreeNode simplifiedKey = new Mult(key, coeff).Simplify().Eval();
+								TreeNode simplifiedKey = new Mult(key, coeff).Simplify(parameters).Eval();
 
 								additionList.Add((simplifiedKey, new Constant(1)));
 
@@ -680,7 +680,7 @@ namespace DerivativeCalculator
 
 						if (multiplicants.Any(item => item.Item1 is Constant { value: < 0 }))
 						{
-							TreeNode simplifiedKey = new Mult(new Mult(key, coeff), new Constant(-1)).Simplify().Eval();
+							TreeNode simplifiedKey = new Mult(new Mult(key, coeff), new Constant(-1)).Simplify(parameters).Eval();
 
 							subtractionList.Add((simplifiedKey, new Constant(1)));
 
@@ -914,19 +914,19 @@ namespace DerivativeCalculator
 
 			Differentiator.AddStepDescription(new StepDescription(
 				$@"\frac{{d}}{{dx}}\left(f(x) - g(x)\right) = \frac{{d}}{{dx}}f(x) - \frac{{d}}{{dx}}g(x)",
-				operand1.GetSimplestForm().ToLatexString(),
-				operand2.GetSimplestForm().ToLatexString()
+				operand1.ToLatexString(),
+				operand2.ToLatexString()
 			));
 
 			return new Sub(operand1.Diff(varToDiff), operand2.Diff(varToDiff));
 		}
 
-		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
+		public override TreeNode Simplify(SimplificationParams parameters, bool skipSimplificationOfChildren = false)
 		{
 			if (skipSimplificationOfChildren == false)
 			{
-				operand1 = operand1.Simplify();
-				operand2 = operand2.Simplify();
+				operand1 = operand1.Simplify(parameters);
+				operand2 = operand2.Simplify(parameters);
 			}
 
 			Dictionary<char, TreeNode> wildcards;
@@ -941,7 +941,7 @@ namespace DerivativeCalculator
 				out wildcards
 			))
 			{
-				return new Add(operand1, wildcards['a']).Simplify(false);
+				return new Add(operand1, wildcards['a']).Simplify(parameters, false);
 			}
 
 			// b-(0-a) = b+a
@@ -954,13 +954,13 @@ namespace DerivativeCalculator
 				out wildcards
 			))
 			{
-				return new Add(operand1, wildcards['a']).Simplify(false);
+				return new Add(operand1, wildcards['a']).Simplify(parameters, false);
 			}
 
 			return new Add(
 				new Constant(0),
 				this
-			).Simplify(true);
+			).Simplify(parameters, true);
 		}
 
 		public override string ToLatexString()
@@ -1029,18 +1029,18 @@ namespace DerivativeCalculator
 			if (operand1.IsConstant(varToDiff))
 				Differentiator.AddStepDescription(new StepDescription(
 					$@"\frac{{d}}{{dx}}\left(c \cdot f(x)\right) = c \cdot \frac{{d}}{{dx}}f(x)",
-					operand2.GetSimplestForm().ToLatexString()
+					operand2.ToLatexString()
 				));
 			else if (operand2.IsConstant(varToDiff))
 				Differentiator.AddStepDescription(new StepDescription(
 					$@"\frac{{d}}{{dx}}\left(c \cdot f(x)\right) = c \cdot \frac{{d}}{{dx}}f(x)",
-					operand1.GetSimplestForm().ToLatexString()
+					operand1.ToLatexString()
 				));
 			else
 				Differentiator.AddStepDescription(new StepDescription(
 					$@"\frac{{d}}{{dx}}\left(f(x) \cdot g(x)\right) = f(x) \cdot \frac{{d}}{{dx}}g(x) + g(x) \cdot \frac{{d}}{{dx}}f(x)",
-					operand1.GetSimplestForm().ToLatexString(),
-					operand2.GetSimplestForm().ToLatexString()
+					operand1.ToLatexString(),
+					operand2.ToLatexString()
 				));
 
 			if (operand1.IsConstant(varToDiff))
@@ -1055,12 +1055,12 @@ namespace DerivativeCalculator
 			);
 		}
 
-		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
+		public override TreeNode Simplify(SimplificationParams parameters, bool skipSimplificationOfChildren = false)
 		{
 			if (skipSimplificationOfChildren == false)
 			{
-				operand1 = operand1.Simplify();
-				operand2 = operand2.Simplify();
+				operand1 = operand1.Simplify(parameters);
+				operand2 = operand2.Simplify(parameters);
 			}
 
 			// associative things
@@ -1221,7 +1221,7 @@ namespace DerivativeCalculator
 									new Pow(
 										otherNode,
 										powerDict[otherNode]
-									).Simplify() // simplify, because it might have nested pows,which can be simplified down
+									).Simplify(parameters) // simplify, because it might have nested pows,which can be simplified down
 								),
 								new Mult(
 									new Pow(
@@ -1735,13 +1735,13 @@ namespace DerivativeCalculator
 			if (operand2.IsConstant(varToDiff))
 				Differentiator.AddStepDescription(new StepDescription(
 					$@"\frac{{d}}{{dx}}\frac{{f(x)}}{{c}} = \frac{{\frac{{d}}{{dx}}f(x)}}{{c}}",
-					operand1.GetSimplestForm().ToLatexString()
+					operand1.ToLatexString()
 				));
 			else
 				Differentiator.AddStepDescription(new StepDescription(
 					$@"\frac{{d}}{{dx}}\frac{{f(x)}}{{g(x)}} = \frac{{f(x) \cdot \frac{{d}}{{dx}}g(x) - g(x) \cdot \frac{{d}}{{dx}}f(x)}}{{{{g(x)}}^2}}",
-					operand1.GetSimplestForm().ToLatexString(),
-					operand2.GetSimplestForm().ToLatexString()
+					operand1.ToLatexString(),
+					operand2.ToLatexString()
 				));
 
 			if (operand2.IsConstant(varToDiff))
@@ -1756,12 +1756,12 @@ namespace DerivativeCalculator
 			);
 		}
 
-		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
+		public override TreeNode Simplify(SimplificationParams parameters, bool skipSimplificationOfChildren = false)
 		{
 			if (skipSimplificationOfChildren == false)
 			{
-				operand1 = operand1.Simplify();
-				operand2 = operand2.Simplify();
+				operand1 = operand1.Simplify(parameters);
+				operand2 = operand2.Simplify(parameters);
 			}
 
 			if (operand1.Eval() is Constant { value: 0 })
@@ -1770,7 +1770,7 @@ namespace DerivativeCalculator
 			return new Mult(
 				new Constant(1),
 				this
-			).Simplify(true);
+			).Simplify(parameters, true);
 		}
 
 		public override string ToLatexString()
@@ -1804,18 +1804,18 @@ namespace DerivativeCalculator
 			if (operand1.IsConstant(varToDiff))
 				Differentiator.AddStepDescription(new StepDescription(
 					$@"\frac{{d}}{{dx}}{{c^{{f(x)}}}} = ln(c) \cdot {{c^{{f(x)}}}} \cdot \frac{{d}}{{dx}}f(x)",
-					operand2.GetSimplestForm().ToLatexString()
+					operand2.ToLatexString()
 				));
 			else if (operand2.IsConstant(varToDiff))
 				Differentiator.AddStepDescription(new StepDescription(
 					$@"\frac{{d}}{{dx}}{{f(x)}}^c = c \cdot f(x)^{{c-1}} \cdot \frac{{d}}{{dx}}f(x)",
-					operand1.GetSimplestForm().ToLatexString()
+					operand1.ToLatexString()
 				));
 			else
 				Differentiator.AddStepDescription(new StepDescription(
 					$@"\frac{{d}}{{dx}}f(x)^{{g(x)}} = \frac{{d}}{{dx}}e^{{g(x)\cdot \ln\left(f\left(x\right)\right)}} = e^{{g(x)\cdot \ln\left(f\left(x\right)\right)}}\cdot\frac{{d}}{{dx}}{{g(x)\cdot \ln\left(f\left(x\right)\right)}} = f(x)^{{g(x)}}\cdot\frac{{d}}{{dx}}{{g(x)\cdot \ln\left(f\left(x\right)\right)}}",
-					operand1.GetSimplestForm().ToLatexString(),
-					operand1.GetSimplestForm().ToLatexString()
+					operand1.ToLatexString(),
+					operand1.ToLatexString()
 				));
 
 			// c^f(x) --> ln(c)*c^f(x)*f'(x)
@@ -1864,7 +1864,7 @@ namespace DerivativeCalculator
 			);
 		}
 
-		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
+		public override TreeNode Simplify(SimplificationParams parameters, bool skipSimplificationOfChildren = false)
 		{
 			Dictionary<char, TreeNode> wildcards;
 
@@ -1910,8 +1910,8 @@ namespace DerivativeCalculator
 
 			if (skipSimplificationOfChildren == false)
 			{
-				operand1 = operand1.Simplify();
-				operand2 = operand2.Simplify();
+				operand1 = operand1.Simplify(parameters);
+				operand2 = operand2.Simplify(parameters);
 			}
 
 			if (operand1.Eval() is Constant { value: 1 })
@@ -2044,7 +2044,7 @@ namespace DerivativeCalculator
 
 			Differentiator.AddStepDescription(new StepDescription(
 				$@"\frac{{d}}{{dx}}\sin(x) = \cos(x)",
-				operand1.GetSimplestForm().ToLatexString()
+				operand1.ToLatexString()
 			));
 
 			return new Mult(
@@ -2058,11 +2058,11 @@ namespace DerivativeCalculator
 			return $@"\sin\left({{{operand1.ToLatexString()}}}\right)";
 		}
 
-		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
+		public override TreeNode Simplify(SimplificationParams parameters, bool skipSimplificationOfChildren = false)
 		{
 			if (skipSimplificationOfChildren == false)
 			{
-				operand1 = operand1.Simplify();
+				operand1 = operand1.Simplify(parameters);
 			}
 
 			return this;
@@ -2092,7 +2092,7 @@ namespace DerivativeCalculator
 
 			Differentiator.AddStepDescription(new StepDescription(
 				$@"\frac{{d}}{{dx}}\cos(x) = -\sin(x)",
-				operand1.GetSimplestForm().ToLatexString()
+				operand1.ToLatexString()
 			));
 
 			return new Mult(
@@ -2109,11 +2109,11 @@ namespace DerivativeCalculator
 			return $@"\cos\left({{{operand1.ToLatexString()}}}\right)";
 		}
 
-		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
+		public override TreeNode Simplify(SimplificationParams parameters, bool skipSimplificationOfChildren = false)
 		{
 			if (skipSimplificationOfChildren == false)
 			{
-				operand1 = operand1.Simplify();
+				operand1 = operand1.Simplify(parameters);
 			}
 
 			return this;
@@ -2143,7 +2143,7 @@ namespace DerivativeCalculator
 
 			Differentiator.AddStepDescription(new StepDescription(
 				$@"\frac{{d}}{{dx}}\tan(x) = \frac{{1}}{{{{\cos\left(x\right)}}^2}}",
-				operand1.GetSimplestForm().ToLatexString()
+				operand1.ToLatexString()
 			));
 
 			return new Div(
@@ -2160,11 +2160,11 @@ namespace DerivativeCalculator
 			return $@"\tan\left({{{operand1.ToLatexString()}}}\right)";
 		}
 
-		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
+		public override TreeNode Simplify(SimplificationParams parameters, bool skipSimplificationOfChildren = false)
 		{
 			if (skipSimplificationOfChildren == false)
 			{
-				operand1 = operand1.Simplify();
+				operand1 = operand1.Simplify(parameters);
 			}
 
 			return this;
@@ -2202,7 +2202,7 @@ namespace DerivativeCalculator
 
 			Differentiator.AddStepDescription(new StepDescription(
 				$@"\frac{{d}}{{dx}}\ln(x) = \frac{{1}}{{x}}",
-				operand1.GetSimplestForm().ToLatexString()
+				operand1.ToLatexString()
 			));
 
 			return new Div(
@@ -2216,11 +2216,11 @@ namespace DerivativeCalculator
 			return $@"\ln\left({{{operand1.ToLatexString()}}}\right)";
 		}
 
-		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
+		public override TreeNode Simplify(SimplificationParams parameters, bool skipSimplificationOfChildren = false)
 		{
 			if (skipSimplificationOfChildren == false)
 			{
-				operand1 = operand1.Simplify();
+				operand1 = operand1.Simplify(parameters);
 			}
 
 			return this;
@@ -2258,7 +2258,7 @@ namespace DerivativeCalculator
 
 			Differentiator.AddStepDescription(new StepDescription(
 				$@"\frac{{d}}{{dx}}\log_{{10}}(x) = \frac{{1}}{{\ln\left(10\right)\cdotx}}",
-				operand1.GetSimplestForm().ToLatexString()
+				operand1.ToLatexString()
 			));
 
 			return new Div(
@@ -2275,11 +2275,11 @@ namespace DerivativeCalculator
 			return $@"\log_{{10}}\left({{{operand1.ToLatexString()}}}\right)";
 		}
 
-		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
+		public override TreeNode Simplify(SimplificationParams parameters, bool skipSimplificationOfChildren = false)
 		{
 			if (skipSimplificationOfChildren == false)
 			{
-				operand1 = operand1.Simplify();
+				operand1 = operand1.Simplify(parameters);
 			}
 
 			return this;
@@ -2309,7 +2309,7 @@ namespace DerivativeCalculator
 
 			Differentiator.AddStepDescription(new StepDescription(
 				$@"\frac{{d}}{{dx}}\cot(x) = \frac{{-1}}{{{{\sin\left(x\right)}}^2}}",
-				operand1.GetSimplestForm().ToLatexString()
+				operand1.ToLatexString()
 			));
 
 			return new Div(
@@ -2329,11 +2329,11 @@ namespace DerivativeCalculator
 			return $@"\cot\left({{{operand1.ToLatexString()}}}\right)";
 		}
 
-		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
+		public override TreeNode Simplify(SimplificationParams parameters, bool skipSimplificationOfChildren = false)
 		{
 			if (skipSimplificationOfChildren == false)
 			{
-				operand1 = operand1.Simplify();
+				operand1 = operand1.Simplify(parameters);
 			}
 
 			return this;
@@ -2363,7 +2363,7 @@ namespace DerivativeCalculator
 
 			Differentiator.AddStepDescription(new StepDescription(
 				$@"\frac{{d}}{{dx}}\arcsin(x) = \frac{{1}}{{\sqrt{{1-x^2}}}}",
-				operand1.GetSimplestForm().ToLatexString()
+				operand1.ToLatexString()
 			));
 
 			return new Div(
@@ -2386,11 +2386,11 @@ namespace DerivativeCalculator
 			return $@"\arcsin\left({{{operand1.ToLatexString()}}}\right)";
 		}
 
-		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
+		public override TreeNode Simplify(SimplificationParams parameters, bool skipSimplificationOfChildren = false)
 		{
 			if (skipSimplificationOfChildren == false)
 			{
-				operand1 = operand1.Simplify();
+				operand1 = operand1.Simplify(parameters);
 			}
 
 			return this;
@@ -2420,7 +2420,7 @@ namespace DerivativeCalculator
 
 			Differentiator.AddStepDescription(new StepDescription(
 				$@"\frac{{d}}{{dx}}\arccos(x) = \frac{{1}}{{\sqrt{{x^2-1}}}}",
-				operand1.GetSimplestForm().ToLatexString()
+				operand1.ToLatexString()
 			));
 
 			return new Div(
@@ -2446,11 +2446,11 @@ namespace DerivativeCalculator
 			return $@"\arccos\left({{{operand1.ToLatexString()}}}\right)";
 		}
 
-		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
+		public override TreeNode Simplify(SimplificationParams parameters, bool skipSimplificationOfChildren = false)
 		{
 			if (skipSimplificationOfChildren == false)
 			{
-				operand1 = operand1.Simplify();
+				operand1 = operand1.Simplify(parameters);
 			}
 
 			return this;
@@ -2480,7 +2480,7 @@ namespace DerivativeCalculator
 
 			Differentiator.AddStepDescription(new StepDescription(
 				$@"\frac{{d}}{{dx}}\arctan(x) = \frac{{1}}{{x^2+1}}",
-				operand1.GetSimplestForm().ToLatexString()
+				operand1.ToLatexString()
 			));
 
 			return new Div(
@@ -2500,11 +2500,11 @@ namespace DerivativeCalculator
 			return $@"\arctan\left({{{operand1.ToLatexString()}}}\right)";
 		}
 
-		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
+		public override TreeNode Simplify(SimplificationParams parameters, bool skipSimplificationOfChildren = false)
 		{
 			if (skipSimplificationOfChildren == false)
 			{
-				operand1 = operand1.Simplify();
+				operand1 = operand1.Simplify(parameters);
 			}
 
 			return this;
@@ -2534,7 +2534,7 @@ namespace DerivativeCalculator
 
 			Differentiator.AddStepDescription(new StepDescription(
 				$@"\frac{{d}}{{dx}}\arccot(x) = \frac{{-1}}{{\sqrt{{1-x^2}}}}",
-				operand1.GetSimplestForm().ToLatexString()
+				operand1.ToLatexString()
 			));
 
 			return new Div(
@@ -2557,11 +2557,11 @@ namespace DerivativeCalculator
 			return $@"\arccot\left({{{operand1.ToLatexString()}}}\right)";
 		}
 
-		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
+		public override TreeNode Simplify(SimplificationParams parameters, bool skipSimplificationOfChildren = false)
 		{
 			if (skipSimplificationOfChildren == false)
 			{
-				operand1 = operand1.Simplify();
+				operand1 = operand1.Simplify(parameters);
 			}
 
 			return this;
@@ -2591,7 +2591,7 @@ namespace DerivativeCalculator
 
 			Differentiator.AddStepDescription(new StepDescription(
 				$@"\frac{{d}}{{dx}}\sinh(x) = \cosh(x)",
-				operand1.GetSimplestForm().ToLatexString()
+				operand1.ToLatexString()
 			));
 
 			return new Mult(
@@ -2605,11 +2605,11 @@ namespace DerivativeCalculator
 			return $@"\sinh\left({{{operand1.ToLatexString()}}}\right)";
 		}
 
-		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
+		public override TreeNode Simplify(SimplificationParams parameters, bool skipSimplificationOfChildren = false)
 		{
 			if (skipSimplificationOfChildren == false)
 			{
-				operand1 = operand1.Simplify();
+				operand1 = operand1.Simplify(parameters);
 			}
 
 			return this;
@@ -2639,7 +2639,7 @@ namespace DerivativeCalculator
 
 			Differentiator.AddStepDescription(new StepDescription(
 				$@"\frac{{d}}{{dx}}\cosh(x) = \sinh(x)",
-				operand1.GetSimplestForm().ToLatexString()
+				operand1.ToLatexString()
 			));
 
 			return new Mult(
@@ -2653,11 +2653,11 @@ namespace DerivativeCalculator
 			return $@"\cosh\left({{{operand1.ToLatexString()}}}\right)";
 		}
 
-		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
+		public override TreeNode Simplify(SimplificationParams parameters, bool skipSimplificationOfChildren = false)
 		{
 			if (skipSimplificationOfChildren == false)
 			{
-				operand1 = operand1.Simplify();
+				operand1 = operand1.Simplify(parameters);
 			}
 
 			return this;
@@ -2687,7 +2687,7 @@ namespace DerivativeCalculator
 
 			Differentiator.AddStepDescription(new StepDescription(
 				$@"\frac{{d}}{{dx}}\tanh(x) = \frac{{1}}{{{{\cosh\left(x\right)}}^2}}",
-				operand1.GetSimplestForm().ToLatexString()
+				operand1.ToLatexString()
 			));
 
 			return new Div(
@@ -2704,11 +2704,11 @@ namespace DerivativeCalculator
 			return $@"\tanh\left({{{operand1.ToLatexString()}}}\right)";
 		}
 
-		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
+		public override TreeNode Simplify(SimplificationParams parameters, bool skipSimplificationOfChildren = false)
 		{
 			if (skipSimplificationOfChildren == false)
 			{
-				operand1 = operand1.Simplify();
+				operand1 = operand1.Simplify(parameters);
 			}
 
 			return this;
@@ -2738,7 +2738,7 @@ namespace DerivativeCalculator
 
 			Differentiator.AddStepDescription(new StepDescription(
 				$@"\frac{{d}}{{dx}}\coth(x) = \frac{{-1}}{{{{\cosh\left(x\right)}}^2}}",
-				operand1.GetSimplestForm().ToLatexString()
+				operand1.ToLatexString()
 			));
 
 			return new Div(
@@ -2758,11 +2758,11 @@ namespace DerivativeCalculator
 			return $@"\coth\left({{{operand1.ToLatexString()}}}\right)";
 		}
 
-		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
+		public override TreeNode Simplify(SimplificationParams parameters, bool skipSimplificationOfChildren = false)
 		{
 			if (skipSimplificationOfChildren == false)
 			{
-				operand1 = operand1.Simplify();
+				operand1 = operand1.Simplify(parameters);
 			}
 
 			return this;
@@ -2792,7 +2792,7 @@ namespace DerivativeCalculator
 
 			Differentiator.AddStepDescription(new StepDescription(
 				$@"\frac{{d}}{{dx}}arsinh(x) = \frac{{1}}{{\sqrt{{x^2+1}}}}",
-				operand1.GetSimplestForm().ToLatexString()
+				operand1.ToLatexString()
 			));
 
 			return new Div(
@@ -2815,11 +2815,11 @@ namespace DerivativeCalculator
 			return $@"arsinh\left({{{operand1.ToLatexString()}}}\right)";
 		}
 
-		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
+		public override TreeNode Simplify(SimplificationParams parameters, bool skipSimplificationOfChildren = false)
 		{
 			if (skipSimplificationOfChildren == false)
 			{
-				operand1 = operand1.Simplify();
+				operand1 = operand1.Simplify(parameters);
 			}
 
 			return this;
@@ -2849,7 +2849,7 @@ namespace DerivativeCalculator
 
 			Differentiator.AddStepDescription(new StepDescription(
 				$@"\frac{{d}}{{dx}}arcosh(x) = \frac{{1}}{{\sqrt{{x^2-1}}}}",
-				operand1.GetSimplestForm().ToLatexString()
+				operand1.ToLatexString()
 			));
 
 			return new Div(
@@ -2872,11 +2872,11 @@ namespace DerivativeCalculator
 			return $@"arcosh\left({{{operand1.ToLatexString()}}}\right)";
 		}
 
-		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
+		public override TreeNode Simplify(SimplificationParams parameters, bool skipSimplificationOfChildren = false)
 		{
 			if (skipSimplificationOfChildren == false)
 			{
-				operand1 = operand1.Simplify();
+				operand1 = operand1.Simplify(parameters);
 			}
 
 			return this;
@@ -2906,7 +2906,7 @@ namespace DerivativeCalculator
 
 			Differentiator.AddStepDescription(new StepDescription(
 				$@"\frac{{d}}{{dx}}artanh(x) = \frac{{1}}{{1-x^2}}",
-				operand1.GetSimplestForm().ToLatexString()
+				operand1.ToLatexString()
 			));
 
 			return new Div(
@@ -2926,11 +2926,11 @@ namespace DerivativeCalculator
 			return $@"artanh\left({{{operand1.ToLatexString()}}}\right)";
 		}
 
-		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
+		public override TreeNode Simplify(SimplificationParams parameters, bool skipSimplificationOfChildren = false)
 		{
 			if (skipSimplificationOfChildren == false)
 			{
-				operand1 = operand1.Simplify();
+				operand1 = operand1.Simplify(parameters);
 			}
 
 			return this;
@@ -2960,7 +2960,7 @@ namespace DerivativeCalculator
 
 			Differentiator.AddStepDescription(new StepDescription(
 				$@"\frac{{d}}{{dx}}arcoth(x) = \frac{{1}}{{1-x^2}}",
-				operand1.GetSimplestForm().ToLatexString()
+				operand1.ToLatexString()
 			));
 
 			return new Div(
@@ -2980,11 +2980,11 @@ namespace DerivativeCalculator
 			return $@"arcoth\left({{{operand1.ToLatexString()}}}\right)";
 		}
 
-		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
+		public override TreeNode Simplify(SimplificationParams parameters, bool skipSimplificationOfChildren = false)
 		{
 			if (skipSimplificationOfChildren == false)
 			{
-				operand1 = operand1.Simplify();
+				operand1 = operand1.Simplify(parameters);
 			}
 
 			return this;

@@ -56,6 +56,8 @@ namespace DerivativeCalculator
 
 			string prevStepString = "";
 
+			var simplificationParameters = new SimplificationParams(varToDiff);
+
 			while (true)
 			{
 				numStapsTaken = 0;
@@ -63,7 +65,7 @@ namespace DerivativeCalculator
 
 				diffTree = TreeUtils.CopyTree(root).Diff(_varToDiff);
 
-				diffTree = TreeUtils.GetSimplestForm(diffTree);
+				diffTree = TreeUtils.GetSimplestForm(diffTree, simplificationParameters);
 
 				if (prevStepString == diffTree.ToLatexString())
 					break;

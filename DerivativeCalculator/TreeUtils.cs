@@ -57,9 +57,9 @@ namespace DerivativeCalculator
 			}
 		}
 
-		public static TreeNode SimplifyWithPatterns(TreeNode root)
+		public static TreeNode SimplifyWithPatterns(SimplificationParams parameters, TreeNode root)
 		{
-			return root.Simplify();
+			return root.Simplify(parameters);
 		}
 
 		public static TreeNode Calculate(TreeNode root)
@@ -271,7 +271,7 @@ namespace DerivativeCalculator
 			return true;
 		}
 	
-		public static TreeNode GetSimplestForm (TreeNode tree)
+		public static TreeNode GetSimplestForm (TreeNode tree, SimplificationParams parameters)
 		{
 			TreeNode _tree = CopyTree(tree);
 
@@ -282,7 +282,7 @@ namespace DerivativeCalculator
 
 			for (int i = 0; i < maxIterations; i++)
 			{
-				_tree = _tree.Eval().Simplify().Eval();
+				_tree = _tree.Eval().Simplify(parameters).Eval();
 
 				if (i >= minIterations && _tree.ToLatexString() == prevLatexString)
 				{

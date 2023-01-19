@@ -45,9 +45,9 @@ namespace DerivativeCalculator
 		public virtual TreeNode Eval() => throw new NotImplementedException();
 		public virtual TreeNode Diff(char varToDiff) => throw new NotImplementedException();
 		public bool IsConstant (char varToDiff) => TreeUtils.IsExpressionConstant(this, varToDiff);
-		public virtual TreeNode Simplify(bool skipSimplificationOfChildren = false) => this;
+		public virtual TreeNode Simplify(SimplificationParams parameters, bool skipSimplificationOfChildren = false) => this;
 		public virtual string ToLatexString () => this.ToPrettyString();
-		public TreeNode GetSimplestForm () => TreeUtils.GetSimplestForm(this);
+		public TreeNode GetSimplestForm (SimplificationParams parameters) => TreeUtils.GetSimplestForm(this, parameters);
 	}
 
 	public sealed class DerivativeSymbol : TreeNode
@@ -86,11 +86,11 @@ namespace DerivativeCalculator
 			return expression.Diff(varToDiff);
 		}
 
-		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
+		public override TreeNode Simplify(SimplificationParams parameters, bool skipSimplificationOfChildren = false)
 		{
 			if (skipSimplificationOfChildren == false)
 			{
-				expression = expression.Simplify();
+				expression = expression.Simplify(parameters);
 			}
 
 			return this;
@@ -175,9 +175,9 @@ namespace DerivativeCalculator
 		{
 			return base.Eval();
 		}
-		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
+		public override TreeNode Simplify(SimplificationParams parameters, bool skipSimplificationOfChildren = false)
 		{
-			return base.Simplify();
+			return base.Simplify(parameters);
 		}
 		public override string ToPrettyString()
 		{

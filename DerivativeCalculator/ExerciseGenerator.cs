@@ -680,12 +680,12 @@ namespace DerivativeCalculator
 
                 try
                 {
-                    tree = TreeUtils.GetSimplestForm(tree);
+                    tree = TreeUtils.GetSimplestForm(tree, new SimplificationParams('x'));
 
                     if (TreeUtils.DoesTreeContainNull(tree))
 						continue;
 
-					var diffTree = TreeUtils.GetSimplestForm(tree.Diff('x'));
+					var diffTree = TreeUtils.GetSimplestForm(tree.Diff('x'), new SimplificationParams('x'));
 
                     if (TreeUtils.DoesTreeContainNull(diffTree))
 						continue;

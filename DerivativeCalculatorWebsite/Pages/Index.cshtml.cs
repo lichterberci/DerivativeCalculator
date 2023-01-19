@@ -31,7 +31,7 @@ namespace DerivativeCalculatorWebsite.Pages
 
 			try
 			{
-				derivativeOutput = DerivativeCalculator.DerivativeManager.DifferentiateString(derivativeInput, out prettyInput, out prettySimplifiedInput, out steps, out descriptions);
+				derivativeOutput = DerivativeCalculator.DerivativeManager.DifferentiateString(derivativeInput, out prettyInput, out prettySimplifiedInput, out steps, out descriptions, out _);
 
 				stepsWithDescriptions = new List<(string, StepDescription?)>(steps.Select((step, i) => (step, descriptions[i])));
 			}
