@@ -427,9 +427,11 @@ namespace DerivativeCalculator
     
             int numParametersToChoose = difficulty.numMaxParameters != difficulty.numMinParameters ? random.Next() % (difficulty.numMaxParameters - difficulty.numMinParameters) + difficulty.numMinParameters : difficulty.numMinParameters;
 
+            const int numLetters = 26;
+
             while (parameterNameList.Count < numParametersToChoose)
             {
-                char chosenParameterName = (char)((random.Next() % 26) + 'a');
+                char chosenParameterName = (char)((random.Next() % numLetters) + 'a');
 
                 if (chosenParameterName == 'x' || chosenParameterName == 'e')
                     continue;
