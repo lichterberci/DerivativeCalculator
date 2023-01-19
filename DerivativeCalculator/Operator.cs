@@ -997,8 +997,8 @@ namespace DerivativeCalculator
 				}
 			}
 
-			multList = TreeUtils.SortBasePowPairsByVarNames(multList, parameters.varToDiff);
-			divList = TreeUtils.SortBasePowPairsByVarNames(divList, parameters.varToDiff);
+			multList = SortKeyPowPairsByVarNames(multList, parameters.varToDiff);
+			divList = SortKeyPowPairsByVarNames(divList, parameters.varToDiff);
 
 			var multRoot = BuildTreeFromKeyPowPais(multList);
 
@@ -1415,6 +1415,91 @@ namespace DerivativeCalculator
 				return new Constant(1);
 
 			return new Pow(key, pow);
+		}
+
+		private static List<(TreeNode, TreeNode)> SortKeyPowPairsByVarNames(List<(TreeNode, TreeNode)> list, char? varToLeaveLast = null)
+		{
+			if (list.Count <= 1)
+				return list;
+
+			Func<TreeNode, char?> GetVarName = key =>
+			{
+				if (key is Variable v)
+					return v.name;
+
+				if (key is Mult { operand1: Variable } mult1)
+					return (mult1.operand1 as Variable).name;
+
+				if (key is Mult { operand2: Variable } mult2)
+					return (mult2.operand2 as Variable).name;
+
+				if (key is Pow { operand1: Variable } pow1)
+					return (pow1.operand1 as Variable).name;
+
+				return null;
+			};
+
+			(TreeNode, TreeNode) pivot = (null, null);
+			char pivotName = 'a';
+
+			foreach ((var key, var pow) in list)
+			{
+				char? varName = GetVarName(key);
+
+				if (varName is not null)
+				{
+					pivot = (key, pow);
+					pivotName = (char)varName;
+					list.Remove((key, pow));
+					break;
+				}
+			}
+
+			if (pivot == (null, null))
+				return list;
+
+			List<(TreeNode, TreeNode)> constList = new();
+			List<(TreeNode, TreeNode)> leftList = new();
+			List<(TreeNode, TreeNode)> rightList = new();
+			List<(TreeNode, TreeNode)> expressionList = new();
+
+			foreach ((var key, var pow) in list)
+			{
+				char? varName = GetVarName(key);
+
+				if (varName is not null)
+				{
+					if (varName == varToLeaveLast)
+					{
+						rightList.Add((key, pow));
+						continue;
+					}
+
+					if (varName > pivotName)
+						rightList.Add((key, pow));
+					else
+						leftList.Add((key, pow));
+
+					continue;
+				}
+
+				if (key is Constant)
+				{
+					constList.Add((key, pow));
+
+					continue;
+				}
+
+				expressionList.Add((key, pow));
+			}
+
+			leftList = SortKeyPowPairsByVarNames(leftList, varToLeaveLast);
+			rightList = SortKeyPowPairsByVarNames(rightList, varToLeaveLast);
+
+			if (pivotName == varToLeaveLast)
+				return constList.Concat(leftList).Concat(rightList).Concat(new List<(TreeNode, TreeNode)> { pivot }).Concat(expressionList).ToList();
+
+			return constList.Concat(leftList).Concat(new List<(TreeNode, TreeNode)> { pivot }).Concat(rightList).Concat(expressionList).ToList();
 		}
 
 		public override string ToLatexString()
