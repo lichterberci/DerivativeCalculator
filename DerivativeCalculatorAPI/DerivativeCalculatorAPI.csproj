@@ -7,15 +7,11 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Remove="wwwroot\favicon.ico" />
+    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="wwwroot\favicon.ico" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\DerivativeCalculator\DerivativeCalculator.csproj" />
+    <ProjectReference Include="C:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculator\DerivativeCalculator.csproj" />
   </ItemGroup>
 
 </Project>

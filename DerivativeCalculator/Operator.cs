@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Data;
 using System.Dynamic;
 using System.Linq;
@@ -131,13 +132,9 @@ namespace DerivativeCalculator
 			switch (_type)
 			{
 				case OperatorType.Add:
-					return 2;
 				case OperatorType.Sub:
-					return 2;
 				case OperatorType.Mult:
-					return 2;
 				case OperatorType.Div:
-					return 2;
 				case OperatorType.Pow:
 					return 2;
 				default:
@@ -217,6 +214,36 @@ namespace DerivativeCalculator
 					return op;
 			}
 
+			// aliases
+
+			switch(str)
+			{
+				case "tg":
+					return OperatorType.Tan;
+				case "ctg":
+					return OperatorType.Cot;
+				case "arctg":
+					return OperatorType.Arctan;
+				case "arcctg":
+					return OperatorType.Arccot;
+				case "sh":
+					return OperatorType.Sinh;
+				case "ch":
+					return OperatorType.Cosh;
+				case "th":
+					return OperatorType.Tanh;
+				case "cth":
+					return OperatorType.Coth;
+				case "arsh":
+					return OperatorType.Arsinh;
+				case "arch":
+					return OperatorType.Arcosh;
+				case "arth":
+					return OperatorType.Artanh;
+				case "arcth":
+					return OperatorType.Arcoth;
+			}
+
 			return null;
 		}
 		public static bool IsOperatorTypeCommutative(OperatorType type)
@@ -289,8 +316,15 @@ namespace DerivativeCalculator
 		{
 			if (Differentiator.numStapsTaken++ >= Differentiator.maxSteps)
 			{
+
 				return new DerivativeSymbol(this, varToDiff);
 			}
+
+			Differentiator.AddStepDescription(new StepDescription(
+				$@"\frac{{d}}{{dx}}\left(f(x) + g(x)\right) = \frac{{d}}{{dx}}f(x) + \frac{{d}}{{dx}}g(x)",
+				operand1.GetSimplestForm().ToLatexString(),
+				operand2.GetSimplestForm().ToLatexString()
+			));
 
 			return new Add(
 				operand1.Diff(varToDiff), 
@@ -309,6 +343,9 @@ namespace DerivativeCalculator
 			// associative things
 
 			var operands = TreeUtils.GetAssociativeOperands(this, type, inverseType);
+
+			// !!! THIS LINE REALLY SLOWS DOWN THE WHOLE THING !!!
+			//operands = operands.Select(item => (TreeUtils.GetSimplestForm(item.Item1), item.Item2)).ToList();
 
 			Dictionary<char, TreeNode> wildcards;
 
@@ -582,7 +619,7 @@ namespace DerivativeCalculator
 
 					// new entry
 					if (node is Constant constant)
-						coefficientDict[new Constant(1)] = isNodeInverse ? new Constant(-constant.value) : node;
+						coefficientDict[new Constant(val: 1)] = isNodeInverse ? new Constant(-constant.value) : node;
 					else
 						coefficientDict[node] = new Constant(isNodeInverse ? -1 : 1);
 				}
@@ -607,16 +644,51 @@ namespace DerivativeCalculator
 
 				foreach ((var key, var coeff) in coefficientDict)
 				{
+					if (key is Constant { value: 0 } || coeff is Constant { value: 0 })
+						continue;
+
 					if (coeff.Eval() is Constant { value: < 0 } c)
 					{
+						if (key is Mult)
+						{
+							List<(TreeNode, bool)> multiplicants = TreeUtils.GetAssociativeOperands(key, OperatorType.Mult, OperatorType.Div);
+
+							// simplify the *2 * a * x * 32 down before adding it to the list
+
+							if (multiplicants.Any(item => item.Item1 is Constant { value: < 0 }))
+							{
+								TreeNode simplifiedKey = new Mult(key, coeff).Simplify().Eval();
+
+								additionList.Add((simplifiedKey, new Constant(1)));
+
+								continue;
+							}
+						}
+
 						c.value *= -1;
 
 						subtractionList.Add((key, c));
+
+						continue;
 					}
-					else if (coeff.Eval() is not Constant { value: 0 })
+
+					if (key is Mult)
 					{
-						additionList.Add((key, coeff));
+						List<(TreeNode, bool)> multiplicants = TreeUtils.GetAssociativeOperands(key, OperatorType.Mult, OperatorType.Div);
+
+						// simplify the *2 * a * x * 32 down before adding it to the list
+
+						if (multiplicants.Any(item => item.Item1 is Constant { value: < 0 }))
+						{
+							TreeNode simplifiedKey = new Mult(new Mult(key, coeff), new Constant(-1)).Simplify().Eval();
+
+							subtractionList.Add((simplifiedKey, new Constant(1)));
+
+							continue;
+						}
 					}
+
+					additionList.Add((key, coeff));
 				}
 
 				Operator head = new Add(null, null);
@@ -632,6 +704,10 @@ namespace DerivativeCalculator
 					if (coeff is Constant { value: 1 })
 					{
 						additionRoot = key;
+					}
+					else if (key is Constant) // constant 1
+					{
+						additionRoot = coeff;
 					}
 					else
 					{
@@ -656,6 +732,10 @@ namespace DerivativeCalculator
 						{
 							head.operand1 = key;
 						}
+						else if (key is Constant)
+						{
+							head.operand1 = coeff;
+						}
 						else
 						{
 							head.operand1 = new Mult(
@@ -673,6 +753,10 @@ namespace DerivativeCalculator
 							if (coeff2 is Constant { value: 1 })
 							{
 								head.operand2 = key2;
+							}
+							else if (key2 is Constant)
+							{
+								head.operand2 = coeff2;
 							}
 							else
 							{
@@ -708,6 +792,10 @@ namespace DerivativeCalculator
 					{
 						subtractionRoot = key;
 					}
+					else if (key is Constant)
+					{
+						subtractionRoot = coeff;
+					}
 					else
 					{
 						subtractionRoot = new Mult(
@@ -729,7 +817,7 @@ namespace DerivativeCalculator
 
 						if (coeff is not Constant)
 						{
-							throw new Exception("coeff should be a constant!!!");
+							throw new SimplificationException("coeff should be a constant!!!");
 						}
 
 						if (coeff is Constant { value: 1 })
@@ -756,7 +844,7 @@ namespace DerivativeCalculator
 
 							if (coeff2 is not Constant)
 							{
-								throw new Exception("coeff2 should be a constant!!!");
+								throw new SimplificationException("coeff2 should be a constant!!!");
 							}
 
 							if (coeff2 is Constant { value: 1 })
@@ -824,6 +912,12 @@ namespace DerivativeCalculator
 				return new DerivativeSymbol(this, varToDiff);
 			}
 
+			Differentiator.AddStepDescription(new StepDescription(
+				$@"\frac{{d}}{{dx}}\left(f(x) - g(x)\right) = \frac{{d}}{{dx}}f(x) - \frac{{d}}{{dx}}g(x)",
+				operand1.GetSimplestForm().ToLatexString(),
+				operand2.GetSimplestForm().ToLatexString()
+			));
+
 			return new Sub(operand1.Diff(varToDiff), operand2.Diff(varToDiff));
 		}
 
@@ -875,22 +969,38 @@ namespace DerivativeCalculator
 				|| operand2 is Operator { basePriority: > 1 }
 				|| operand2 is Operator { numOperands: 1 };
 
-			if (operand1 is Constant { value: 0 })
+			bool changeSubToAdd = operand2.ToLatexString().Trim().StartsWith("-");
+
+			string operand2LatexString = changeSubToAdd ? operand2.ToLatexString().Trim()[1..] : operand2.ToLatexString();
+
+			if (operand1 is Constant { value: 0.0 } || operand1 is Constant { value: -0.0 })
 			{
 				// it is just a sign
 
 				if (leaveRightParenthesisOut)
 				{
-					return $@"-{{{operand2.ToLatexString()}}}";
+					if (changeSubToAdd)
+						return $@"+{{{operand2LatexString}}}";
+					else
+						return $@"-{{{operand2LatexString}}}";
 				}
 
-				return $@"-\left({{{operand2.ToLatexString()}}}\right)";
+				if (changeSubToAdd)
+					return $@"+\left({{{operand2LatexString}}}\right)";
+				else
+					return $@"-\left({{{operand2LatexString}}}\right)";
 			}
 
-			if (leaveRightParenthesisOut)
-				return $@"{{{operand1.ToLatexString()}}} - {{{operand2.ToLatexString()}}}";
+			if (changeSubToAdd)
+				if (leaveRightParenthesisOut)
+					return $@"{{{operand1.ToLatexString()}}} + {{{operand2LatexString}}}";
+				else
+					return $@"{{{operand1.ToLatexString()}}} + \left({{{operand2LatexString}}}\right)";
 			else
-				return $@"{{{operand1.ToLatexString()}}} - \left({{{operand2.ToLatexString()}}}\right)";
+				if (leaveRightParenthesisOut)
+					return $@"{{{operand1.ToLatexString()}}} - {{{operand2LatexString}}}";
+				else
+					return $@"{{{operand1.ToLatexString()}}} - \left({{{operand2LatexString}}}\right)";
 		}
 	}
 
@@ -915,6 +1025,23 @@ namespace DerivativeCalculator
 			{
 				return new DerivativeSymbol(this, varToDiff);
 			}
+
+			if (operand1.IsConstant(varToDiff))
+				Differentiator.AddStepDescription(new StepDescription(
+					$@"\frac{{d}}{{dx}}\left(c \cdot f(x)\right) = c \cdot \frac{{d}}{{dx}}f(x)",
+					operand2.GetSimplestForm().ToLatexString()
+				));
+			else if (operand2.IsConstant(varToDiff))
+				Differentiator.AddStepDescription(new StepDescription(
+					$@"\frac{{d}}{{dx}}\left(c \cdot f(x)\right) = c \cdot \frac{{d}}{{dx}}f(x)",
+					operand1.GetSimplestForm().ToLatexString()
+				));
+			else
+				Differentiator.AddStepDescription(new StepDescription(
+					$@"\frac{{d}}{{dx}}\left(f(x) \cdot g(x)\right) = f(x) \cdot \frac{{d}}{{dx}}g(x) + g(x) \cdot \frac{{d}}{{dx}}f(x)",
+					operand1.GetSimplestForm().ToLatexString(),
+					operand2.GetSimplestForm().ToLatexString()
+				));
 
 			if (operand1.IsConstant(varToDiff))
 				return new Mult(operand1, operand2.Diff(varToDiff));
@@ -948,7 +1075,7 @@ namespace DerivativeCalculator
 
 			foreach ((var node, bool isNodeInverse) in operands)
 			{
-				if (node.Eval() is Constant { value: 0 })
+				if (node.Eval() is Constant { value: 0.0 } || node.Eval() is Constant { value: -0.0 })
 				{
 					if (isNodeInverse)
 						throw new DivideByZeroException();
@@ -1086,6 +1213,43 @@ namespace DerivativeCalculator
 									}
 								}
 							}
+
+							// a^c * b^c ---> (a*b)^c
+							if (TreeUtils.MatchPattern(
+								new Mult(
+									node,
+									new Pow(
+										otherNode,
+										powerDict[otherNode]
+									).Simplify() // simplify, because it might have nested pows,which can be simplified down
+								),
+								new Mult(
+									new Pow(
+										new Wildcard('a'),
+										new Wildcard('c')
+									),
+									new Pow(
+										new Wildcard('b'),
+										new Wildcard('c')
+									)
+								),
+								out wildcards
+							))
+							{
+								powerDict.Remove(otherNode);
+
+								powerDict.Add(
+									new Mult(
+										wildcards['a'],
+										wildcards['b']
+									),
+									wildcards['c']
+								);
+
+								addToDict = false;
+
+								break;
+							}
 						}
 						else
 						{
@@ -1213,6 +1377,72 @@ namespace DerivativeCalculator
 									}
 								}
 							}
+
+							// a^c / b^c ---> (a/b)^c
+							if (TreeUtils.MatchPattern(
+								new Div(
+									node,
+									new Pow(
+										otherNode,
+										powerDict[otherNode]
+									)
+								),
+								new Div(
+									new Pow(
+										new Wildcard('a'),
+										new Wildcard('c')
+									),
+									new Pow(
+										new Wildcard('b'),
+										new Wildcard('c')
+									)
+								),
+								out wildcards
+							))
+							{
+								powerDict.Remove(otherNode);
+
+								powerDict.Add(
+									new Div(
+										wildcards['a'], 
+										wildcards['b']
+									), 
+									wildcards['c']
+								);
+
+								addToDict = false;
+
+								break;
+							}
+
+							// sina / cosa = tana
+							if (
+								node is Operator { type: OperatorType.Cos } opCos
+								&&
+								otherNode is Operator { type: OperatorType.Sin } opSin
+								&&
+								TreeUtils.MatchPattern(
+									opCos.operand1,
+									opSin.operand1,
+									out _
+								)
+							)
+							{
+								// tan(a)
+
+								powerDict.Remove(otherNode);
+								
+								addToDict = false;
+
+								powerDict.Add(
+									   new Tan(
+										   opSin.operand1
+										), 
+									   new Constant(1)
+									);
+
+								break;
+							}
 						}
 					}
 
@@ -1270,6 +1500,14 @@ namespace DerivativeCalculator
 						multList.Add((key, power));
 					}
 				}
+
+				// sort them IN REVERSE ORDER
+
+				multList = TreeUtils.SortBasePowPairsByVarNames(multList, Differentiator.varToDiff);
+				divList = TreeUtils.SortBasePowPairsByVarNames(divList, Differentiator.varToDiff);
+
+				multList.Reverse();
+				divList.Reverse();
 
 				Operator head = new Mult(null, null);
 
@@ -1423,13 +1661,19 @@ namespace DerivativeCalculator
 
 			bool switchOperandOrder = operand2 is Constant && operand1 is not Constant
 										|| (operand1 is Operator op1 && operand2 is Operator op2 && op1.basePriority > op2.basePriority)
-										|| (operand2 is Variable && operand1 is Operator);
+										|| (operand2 is Variable && operand1 is Operator)
+										|| operand2 is Pow { operand2: Constant { value: 0.5 } };
 
 			var leftOperand = switchOperandOrder ? operand2 : operand1;
 			var rightOperand = switchOperandOrder ? operand1 : operand2;
 
-			bool leaveLeftParenthesisOut = leftOperand is not Operator || leftOperand is Operator { basePriority: > 1 };
-			bool leaveRightParenthesisOut = rightOperand is not Operator || rightOperand is Operator { basePriority: > 1 };
+			bool leaveLeftParenthesisOut = leftOperand is not Operator 
+											|| leftOperand is Operator { basePriority: > 1 };
+			bool leaveRightParenthesisOut = (
+												rightOperand is not Operator 
+												|| rightOperand is Operator { basePriority: > 1 }
+											) 
+											&& rightOperand is not Pow { operand1: Constant };
 
 			bool leaveMultiplicationSignOut = (
 												(leftOperand is Constant ^ rightOperand is Constant)
@@ -1450,8 +1694,12 @@ namespace DerivativeCalculator
 			if (leftOperand is Constant { value: -1 })
 			{
 				leftPart = "-";
-				leaveLeftParenthesisOut = true;
+				leaveMultiplicationSignOut = true;
 			}
+
+			// after square root, there should be a dot
+			if (leftOperand is Pow { operand2: Constant { value: 0.5 } })
+				leaveMultiplicationSignOut = false;
 
 			string rightPart = $"{{{(leaveRightParenthesisOut ? "" : @"\left(")}" +
 								$"{rightOperand.ToLatexString()}" +
@@ -1483,6 +1731,18 @@ namespace DerivativeCalculator
 			{
 				return new DerivativeSymbol(this, varToDiff);
 			}
+
+			if (operand2.IsConstant(varToDiff))
+				Differentiator.AddStepDescription(new StepDescription(
+					$@"\frac{{d}}{{dx}}\frac{{f(x)}}{{c}} = \frac{{\frac{{d}}{{dx}}f(x)}}{{c}}",
+					operand1.GetSimplestForm().ToLatexString()
+				));
+			else
+				Differentiator.AddStepDescription(new StepDescription(
+					$@"\frac{{d}}{{dx}}\frac{{f(x)}}{{g(x)}} = \frac{{f(x) \cdot \frac{{d}}{{dx}}g(x) - g(x) \cdot \frac{{d}}{{dx}}f(x)}}{{{{g(x)}}^2}}",
+					operand1.GetSimplestForm().ToLatexString(),
+					operand2.GetSimplestForm().ToLatexString()
+				));
 
 			if (operand2.IsConstant(varToDiff))
 				return new Div(operand1.Diff(varToDiff), operand2);
@@ -1541,6 +1801,23 @@ namespace DerivativeCalculator
 				return new DerivativeSymbol(this, varToDiff);
 			}
 
+			if (operand1.IsConstant(varToDiff))
+				Differentiator.AddStepDescription(new StepDescription(
+					$@"\frac{{d}}{{dx}}{{c^{{f(x)}}}} = ln(c) \cdot {{c^{{f(x)}}}} \cdot \frac{{d}}{{dx}}f(x)",
+					operand2.GetSimplestForm().ToLatexString()
+				));
+			else if (operand2.IsConstant(varToDiff))
+				Differentiator.AddStepDescription(new StepDescription(
+					$@"\frac{{d}}{{dx}}{{f(x)}}^c = c \cdot f(x)^{{c-1}} \cdot \frac{{d}}{{dx}}f(x)",
+					operand1.GetSimplestForm().ToLatexString()
+				));
+			else
+				Differentiator.AddStepDescription(new StepDescription(
+					$@"\frac{{d}}{{dx}}f(x)^{{g(x)}} = \frac{{d}}{{dx}}e^{{g(x)\cdot \ln\left(f\left(x\right)\right)}} = e^{{g(x)\cdot \ln\left(f\left(x\right)\right)}}\cdot\frac{{d}}{{dx}}{{g(x)\cdot \ln\left(f\left(x\right)\right)}} = f(x)^{{g(x)}}\cdot\frac{{d}}{{dx}}{{g(x)\cdot \ln\left(f\left(x\right)\right)}}",
+					operand1.GetSimplestForm().ToLatexString(),
+					operand1.GetSimplestForm().ToLatexString()
+				));
+
 			// c^f(x) --> ln(c)*c^f(x)*f'(x)
 			if (operand1.IsConstant(varToDiff))
 			{
@@ -1589,51 +1866,9 @@ namespace DerivativeCalculator
 
 		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
 		{
-			if (skipSimplificationOfChildren == false)
-			{
-				operand1 = operand1.Simplify();
-				operand2 = operand2.Simplify();
-			}
-
-			if (operand1.Eval() is Constant { value: 1 })
-				return new Constant(1);
-
-			if (operand1.Eval() is Constant { value: 0 })
-				return new Constant(0);
-
-			if (operand2.Eval() is Constant { value: 1 })
-				return operand1;
-
-			if (operand2.Eval() is Constant { value: 0 })
-				return new Constant(1);
-
-			if (operand2.Eval() is Constant { value: -1 })
-				return new Div(new Constant(1), operand1);
-
 			Dictionary<char, TreeNode> wildcards;
 
-
-			// (a^b)^c = a^(b*c)
-			if (TreeUtils.MatchPattern(
-				this,
-				new Pow(
-					new Pow(
-						new Wildcard('a'),
-						new Wildcard('b')
-					),
-					new Wildcard('c')
-				),
-				out wildcards
-			))
-			{
-				return new Pow(
-					wildcards['a'],
-					new Mult(
-						wildcards['b'],
-						wildcards['c']
-					)
-				);
-			}
+			// we have to check before and after as well, because the simplification might mess up the multiplication
 
 			// e^(lna*b) = a^b
 			if (TreeUtils.MatchPattern(
@@ -1673,6 +1908,91 @@ namespace DerivativeCalculator
 				);
 			}
 
+			if (skipSimplificationOfChildren == false)
+			{
+				operand1 = operand1.Simplify();
+				operand2 = operand2.Simplify();
+			}
+
+			if (operand1.Eval() is Constant { value: 1 })
+				return new Constant(1);
+
+			if (operand1.Eval() is Constant { value: 0 })
+				return new Constant(0);
+
+			if (operand2.Eval() is Constant { value: 1 })
+				return operand1;
+
+			if (operand2.Eval() is Constant { value: 0 })
+				return new Constant(1);
+
+			if (operand2.Eval() is Constant { value: -1 })
+				return new Div(new Constant(1), operand1);
+
+			// (a^b)^c = a^(b*c)
+			if (TreeUtils.MatchPattern(
+				this,
+				new Pow(
+					new Pow(
+						new Wildcard('a'),
+						new Wildcard('b')
+					),
+					new Wildcard('c')
+				),
+				out wildcards
+			))
+			{
+				return new Pow(
+					wildcards['a'],
+					new Mult(
+						wildcards['b'],
+						wildcards['c']
+					)
+				);
+			}
+
+			// e^(lna*b) = a^b
+			if (TreeUtils.MatchPattern(
+				this,
+				new Pow(
+					Constant.E,
+					new Mult(
+						new Ln(
+							new Wildcard('a')
+						),
+						new Wildcard('b')
+					)
+				),
+				out wildcards
+			))
+			{
+				return new Pow(
+					wildcards['a'],
+					wildcards['b']
+				);
+			}
+
+			// 10^(loga*b) = a^b
+			if (TreeUtils.MatchPattern(
+				this,
+				new Pow(
+					new Constant(10),
+					new Mult(
+						new Log(
+							 new Wildcard('a')
+							),
+						new Wildcard('b')
+					)
+				),
+				out wildcards
+			))
+			{
+				return new Pow(
+					wildcards['a'],
+					wildcards['b']
+				);
+			}
+
 
 			return this;
 		}
@@ -1686,8 +2006,13 @@ namespace DerivativeCalculator
 										|| operand1 is Operator { numOperands: 1 };
 			bool leavePowerParenthesisOut = operand2 is not Pow;
 
+			string operand1String = operand1.ToLatexString();
+
+			if (operand1String.StartsWith("-"))
+				operand1String = $@"\left({{{operand1.ToLatexString()}}}\right)";
+
 			return $"{(leaveBaseParenthesisOut ? "" : @"\left(")}" +
-				$"{{{operand1.ToLatexString()}}}" +
+				$"{{{operand1String}}}" +
 				$"{(leaveBaseParenthesisOut ? "" : @"\right)")}" +
 				$"^" +
 				$"{(leavePowerParenthesisOut ? "" : @"\left(")}" +
@@ -1716,6 +2041,11 @@ namespace DerivativeCalculator
 			{
 				return new DerivativeSymbol(this, varToDiff);
 			}
+
+			Differentiator.AddStepDescription(new StepDescription(
+				$@"\frac{{d}}{{dx}}\sin(x) = \cos(x)",
+				operand1.GetSimplestForm().ToLatexString()
+			));
 
 			return new Mult(
 				new Cos(operand1),
@@ -1759,6 +2089,11 @@ namespace DerivativeCalculator
 			{
 				return new DerivativeSymbol(this, varToDiff);
 			}
+
+			Differentiator.AddStepDescription(new StepDescription(
+				$@"\frac{{d}}{{dx}}\cos(x) = -\sin(x)",
+				operand1.GetSimplestForm().ToLatexString()
+			));
 
 			return new Mult(
 				new Mult(
@@ -1806,6 +2141,11 @@ namespace DerivativeCalculator
 				return new DerivativeSymbol(this, varToDiff);
 			}
 
+			Differentiator.AddStepDescription(new StepDescription(
+				$@"\frac{{d}}{{dx}}\tan(x) = \frac{{1}}{{{{\cos\left(x\right)}}^2}}",
+				operand1.GetSimplestForm().ToLatexString()
+			));
+
 			return new Div(
 				operand1.Diff(varToDiff),
 				new Pow(
@@ -1840,7 +2180,15 @@ namespace DerivativeCalculator
 			operand1 = operand1.Eval();
 
 			if (operand1 is Constant c)
+			{
+				//if (c.value <= 0)
+				//	throw new NotFiniteNumberException("Ln only takes in positive!");
+
+				if (c.value <= 0)
+					return this;
+
 				return new Constant(Math.Log(c.value));
+			}
 			else
 				return this;
 		}
@@ -1851,6 +2199,11 @@ namespace DerivativeCalculator
 			{
 				return new DerivativeSymbol(this, varToDiff);
 			}
+
+			Differentiator.AddStepDescription(new StepDescription(
+				$@"\frac{{d}}{{dx}}\ln(x) = \frac{{1}}{{x}}",
+				operand1.GetSimplestForm().ToLatexString()
+			));
 
 			return new Div(
 				operand1.Diff(varToDiff),
@@ -1883,7 +2236,15 @@ namespace DerivativeCalculator
 			operand1 = operand1.Eval();
 
 			if (operand1 is Constant c)
+			{
+				//if (c.value <= 0)
+				//	throw new NotFiniteNumberException("Log only takes in positive!");
+
+				if (c.value <= 0)
+					return this;
+
 				return new Constant(Math.Log10(c.value));
+			}
 			else
 				return this;
 		}
@@ -1894,6 +2255,11 @@ namespace DerivativeCalculator
 			{
 				return new DerivativeSymbol(this, varToDiff);
 			}
+
+			Differentiator.AddStepDescription(new StepDescription(
+				$@"\frac{{d}}{{dx}}\log_{{10}}(x) = \frac{{1}}{{\ln\left(10\right)\cdotx}}",
+				operand1.GetSimplestForm().ToLatexString()
+			));
 
 			return new Div(
 				operand1.Diff(varToDiff),
@@ -1906,7 +2272,7 @@ namespace DerivativeCalculator
 
 		public override string ToLatexString()
 		{
-			return $@"\log\left({{{operand1.ToLatexString()}}}\right)";
+			return $@"\log_{{10}}\left({{{operand1.ToLatexString()}}}\right)";
 		}
 
 		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
@@ -1940,6 +2306,11 @@ namespace DerivativeCalculator
 			{
 				return new DerivativeSymbol(this, varToDiff);
 			}
+
+			Differentiator.AddStepDescription(new StepDescription(
+				$@"\frac{{d}}{{dx}}\cot(x) = \frac{{-1}}{{{{\sin\left(x\right)}}^2}}",
+				operand1.GetSimplestForm().ToLatexString()
+			));
 
 			return new Div(
 				new Mult(
@@ -1989,6 +2360,11 @@ namespace DerivativeCalculator
 			{
 				return new DerivativeSymbol(this, varToDiff);
 			}
+
+			Differentiator.AddStepDescription(new StepDescription(
+				$@"\frac{{d}}{{dx}}\arcsin(x) = \frac{{1}}{{\sqrt{{1-x^2}}}}",
+				operand1.GetSimplestForm().ToLatexString()
+			));
 
 			return new Div(
 				operand1.Diff(varToDiff),
@@ -2041,6 +2417,11 @@ namespace DerivativeCalculator
 			{
 				return new DerivativeSymbol(this, varToDiff);
 			}
+
+			Differentiator.AddStepDescription(new StepDescription(
+				$@"\frac{{d}}{{dx}}\arccos(x) = \frac{{1}}{{\sqrt{{x^2-1}}}}",
+				operand1.GetSimplestForm().ToLatexString()
+			));
 
 			return new Div(
 				new Mult(
@@ -2097,6 +2478,11 @@ namespace DerivativeCalculator
 				return new DerivativeSymbol(this, varToDiff);
 			}
 
+			Differentiator.AddStepDescription(new StepDescription(
+				$@"\frac{{d}}{{dx}}\arctan(x) = \frac{{1}}{{x^2+1}}",
+				operand1.GetSimplestForm().ToLatexString()
+			));
+
 			return new Div(
 				operand1.Diff(varToDiff),
 				new Add(
@@ -2145,6 +2531,11 @@ namespace DerivativeCalculator
 			{
 				return new DerivativeSymbol(this, varToDiff);
 			}
+
+			Differentiator.AddStepDescription(new StepDescription(
+				$@"\frac{{d}}{{dx}}\arccot(x) = \frac{{-1}}{{\sqrt{{1-x^2}}}}",
+				operand1.GetSimplestForm().ToLatexString()
+			));
 
 			return new Div(
 				new Mult(
@@ -2198,6 +2589,11 @@ namespace DerivativeCalculator
 				return new DerivativeSymbol(this, varToDiff);
 			}
 
+			Differentiator.AddStepDescription(new StepDescription(
+				$@"\frac{{d}}{{dx}}\sinh(x) = \cosh(x)",
+				operand1.GetSimplestForm().ToLatexString()
+			));
+
 			return new Mult(
 				new Cosh(operand1),
 				operand1.Diff(varToDiff)
@@ -2241,6 +2637,11 @@ namespace DerivativeCalculator
 				return new DerivativeSymbol(this, varToDiff);
 			}
 
+			Differentiator.AddStepDescription(new StepDescription(
+				$@"\frac{{d}}{{dx}}\cosh(x) = \sinh(x)",
+				operand1.GetSimplestForm().ToLatexString()
+			));
+
 			return new Mult(
 				new Sinh(operand1),
 				operand1.Diff(varToDiff)
@@ -2283,6 +2684,11 @@ namespace DerivativeCalculator
 			{
 				return new DerivativeSymbol(this, varToDiff);
 			}
+
+			Differentiator.AddStepDescription(new StepDescription(
+				$@"\frac{{d}}{{dx}}\tanh(x) = \frac{{1}}{{{{\cosh\left(x\right)}}^2}}",
+				operand1.GetSimplestForm().ToLatexString()
+			));
 
 			return new Div(
 				operand1.Diff(varToDiff),
@@ -2330,6 +2736,11 @@ namespace DerivativeCalculator
 				return new DerivativeSymbol(this, varToDiff);
 			}
 
+			Differentiator.AddStepDescription(new StepDescription(
+				$@"\frac{{d}}{{dx}}\coth(x) = \frac{{-1}}{{{{\cosh\left(x\right)}}^2}}",
+				operand1.GetSimplestForm().ToLatexString()
+			));
+
 			return new Div(
 				new Mult(
 					new Constant(-1),
@@ -2344,7 +2755,7 @@ namespace DerivativeCalculator
 
 		public override string ToLatexString()
 		{
-			return $@"coth\left({{{operand1.ToLatexString()}}}\right)";
+			return $@"\coth\left({{{operand1.ToLatexString()}}}\right)";
 		}
 
 		public override TreeNode Simplify(bool skipSimplificationOfChildren = false)
@@ -2378,6 +2789,11 @@ namespace DerivativeCalculator
 			{
 				return new DerivativeSymbol(this, varToDiff);
 			}
+
+			Differentiator.AddStepDescription(new StepDescription(
+				$@"\frac{{d}}{{dx}}arsinh(x) = \frac{{1}}{{\sqrt{{x^2+1}}}}",
+				operand1.GetSimplestForm().ToLatexString()
+			));
 
 			return new Div(
 				operand1.Diff(varToDiff),
@@ -2431,6 +2847,11 @@ namespace DerivativeCalculator
 				return new DerivativeSymbol(this, varToDiff);
 			}
 
+			Differentiator.AddStepDescription(new StepDescription(
+				$@"\frac{{d}}{{dx}}arcosh(x) = \frac{{1}}{{\sqrt{{x^2-1}}}}",
+				operand1.GetSimplestForm().ToLatexString()
+			));
+
 			return new Div(
 				operand1.Diff(varToDiff),
 				new Pow(
@@ -2483,6 +2904,11 @@ namespace DerivativeCalculator
 				return new DerivativeSymbol(this, varToDiff);
 			}
 
+			Differentiator.AddStepDescription(new StepDescription(
+				$@"\frac{{d}}{{dx}}artanh(x) = \frac{{1}}{{1-x^2}}",
+				operand1.GetSimplestForm().ToLatexString()
+			));
+
 			return new Div(
 				operand1.Diff(varToDiff),
 				new Sub(
@@ -2531,6 +2957,11 @@ namespace DerivativeCalculator
 			{
 				return new DerivativeSymbol(this, varToDiff);
 			}
+
+			Differentiator.AddStepDescription(new StepDescription(
+				$@"\frac{{d}}{{dx}}arcoth(x) = \frac{{1}}{{1-x^2}}",
+				operand1.GetSimplestForm().ToLatexString()
+			));
 
 			return new Div(
 				operand1.Diff(varToDiff),

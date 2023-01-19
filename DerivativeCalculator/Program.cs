@@ -1,4 +1,5 @@
-﻿using System.Linq.Expressions;
+﻿using System.Diagnostics;
+using System.Linq.Expressions;
 using System.Text.RegularExpressions;
 
 using DerivativeCalculator;
@@ -10,38 +11,99 @@ public partial class Program
 
 		DerivativeManager.DifferentiateFromConsole();
 
-		DifficultyMetrics difficulty = new()
+		//var list = new List<TreeNode>()
+		//{
+		//	new Variable('b'),
+		//	new Constant(3),
+		//	new Variable('c'),
+		//	new Pow(new Variable('a'), new Variable('v')),
+		//	new Mult(new Variable('j'), new Variable('v')),
+		//	new Constant(1),
+		//	new Variable('a'),
+		//	new Variable('g'),
+		//	new Variable('j'),
+		//	new Variable('r'),
+		//	new Variable('j'),
+		//	new Variable('x'),
+		//};
+
+		//list = TreeUtils.SortNodesByVarNames(list, 'x');
+
+		//list.ForEach(n => Console.WriteLine(n));
+
+		var list = new List<(TreeNode, TreeNode)>
 		{
-			numAllowedFromEachOperatorType = new Dictionary<OperatorType, int>()
-			{
-				{OperatorType.Add,  10},
-				{OperatorType.Sub,  10},
-				{OperatorType.Mult, 10},
-				{OperatorType.Div,  2},
-				{OperatorType.Pow,  3},
-				{OperatorType.Sin,  2},
-				{OperatorType.Cos,  0},
-				{OperatorType.Tan,  0},
-				{OperatorType.Ln,   0},
-				{OperatorType.Log,  0}
-			},
-			difficultyOfPower = DifficultyOfPower.Polinom,
-			difficultyOfMultiplication = DifficultyOfMultiplication.OnlyConstant,
-			numMinOperators = 2,
-			numMaxOperators = 7,
-			numMinLevelOfComposition = 0,
-			numMaxLevelOfComposition = 2,
-			numMinParameters = 0,
-			numMaxParameters = 0,
-			minConstValue = -5,
-			maxConstValue = 5,
-			constIsOnlyInt = true,
-			parameterChance = 0.3f,
-			shouldYieldNonZeroDiff = true,
-			shouldYieldNonConstDiff = true
+			(new Variable('a'), new Constant(1)),
+			(new Variable('d'), new Constant(1)),
+			(new Variable('c'), new Constant(1)),
+			(new Variable('b'), new Constant(1)),
+			(new Mult(
+					new Variable('b'),
+					new Constant(1)
+				), new Constant(1)
+			),
+			(new Mult(
+					new Constant(1),
+					new Variable('a')
+				), new Constant(1)
+			),
+			(new Pow(
+					new Variable('j'),
+					new Constant(1)
+				), new Constant(1)
+			)
 		};
 
+		list = TreeUtils.SortBasePowPairsByVarNames(list);
 
+		list.ForEach(item => Console.WriteLine(TreeUtils.CollapseTreeToString(new Pow(item.Item1, item.Item2))));
 
+		//TreeNode tree = new Mult(
+		//	new Sin(new Variable('a')),
+		//	new Pow(
+		//		new Cos(new Variable('a')),
+		//		new Constant(-1)
+		//	)
+		//);
+
+		////tree = new Mult(new Constant(1), new Mult(new Constant(-21), new Variable('x')));
+
+		//Console.WriteLine(TreeUtils.CollapseTreeToString(tree));
+
+		//TreeUtils.PrintTree(tree);
+
+		//tree = TreeUtils.GetSimplestForm(tree);
+
+		//Console.WriteLine(TreeUtils.CollapseTreeToString(tree));
+
+		//TreeUtils.PrintTree(tree);
+
+		//var sw = new Stopwatch();
+
+		//const int iters = 10;
+
+		//double[] times = new double[iters];
+
+		//for (int i = 0; i < iters; i++)
+		//{
+		//	Console.WriteLine($"{i + 1}/{iters}");
+
+		//	sw.Start();
+
+		//	var tree = ExerciseGenerator.GenerateRandomTree(DifficultyMetrics.Hardcore);
+
+		//	tree.ToLatexString();
+
+		//	sw.Stop();
+
+		//	times[i] = sw.ElapsedMilliseconds / 1000;
+
+		//	sw.Reset();
+		//}
+
+		//Console.WriteLine($"min: {times.Min()}s");
+		//Console.WriteLine($"max: {times.Max()}s");
+		//Console.WriteLine($"avg: {times.Sum() / iters}s");
+		//Console.WriteLine($"std: {Math.Sqrt(times.Select(t => Math.Pow(t - (times.Sum() / iters), 2)).ToArray().Sum())}s");
 	}
 }

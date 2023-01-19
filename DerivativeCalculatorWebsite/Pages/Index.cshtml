@@ -1,4 +1,5 @@
 ﻿@page
+@using DerivativeCalculator
 @model IndexModel
 @{
 
@@ -68,40 +69,41 @@
 
                     if (ViewData["errorString"] == "") 
                     {
-                        <div class="equation-wrapper">
+                                <div class="equation-wrapper">
 
-                            @{
-                                if (ViewData["prettyInput"] != ViewData["prettySimplifiedInput"]) {
-                                    <text>
-                                        $$ @ViewData["prettyInput"] = @ViewData["prettySimplifiedInput"] = @ViewData["derivativeOutput"] $$
-                                    </text>
-                                }
-                                else
-                                {
-                                    <text>
-                                        $$ @ViewData["prettySimplifiedInput"] = @ViewData["derivativeOutput"] $$
-                                    </text>
-                                }
-                            }
+                                    @{
+                                //if (ViewData["prettyInput"] != ViewData["prettySimplifiedInput"]) {
+                                //    <text>
+                                //        $$ @ViewData["prettyInput"] = @ViewData["prettySimplifiedInput"] = @ViewData["derivativeOutput"] $$
+                                //    </text>
+                                //}
+                                //else
+                                //{
+                                                    <text>
+                                                        $$ @ViewData["prettySimplifiedInput"] = @ViewData["derivativeOutput"] $$
+                                                    </text>
+                                //}
+                                    }
 
-                        </div>
+                                </div>
 
                         
-                        <ul id="steps" style="display:none;">
-                            @foreach (var step in ViewData["prettySteps"] as IList<string>)
+                                <ul id="steps" style="display:none;">
+                                    @foreach ((string step, StepDescription? stepDescription) in ViewData["stepsWithDescriptions"] as IList<(string, StepDescription?)>)
                             {
-                                <li class="steps">
-                                    $$ = @step $$
-                                </li>
+                                        <li class="steps">
+                                            $$ = @step $$
+
+                                        </li>
                             }
-                        </ul>
+                                </ul>
                         
-                        <input class="button btn-steps" id="showStepsBtn" type="button" value="Mutasd a lépéseket" onclick="javascript:ToggleSteps()" />
+                                <input class="button btn-steps" id="showStepsBtn" type="button" value="Mutasd a lépéseket" onclick="javascript:ToggleSteps()" />
                         
                     }
                     else 
                     {
-                        <div class="error-text">@ViewData["errorString"]</div>          
+                                <div class="error-text">@ViewData["errorString"]</div>          
                     }
                 }
 

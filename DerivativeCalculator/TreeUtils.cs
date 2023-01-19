@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection.Emit;
+using System.Security.AccessControl;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -202,7 +203,11 @@ namespace DerivativeCalculator
 				return v1.name == v2.name;
 
 			if (pattern is DerivativeSymbol d1 && tree is DerivativeSymbol d2)
-				return d1.expression == d2.expression;
+				return MatchPattern(
+					d1.expression,
+					d2.expression,
+					out _ // could cause problems later...
+				);
 
 			if (tree is not Operator || pattern is not Operator)
 				throw new ArgumentException("Unhandled type");
@@ -273,7 +278,7 @@ namespace DerivativeCalculator
 			string prevLatexString = "";
 
 			const int maxIterations = 10;
-			const int minIterations = 5;
+			const int minIterations = 1;
 
 			for (int i = 0; i < maxIterations; i++)
 			{
@@ -281,7 +286,7 @@ namespace DerivativeCalculator
 
 				if (i >= minIterations && _tree.ToLatexString() == prevLatexString)
 				{
-					Console.WriteLine($"Simplification took {i} iterations");
+					//Console.WriteLine($"Simplification took {i} iterations");
 					break;
 				}
 
@@ -332,8 +337,8 @@ namespace DerivativeCalculator
 			if (root is null)
 				return false;
 
-			if (root is Constant { value: Double.NaN })
-				return true;
+			if (root is Constant c)
+				return double.IsNaN(c.value) || double.IsInfinity(c.value);
 
 			if (root is not Operator op)
 				return false;
@@ -343,6 +348,262 @@ namespace DerivativeCalculator
 			else
 				return DoesTreeContainNan(op.operand1) || DoesTreeContainNan(op.operand2);
 		}
-	}
 
+		public static bool DoesTreeContainNonInt (TreeNode root)
+		{
+			if (root is null)
+				return false;
+
+			if (root is Constant c)
+				return c.value != Math.Floor(c.value);
+
+			if (root is not Operator op)
+				return false;
+
+			if (op.numOperands == 1)
+				return DoesTreeContainNonInt(op.operand1);
+			else
+				return DoesTreeContainNonInt(op.operand1) || DoesTreeContainNonInt(op.operand2);
+		}
+
+		public static bool DoesTreeContainNull (TreeNode root)
+		{
+			if (root is null)
+				return true;
+
+			if (root is Constant { value: Double.NaN })
+				return false;
+
+			if (root is not Operator op)
+				return false;
+
+			if (op.numOperands == 1)
+				return DoesTreeContainNull(op.operand1);
+			else
+				return DoesTreeContainNull(op.operand1) || DoesTreeContainNull(op.operand2);
+		}
+
+		public static bool DoesTreeConstainBadConstant(TreeNode root, double min, double max)
+		{
+			if (root is null)
+				return false;
+
+			if (root is Constant c)
+				return c.value < min || c.value > max;
+
+			if (root is not Operator op)
+				return false;
+
+			if (op.numOperands == 1)
+			{
+				return DoesTreeConstainBadConstant(op.operand1, min, max);
+			}
+			else
+			{
+				return DoesTreeConstainBadConstant(op.operand1, min, max) || DoesTreeConstainBadConstant(op.operand2, min, max);
+			}
+		}
+
+		public static List<TreeNode> SortNodesByVarNames (List<TreeNode> list, char? varToLeaveLast = null)
+		{
+			// implement quicksort
+
+			if (list.Count <= 1)
+				return list;
+
+			Variable pivot = null;
+
+			foreach (var node in list)
+			{
+				if (node is Variable v)
+				{
+					pivot = v;
+					list.Remove(node);
+					break;
+				}
+			}
+
+			// there are no variables, so there is nothing to sort
+			if (pivot is null)
+				return list;
+
+			List<TreeNode> constList = new();
+			List<TreeNode> leftList = new();
+			List<TreeNode> rightList = new();
+			List<TreeNode> expressionList = new();
+
+			foreach(var node in list)
+			{ 
+				if (node is Variable v)
+				{
+					if (v.name == varToLeaveLast)
+					{
+						rightList.Add(node);
+						continue;
+					}
+
+					if (v.name < pivot.name)
+						leftList.Add(v);
+					else
+						rightList.Add(v);
+
+					continue;
+				}
+
+				if (node is Pow { operand1: Variable } pow)
+				{
+					Variable baseVar = pow.operand1 as Variable;
+
+					if (baseVar.name == varToLeaveLast)
+					{
+						rightList.Add(node);
+						continue;
+					}
+
+					if (baseVar.name < pivot.name)
+						leftList.Add(node);
+					else
+						rightList.Add(node);
+
+					continue;
+				}
+
+				if (node is Mult { operand1: Variable } mult1)
+				{
+					Variable multOp1Var = mult1.operand1 as Variable;
+
+					if (multOp1Var.name == varToLeaveLast)
+					{
+						rightList.Add(node);
+						continue;
+					}
+
+					if (multOp1Var.name < pivot.name)
+						leftList.Add(node);
+					else
+						rightList.Add(node);
+					
+					continue;
+				}
+
+
+				if (node is Mult { operand2: Variable } mult2)
+				{
+					Variable multOp2Var = mult2.operand2 as Variable;
+
+					if (multOp2Var.name == varToLeaveLast)
+					{
+						rightList.Add(node);
+						continue;
+					}
+
+					if (multOp2Var.name < pivot.name)
+						leftList.Add(node);
+					else
+						rightList.Add(node);
+
+					continue;
+				}
+
+
+				if (node is Constant)
+				{
+					constList.Add(node);
+					continue;
+				}
+
+				expressionList.Add(node);
+			}
+
+			leftList = SortNodesByVarNames(leftList, varToLeaveLast);
+			rightList = SortNodesByVarNames(rightList, varToLeaveLast);
+
+			return constList.Concat(leftList).Concat(new List<TreeNode> { pivot }).Concat(rightList).Concat(expressionList).ToList();
+		}
+
+		public static List<(TreeNode, TreeNode)> SortBasePowPairsByVarNames(List<(TreeNode, TreeNode)> list, char? varToLeaveLast = null)
+		{
+			if (list.Count <= 1)
+				return list;
+
+			Func<TreeNode, char?> GetVarName = key =>
+			{
+				if (key is Variable v)
+					return v.name;
+
+				if (key is Mult { operand1: Variable } mult1)
+					return (mult1.operand1 as Variable).name;
+
+				if (key is Mult { operand2: Variable } mult2)
+					return (mult2.operand2 as Variable).name;
+
+				if (key is Pow { operand1: Variable } pow1)
+					return (pow1.operand1 as Variable).name;
+
+				return null;
+			};
+
+			(TreeNode, TreeNode) pivot = (null, null);
+			char pivotName = 'a';
+
+			foreach ((var key, var pow) in list)
+			{
+				char? varName = GetVarName(key);
+
+				if (varName is not null)
+				{
+					pivot = (key, pow);
+					pivotName = (char)varName;
+					list.Remove((key, pow));
+					break;
+				}
+			}
+
+			if (pivot == (null, null))
+				return list;
+
+			List<(TreeNode, TreeNode)> constList = new();
+			List<(TreeNode, TreeNode)> leftList = new();
+			List<(TreeNode, TreeNode)> rightList = new();
+			List<(TreeNode, TreeNode)> expressionList = new();
+
+			foreach ((var key, var pow) in list)
+			{
+				char? varName = GetVarName(key);
+
+				if (varName is not null)
+				{
+					if (varName == varToLeaveLast)
+					{
+						rightList.Add((key, pow));
+						continue;
+					}
+
+					if (varName > pivotName)
+						rightList.Add((key, pow));
+					else
+						leftList.Add((key, pow));
+
+					continue;
+				}
+
+				if (key is Constant)
+				{
+					constList.Add((key, pow));
+
+					continue;
+				}
+
+				expressionList.Add((key, pow));
+			}
+
+			leftList = SortBasePowPairsByVarNames(leftList, varToLeaveLast);
+			rightList = SortBasePowPairsByVarNames(rightList, varToLeaveLast);
+
+			if (pivotName == varToLeaveLast)
+				return constList.Concat(leftList).Concat(rightList).Concat(new List<(TreeNode, TreeNode)> { pivot }).Concat(expressionList).ToList();
+
+			return constList.Concat(leftList).Concat(new List<(TreeNode, TreeNode)> { pivot }).Concat(rightList).Concat(expressionList).ToList();
+		}
+	}
 }

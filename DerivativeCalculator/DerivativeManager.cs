@@ -9,7 +9,7 @@ namespace DerivativeCalculator
 {
 	public static class DerivativeManager
 	{
-		public static string DifferentiateString(string input, out string inputAsLatex, out string simplifiedInputAsLatex, out List<string> stepsAsLatex)
+		public static string DifferentiateString(string input, out string inputAsLatex, out string simplifiedInputAsLatex, out List<string> stepsAsLatex, out List<StepDescription> stepDescriptions, out char varToDiff)
 		{
 			simplifiedInputAsLatex = "";
 			inputAsLatex = "";
@@ -24,6 +24,8 @@ namespace DerivativeCalculator
 				varToDifferentiate = input[3];
 				input = input.Substring(4);
 			}
+
+			varToDiff = varToDifferentiate;
 
 			List<Node> nodes;
 			TreeNode tree;
@@ -40,7 +42,7 @@ namespace DerivativeCalculator
 				if (nodes.Count == 0)
 				{
 					Console.WriteLine("Input is empty, or the parser is unable to parse it!");
-					throw new Exception("Input is empty, or the parser is unable to parse it!");
+					throw new ParsingError("Input is empty, or the parser is unable to parse it!");
 				}
 
 				tree = Parser.MakeTreeFromList(nodes);
@@ -54,13 +56,13 @@ namespace DerivativeCalculator
 				if (tree == null)
 				{
 					Console.WriteLine("Parsing error: tree is empty!");
-					throw new Exception("Parsing error: tree is empty!");
+					throw new ParsingError("Parsing error: tree is empty!");
 				}
 			}
 			catch (Exception e)
 			{
 				Console.WriteLine("Parsing error!");
-				throw new Exception("Parsing error!");
+				throw new ParsingError("Parsing error!");
 			}
 
 			TreeNode diffTree;
@@ -74,19 +76,20 @@ namespace DerivativeCalculator
 				Console.WriteLine(TreeUtils.CollapseTreeToString(diffTree));
 
 				stepsAsLatex = Differentiator.steps;
+				stepDescriptions = Differentiator.stepDescriptions;
 
 				diffTree = TreeUtils.GetSimplestForm(diffTree);
 			}
 			catch (Exception e)
 			{
 				Console.WriteLine($"An error occured while differentiating! ({e.Message}) {e.StackTrace}");
-				throw new Exception("An error occured while differentiating!");
+				throw new DifferentiationException("An error occured while differentiating!");
 			}
 
 			return diffTree.ToLatexString();
 		}
 
-		public static string DifferentiateTree (TreeNode input, char varToDifferentiate, out string inputAsLatex, out string simplifiedInputAsLatex, out List<string> stepsAsLatex)
+		public static string DifferentiateTree (TreeNode input, char varToDifferentiate, out string inputAsLatex, out string simplifiedInputAsLatex, out List<string> stepsAsLatex, out List<StepDescription?> stepDescriptions)
 		{
 			TreeNode tree = TreeUtils.CopyTree(input);
 
@@ -105,13 +108,14 @@ namespace DerivativeCalculator
 				Console.WriteLine(TreeUtils.CollapseTreeToString(diffTree));
 
 				stepsAsLatex = Differentiator.steps;
+				stepDescriptions = Differentiator.stepDescriptions;
 
 				diffTree = TreeUtils.GetSimplestForm(diffTree);
 			}
 			catch (Exception e)
 			{
 				Console.WriteLine($"An error occured while differentiating! ({e.Message}) {e.StackTrace}");
-				throw new Exception("An error occured while differentiating!");
+				throw new DifferentiationException("An error occured while differentiating!");
 			}
 
 			return diffTree.ToLatexString();
@@ -123,11 +127,29 @@ namespace DerivativeCalculator
 			string input = Console.ReadLine().ToLower().Trim();
 
 			List<string> steps;
+			List<StepDescription?> stepDescriptions;
+
+			string prettyInput, prettySimplifiedInput;
 
 			Console.Write("> ");
-			DifferentiateString(input, out _, out _, out steps); // will call a nicer writeline
+			DifferentiateString(input, out prettyInput, out prettySimplifiedInput, out steps, out stepDescriptions, out _); // will call a nicer writeline
 
-			steps.ForEach(step => Console.WriteLine(step));
+			Console.WriteLine($"Pretty input: {prettyInput}");
+			Console.WriteLine($"Pretty simplified input: {prettySimplifiedInput}");
+
+			for (int i = 0; i < steps.Count; i++)
+			{
+				Console.WriteLine($"Step {i}:");
+				Console.WriteLine(steps[i]);
+				Console.WriteLine($"Step description {i}:");
+				if (stepDescriptions.Count <= i)
+					Console.WriteLine("out of range");
+				else
+					if (stepDescriptions[i] == null)
+						Console.WriteLine("null");
+					else
+						Console.WriteLine($"{stepDescriptions[i].ruleNameAsLatex} f(x)={stepDescriptions[i].fxAsLatex} g(x)={stepDescriptions[i].gxAsLatex}");
+			}
 		}
 	}
 }

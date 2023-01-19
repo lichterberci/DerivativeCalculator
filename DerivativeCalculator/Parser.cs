@@ -125,6 +125,43 @@ namespace DerivativeCalculator
 			return nodes;
 		}
 
+		public static List<Node> HandleNegativeSigns(List<Node> nodes)
+		{
+			for (int i = 0; i < nodes.Count - 1; i++)
+			{
+				Node? prevNode = i > 0 ? nodes[i - 1] : null;
+				Node currentNode = nodes[i];
+				Node nextNode = nodes[i + 1];
+
+				if (currentNode is Operator op)
+				{
+					if (op.type == OperatorType.Sub)
+					{
+						if (
+							prevNode == null
+							|| prevNode is Operator
+							|| prevNode is Parenthesis { isOpeningParinthesis: true }
+						)
+						{
+							if (nextNode is Constant c)
+							{
+								nodes.Remove(currentNode);
+								c.value *= -1;
+							}
+							else
+							{
+								// it is a negative sign, so we replace '-' with a '(-1)*'
+								nodes[i] = new Mult(); // add a *
+								nodes.Insert(i, new Constant(-1)); // add a -1 in front of it
+							}
+						}
+					}
+				}
+			}
+
+			return nodes;
+		}
+
 		public static List<Node> ReplaceVarEWithConstE(List<Node> nodes)
 		{
 			for (int i = 0; i < nodes.Count; i++)
@@ -222,7 +259,7 @@ namespace DerivativeCalculator
 			}
 
 			if (priorityOffset != 0)
-				throw new ArgumentException($"Parentheses are not alligned correctly! (offset at the end: {priorityOffset})");
+				throw new ParsingError($"Parentheses are not alligned correctly! (offset at the end: {priorityOffset})");
 
 			return nodes;
 		}
@@ -251,7 +288,7 @@ namespace DerivativeCalculator
 					if (nodes[0] is Variable || nodes[0] is Constant)
 						return nodes[0] as TreeNode;
 					else
-						throw new ArgumentException($"Branch size invalid! (count: {nodes.Count})");
+						throw new ParsingError($"Branch size invalid! (count: {nodes.Count})");
 
 
 			Operator op = nodes[minOpIndex] as Operator;
@@ -262,7 +299,7 @@ namespace DerivativeCalculator
 			if (op.numOperands == 1)
 			{
 				if (rightList.Count == 0)
-					throw new ArgumentException($"Parsing error: {op} has no operand!");
+					throw new ParsingError($"Parsing error: {op} has no operand!");
 
 				op.operand1 = MakeTreeFromList(rightList);
 
@@ -271,44 +308,16 @@ namespace DerivativeCalculator
 			else
 			{
 				if (leftList.Count == 0)
-					throw new ArgumentException($"Parsing error: {op} has no left operand!");
+					throw new ParsingError($"Parsing error: {op} has no left operand!");
 
 				if (rightList.Count == 0)
-					throw new ArgumentException($"Parsing error: {op} has no right operand!");
+					throw new ParsingError($"Parsing error: {op} has no right operand!");
 
 				op.operand1 = MakeTreeFromList(leftList);
 				op.operand2 = MakeTreeFromList(rightList);
 
 				return op;
 			}
-		}
-
-		public static List<Node> HandleNegativeSigns(List<Node> nodes)
-		{
-			for (int i = 0; i < nodes.Count; i++)
-			{
-				Node? prevNode = i > 0 ? nodes[i - 1] : null;
-				Node currentNode = nodes[i];
-
-				if (currentNode is Operator op)
-				{
-					if (op.type == OperatorType.Sub)
-					{
-						if (
-							prevNode == null
-							|| prevNode is Operator
-							|| prevNode is Parenthesis { isOpeningParinthesis: true }
-						)
-						{
-							// it is a negative sign, so we replace '-' with a '(-1)*'
-							nodes[i] = new Mult(); // add a *
-							nodes.Insert(i, new Constant(-1)); // add a -1 in front of it
-						}
-					}
-				}
-			}
-
-			return nodes;
 		}
 	}
 

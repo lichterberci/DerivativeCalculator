@@ -1,160 +1,116 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections.Immutable;
+using System.Reflection;
+using System.Security.Cryptography;
 
 namespace DerivativeCalculator
 {
-    public enum DifficultyOfPower
+    
+    public class PlaceHolderLeaf : TreeNode
     {
-        Polinom, PolinomOrExponential, BothCanBeDependent
-    }
+        public readonly bool canBeConstant;
+        public readonly bool canBeX;
+        public readonly double minValue;
+        public readonly bool isMinValueInclusive;
+        public readonly double maxValue; // inclusive
 
-    public enum DifficultyOfMultiplication
-    {
-        OnlyConstant, BothCanBeDependent
-    }
-
-    public struct DifficultyMetrics
-    {
-        public Dictionary<OperatorType, int> numAllowedFromEachOperatorType;
-        public DifficultyOfPower difficultyOfPower;
-        public DifficultyOfMultiplication difficultyOfMultiplication;
-        public int numMinOperators;
-        public int numMaxOperators;
-        public int numMinLevelOfComposition;
-        public int numMaxLevelOfComposition;
-        public int numMinParameters;
-        public int numMaxParameters;
-        public int minConstValue;
-        public int maxConstValue;
-        public bool constIsOnlyInt;
-        public float parameterChance;
-        public bool shouldYieldNonZeroDiff;
-        public bool shouldYieldNonConstDiff;
-
-
-        public static readonly DifficultyMetrics Easy;
-        public static readonly DifficultyMetrics Medium;
-        public static readonly DifficultyMetrics Hard;
-        public static readonly DifficultyMetrics Hardcore;
-
-        static DifficultyMetrics ()
+        public PlaceHolderLeaf(bool canBeConstant, bool canBeX)
         {
-            Easy = new()
+            this.canBeConstant = canBeConstant;
+            this.canBeX = canBeX;
+
+            this.minValue = double.MinValue;
+            this.isMinValueInclusive = true;
+            this.maxValue = double.MaxValue;
+        }
+
+		public PlaceHolderLeaf(bool canBeConstant, bool canBeX, double minValue, bool isMinValueInclusive)
+		{
+			this.canBeConstant = canBeConstant;
+			this.canBeX = canBeX;
+			this.minValue = minValue;
+            this.isMinValueInclusive = isMinValueInclusive;
+
+			this.maxValue = double.MaxValue;
+		}
+
+		public PlaceHolderLeaf(bool canBeConstant, bool canBeX, double minValue, bool isMinValueInclusive, double maxValue)
+		{
+			this.canBeConstant = canBeConstant;
+			this.canBeX = canBeX;
+			this.minValue = minValue;
+			this.isMinValueInclusive = isMinValueInclusive;
+
+			this.maxValue = maxValue;
+		}
+
+        public override string ToString()
+        {
+			string min = minValue == double.MinValue ? "MIN" : minValue.ToString();
+			string max = maxValue == double.MaxValue ? "MAX" : maxValue.ToString();
+
+			string range = $"{(isMinValueInclusive ? "[" : "(")}{min}; {max}]";
+
+			if (canBeX && canBeConstant)
+                return $"Placeholder(x | c {range})";
+            else if (canBeX)
+                return "Placeholder(x)";
+            else
+                return $"Placeholder(c {range})";
+        }
+
+        public bool IsConstantValid (TreeNode root)
+        {
+            if (canBeConstant == false)
+                return true;
+
+            if (root is not Constant)
+                return true;
+
+            double value = (root as Constant).value;
+
+            return (
+                isMinValueInclusive 
+                ? value >= minValue 
+                : value > minValue
+            ) 
+            && value <= maxValue;
+        }
+
+        public Constant GenerateValidConstant (Random random, double extMin, double extMax, bool onlyInt)
+        {
+            if (onlyInt)
             {
-				numAllowedFromEachOperatorType = new Dictionary<OperatorType, int>()
-			    {
-				    {OperatorType.Add,  6},
-				    {OperatorType.Sub,  3},
-				    {OperatorType.Mult, 4},
-				    {OperatorType.Div,  1},
-				    {OperatorType.Pow,  2}
-			    },
-				difficultyOfPower = DifficultyOfPower.Polinom,
-				difficultyOfMultiplication = DifficultyOfMultiplication.OnlyConstant,
-				numMinOperators = 2,
-				numMaxOperators = 7,
-				numMinLevelOfComposition = 0,
-				numMaxLevelOfComposition = 1,
-				numMinParameters = 0,
-				numMaxParameters = 0,
-				minConstValue = -5,
-				maxConstValue = 5,
-				constIsOnlyInt = true,
-				parameterChance = 0.0f,
-				shouldYieldNonZeroDiff = true,
-				shouldYieldNonConstDiff = false
-			};
+                int min = (int)Math.Max(extMin, minValue);
+                int max = (int)Math.Min(extMax, maxValue);
 
-			Medium = new()
-			{
-				numAllowedFromEachOperatorType = new Dictionary<OperatorType, int>()
-				{
-					{OperatorType.Add,  10},
-					{OperatorType.Sub,  4},
-					{OperatorType.Mult, 7},
-					{OperatorType.Div,  3},
-					{OperatorType.Pow,  5}
-				},
-				difficultyOfPower = DifficultyOfPower.PolinomOrExponential,
-				difficultyOfMultiplication = DifficultyOfMultiplication.BothCanBeDependent,
-				numMinOperators = 5,
-				numMaxOperators = 10,
-				numMinLevelOfComposition = 0,
-				numMaxLevelOfComposition = 1,
-				numMinParameters = 0,
-				numMaxParameters = 0,
-				minConstValue = -10,
-				maxConstValue = 10,
-				constIsOnlyInt = true,
-				parameterChance = 0.0f,
-				shouldYieldNonZeroDiff = true,
-				shouldYieldNonConstDiff = true
-			};
+                if (min > max)
+                    return new Constant((int)minValue);
 
-			Hard = new()
-			{
-				numAllowedFromEachOperatorType = new Dictionary<OperatorType, int>()
-				{
-					{OperatorType.Add,  6},
-					{OperatorType.Sub,  3},
-					{OperatorType.Mult, 5},
-					{OperatorType.Div,  3},
-					{OperatorType.Pow,  5},
-					{OperatorType.Sin,  2},
-				    {OperatorType.Cos,  2},
-				    {OperatorType.Tan,  2},
-				    {OperatorType.Ln,   2}
-				},
-				difficultyOfPower = DifficultyOfPower.BothCanBeDependent,
-				difficultyOfMultiplication = DifficultyOfMultiplication.BothCanBeDependent,
-				numMinOperators = 7,
-				numMaxOperators = 12,
-				numMinLevelOfComposition = 1,
-				numMaxLevelOfComposition = 2,
-				numMinParameters = 0,
-				numMaxParameters = 1,
-				minConstValue = -20,
-				maxConstValue = 20,
-				constIsOnlyInt = true,
-				parameterChance = 0.3f,
-				shouldYieldNonZeroDiff = true,
-				shouldYieldNonConstDiff = true
-			};
+                if (min == max)
+                    return new Constant(min);
 
-			Hardcore = new()
-			{
-				numAllowedFromEachOperatorType = new Dictionary<OperatorType, int>()
-				{
-					{OperatorType.Add,  10},
-					{OperatorType.Sub,  10},
-					{OperatorType.Mult, 10},
-					{OperatorType.Div,  10},
-					{OperatorType.Pow,  10},
-					{OperatorType.Sin,  10},
-					{OperatorType.Cos,  10},
-					{OperatorType.Tan,  10},
-					{OperatorType.Ln,   10}
-				},
-				difficultyOfPower = DifficultyOfPower.BothCanBeDependent,
-				difficultyOfMultiplication = DifficultyOfMultiplication.BothCanBeDependent,
-				numMinOperators = 10,
-				numMaxOperators = 20,
-				numMinLevelOfComposition = 2,
-				numMaxLevelOfComposition = 5,
-				numMinParameters = 1,
-				numMaxParameters = 4,
-				minConstValue = -20,
-				maxConstValue = 20,
-				constIsOnlyInt = false,
-				parameterChance = 0.6f,
-				shouldYieldNonZeroDiff = true,
-				shouldYieldNonConstDiff = true
-			};
+                int value = random.Next() % (max - min) + min;
+
+                if (isMinValueInclusive == false && value == minValue)
+                    value += 1;
+
+				return new Constant(value);
+            }
+            else
+            {
+                double min = Math.Max(extMin, minValue);
+                double max = Math.Min(extMax, maxValue);
+
+                if (min > max)
+					return new Constant(minValue);
+
+				if (min == max)
+					return new Constant(min);
+
+                double value = isMinValueInclusive ? random.NextDouble() * (max - min) + min : random.NextDouble() * (max - min) + min + 1e-30;
+
+				return new Constant(value);
+            }
 		}
 	}
 
@@ -189,7 +145,7 @@ namespace DerivativeCalculator
 
             if (sumOfAllowedOperands < numOperatorsToChoose)
             {
-                throw new ArgumentException("There are not enough operators to choose from!", nameof(difficulty.numAllowedFromEachOperatorType));
+                throw new ExerciseCouldNotBeGeneratedException("There are not enough operators to choose from!");
             }
 
             for (int i = 0; i < numOperatorsToChoose; i++)
@@ -218,57 +174,62 @@ namespace DerivativeCalculator
             return result;
         }
 
-        private static (TreeNode resultTree, bool wasSuccessful) AddOperatorToTree (TreeNode root, OperatorType type, DifficultyMetrics difficulty)
-        {
+        private static (TreeNode resultTree, bool wasSuccessful) AddOperatorToTree(TreeNode root, OperatorType type, DifficultyMetrics difficulty)
+        {		
+
 			Operator newOp = Operator.GetClassInstanceFromType(type);
 
-			if (type == OperatorType.Pow)
-			{
-				(newOp.operand1, newOp.operand2) = difficulty.difficultyOfPower switch
-				{
-					DifficultyOfPower.Polinom => (new Wildcard('x'), new Wildcard('c')),
-					DifficultyOfPower.PolinomOrExponential => random.Next() % 2 == 0 ?
-																(new Wildcard('x'), new Wildcard('c')) :
-																(new Wildcard('c'), new Wildcard('x')),
-					_ => (new Wildcard('m'), new Wildcard('m'))
-				};
-			}
-            else if (type == OperatorType.Mult)
+            switch (type)
             {
-                (newOp.operand1, newOp.operand2) = difficulty.difficultyOfMultiplication switch
-                {
-                    DifficultyOfMultiplication.OnlyConstant => (new Wildcard('c'), new Wildcard('x')),
-                    _ => (new Wildcard('m'), new Wildcard('x'))
-                };
-            }
-            else
-            {
-                if (newOp.numOperands == 1)
-                {
-                    newOp.operand1 = new Wildcard('x');
-                }
-                else
-                {
-                    if (random.Next() % 2 == 0)
+                case OperatorType.Pow:
+                    (newOp.operand1, newOp.operand2) = difficulty.difficultyOfPower switch
                     {
-						newOp.operand1 = new Wildcard('m');
-						newOp.operand2 = new Wildcard('x');
-					}
+                        DifficultyOfPower.Polinom => (new PlaceHolderLeaf(false, true), new PlaceHolderLeaf(true, false)),
+                        DifficultyOfPower.PolinomOrExponential => random.Next() % 2 == 0 ?
+                                                                    (new PlaceHolderLeaf(false, true), new PlaceHolderLeaf(true, false)) :
+                                                                    (new PlaceHolderLeaf(true, false, 0, false), new PlaceHolderLeaf(false, true)),
+                        _ => (new PlaceHolderLeaf(true, true, 0, false), new PlaceHolderLeaf(true, true))
+                    };
+                    break;
+                case OperatorType.Mult:
+                    (newOp.operand1, newOp.operand2) = difficulty.difficultyOfMultiplication switch
+                    {
+                        DifficultyOfMultiplication.OnlyConstant => (new PlaceHolderLeaf(true, false), new PlaceHolderLeaf(false, true)),
+                        _ => (new PlaceHolderLeaf(true, true), new PlaceHolderLeaf(false, true))
+                    };
+                    break;
+                case OperatorType.Div:
+                    newOp.operand1 = new PlaceHolderLeaf(true, true);
+                    newOp.operand2 = new PlaceHolderLeaf(true, true, 0, false);
+                    break;
+				default:
+                    if (newOp.numOperands == 1)
+                    {
+                        newOp.operand1 = new PlaceHolderLeaf(false, true);
+                    }
                     else
                     {
-						newOp.operand1 = new Wildcard('x');
-						newOp.operand2 = new Wildcard('m');
-					}
-                }
+                        if (random.Next() % 2 == 0)
+                        {
+                            newOp.operand1 = new PlaceHolderLeaf(true, true);
+                            newOp.operand2 = new PlaceHolderLeaf(false, true);
+                        }
+                        else
+                        {
+                            newOp.operand1 = new PlaceHolderLeaf(false, true);
+                            newOp.operand2 = new PlaceHolderLeaf(true, true);
+                        }
+                    }
+                    break;
             }
 
-            if (root is null)
-                return (newOp, true);
+			if (root is null)
+				return (newOp, true);
 
-            if (root is not Operator op)
-                return (root, false);
+			if (root is not Operator op)
+				return (root, false);
 
-            if (op.numOperands == 1)
+			if (op.numOperands == 1)
             {
 				if (op.operand1 is Operator)
 				{
@@ -281,7 +242,7 @@ namespace DerivativeCalculator
                     }
 				}
 
-				if (op.operand1 is Wildcard { name: 'x' } || op.operand1 is Wildcard { name: 'm' })
+				if (op.operand1 is PlaceHolderLeaf { canBeX: true })
                 {
                     op.operand1 = newOp;
                     return (root, true);
@@ -305,9 +266,7 @@ namespace DerivativeCalculator
                         }
                     }
 
-                    Wildcard w = op.operand2 as Wildcard;
-
-                    if (w.name == 'x' || w.name == 'm')
+                    if (op.operand2 is PlaceHolderLeaf { canBeX: true })
                     {
                         op.operand2 = newOp;
                         return (root, true);
@@ -325,10 +284,8 @@ namespace DerivativeCalculator
                     }
                 }
 
-                Wildcard w1 = op.operand1 as Wildcard;
-
-                if (w1.name == 'x' || w1.name == 'm')
-                {
+				if (op.operand1 is PlaceHolderLeaf { canBeX: true })
+				{
                     op.operand1 = newOp;
                     return (root, true);
                 }
@@ -344,10 +301,8 @@ namespace DerivativeCalculator
                     }
                 }
 
-                Wildcard w2 = op.operand2 as Wildcard;
-
-                if (w2.name == 'x' || w2.name == 'm')
-                {
+				if (op.operand2 is PlaceHolderLeaf { canBeX: true })
+				{
                     op.operand2 = newOp;
                     return (root, true);
                 }
@@ -387,23 +342,16 @@ namespace DerivativeCalculator
 
             if (root is not Operator op)
             {
-                if (root is Wildcard w)
-                {
-                    if (w.name == 'x')
-                    {
-                        return (0, 1, 0); // x
-                    } 
-                    else if (w.name == 'm') // can be both
-                    {
-                        return (1, 0, 0);
-                    } 
-                    else if (w.name == 'c') // const or param
-                    {
-                        return (0, 0, 1);
-                    }
-                }
+                if (root is not PlaceHolderLeaf ph)
+                    throw new ExerciseCouldNotBeGeneratedException("root is of invalid type!");
 
-                throw new ArgumentException("root is of invalid type!", nameof(root));
+                return (ph.canBeConstant, ph.canBeX) switch
+                {
+                    (false, true ) => (0, 1, 0),
+                    (true,  false) => (0, 0, 1),
+                    (true,  true ) => (1, 0, 0),
+                    (false, false) => (0, 0, 0)
+				};
             }
 
             if (op.numOperands == 1)
@@ -452,7 +400,7 @@ namespace DerivativeCalculator
                     return resList;
                 }
 
-				if (random.NextSingle() % 1.0f < difficulty.parameterChance && numParametersToChoose > 0)
+				if (random.NextSingle() < difficulty.parameterChance && numParametersToChoose > 0)
 				{
 					int chosenParamIndex = random.Next() % parameterNameList.Count;
 					char chosenParamName = parameterNameList[chosenParamIndex];
@@ -462,12 +410,16 @@ namespace DerivativeCalculator
 				{
 					if (difficulty.constIsOnlyInt)
 					{
-						int value = difficulty.maxConstValue != difficulty.minConstValue ? random.Next() % (difficulty.maxConstValue - difficulty.minConstValue) + difficulty.minConstValue : difficulty.minConstValue;
+						int value = difficulty.maxConstValue != difficulty.minConstValue 
+                                ? random.Next() % (difficulty.maxConstValue - difficulty.minConstValue) + difficulty.minConstValue 
+                                : difficulty.minConstValue;
 						resList.Add(new Constant(value));
 					}
 					else
 					{
-						double value = difficulty.maxConstValue != difficulty.minConstValue ? random.NextDouble() % (difficulty.maxConstValue - difficulty.minConstValue) + difficulty.minConstValue : difficulty.minConstValue;
+						double value = difficulty.maxConstValue != difficulty.minConstValue 
+                                ? random.NextDouble() * (difficulty.maxConstValue - difficulty.minConstValue) + difficulty.minConstValue 
+                                : difficulty.minConstValue;
 						resList.Add(new Constant(value));
 					}
 				}
@@ -498,7 +450,7 @@ namespace DerivativeCalculator
             return result;
 		}
 
-        private static (TreeNode resulTree, bool wasSuccessful) AddLeafToTree (TreeNode root, TreeNode leafNode, bool onlyX, bool onlyConst)
+        private static (TreeNode resulTree, bool wasSuccessful) AddLeafToTree (TreeNode root, TreeNode leafNode, bool onlyX, bool onlyConst, DifficultyMetrics difficulty)
         {
             bool leafIsX = leafNode is Variable { name: 'x' };
 
@@ -510,75 +462,125 @@ namespace DerivativeCalculator
 
             if (op.numOperands == 1)
             {
-                if (op.operand1 is Wildcard w1)
-                {
-                    if (w1.name == 'm' && (!onlyX && !onlyConst))
+                if (op.operand1 is PlaceHolderLeaf ph1)
+                {   
+                    if (leafIsX == false && ph1.IsConstantValid(leafNode) == false)
+						leafNode = ph1.GenerateValidConstant(random, difficulty.minConstValue, difficulty.maxConstValue, difficulty.constIsOnlyInt);
+
+                    if (onlyX)
                     {
-                        op.operand1 = leafNode;
-                        return (root, true);
-                    }
-
-                    if (w1.name == 'x' && leafIsX)
-					{
-						op.operand1 = leafNode;
-						return (root, true);
+						if (ph1.canBeX && ph1.canBeConstant == false && leafIsX)
+						{
+							//Console.WriteLine($"{ph1} -> {leafNode}");
+							op.operand1 = leafNode;
+							return (root, true);
+						}
 					}
-
-					if (w1.name == 'c' && leafIsX == false)
-					{
-						op.operand1 = leafNode;
-						return (root, true);
+                    else if (onlyConst)
+                    {
+						if (ph1.canBeConstant && ph1.canBeX == false && leafIsX == false)
+						{
+							//Console.WriteLine($"{ph1} -> {leafNode}");
+							op.operand1 = leafNode;
+							return (root, true);
+						}
+                    }
+                    else
+                    {
+						if (
+						    (ph1.canBeX && leafIsX)
+						    || (ph1.canBeConstant && !leafIsX)
+					    )
+						{
+							//Console.WriteLine($"{ph1} -> {leafNode}");
+							op.operand1 = leafNode;
+							return (root, true);
+						}
 					}
 				}
             }
             else
             {
-                if (op.operand1 is Wildcard w1)
+
+				if (op.operand1 is PlaceHolderLeaf ph1)
                 {
-					if (w1.name == 'm' && (!onlyX && !onlyConst))
-					{
-						op.operand1 = leafNode;
-						return (root, true);
-					}
+				    if (leafIsX == false && ph1.IsConstantValid(leafNode) == false)
+					    leafNode = ph1.GenerateValidConstant(random, difficulty.minConstValue, difficulty.maxConstValue, difficulty.constIsOnlyInt);
 
-					if (w1.name == 'x' && leafIsX)
+					if (onlyX)
 					{
-						op.operand1 = leafNode;
-						return (root, true);
+						if (ph1.canBeX && ph1.canBeConstant == false && leafIsX)
+						{
+							//Console.WriteLine($"{ph1} -> {leafNode}");
+							op.operand1 = leafNode;
+							return (root, true);
+						}
 					}
-
-					if (w1.name == 'c' && leafIsX == false)
+					else if (onlyConst)
 					{
-						op.operand1 = leafNode;
-						return (root, true);
+						if (ph1.canBeConstant && ph1.canBeX == false && leafIsX == false)
+						{
+							//Console.WriteLine($"{ph1} -> {leafNode}");
+							op.operand1 = leafNode;
+							return (root, true);
+						}
+					}
+					else
+					{
+						if (
+							(ph1.canBeX && leafIsX)
+							|| (ph1.canBeConstant && !leafIsX)
+						)
+						{
+							//Console.WriteLine($"{ph1} -> {leafNode}");
+							op.operand1 = leafNode;
+							return (root, true);
+						}
 					}
 				}
 
-                if (op.operand2 is Wildcard w2)
-                {
-					if (w2.name == 'm' && (!onlyX && !onlyConst))
-					{
-						op.operand2 = leafNode;
-						return (root, true);
-					}
 
-					if (w2.name == 'x' && leafIsX)
-					{
-						op.operand2 = leafNode;
-						return (root, true);
-					}
+				if (op.operand2 is PlaceHolderLeaf ph2)
+				{
+				    if (leafIsX == false && ph2.IsConstantValid(leafNode) == false)
+					    leafNode = ph2 .GenerateValidConstant(random, difficulty.minConstValue, difficulty.maxConstValue, difficulty.constIsOnlyInt);
 
-					if (w2.name == 'c' && leafIsX == false)
+					if (onlyX)
 					{
-						op.operand2 = leafNode;
-						return (root, true);
+						if (ph2.canBeX && ph2.canBeConstant == false && leafIsX)
+						{
+							//Console.WriteLine($"{ph2} -> {leafNode}");
+							op.operand2 = leafNode;
+							return (root, true);
+						}
+					}
+					else if (onlyConst)
+					{
+						if (ph2.canBeConstant && ph2.canBeX == false && leafIsX == false)
+						{
+							//Console.WriteLine($"{ph2} -> {leafNode}");
+							op.operand2 = leafNode;
+							return (root, true);
+						}
+					}
+					else
+					{
+						if (
+							(ph2.canBeX && leafIsX)
+							|| (ph2.canBeConstant && !leafIsX)
+						)
+						{
+							//Console.WriteLine($"{ph2} -> {leafNode}");
+							op.operand2 = leafNode;
+							return (root, true);
+						}
 					}
 				}
             }
 
             bool wasOperand1Successful;
 
-            (var resTree, wasOperand1Successful) = AddLeafToTree(op.operand1, leafNode, onlyX, onlyConst);
+            (var resTree, wasOperand1Successful) = AddLeafToTree(op.operand1, leafNode, onlyX, onlyConst, difficulty);
 
             if (wasOperand1Successful)
             {
@@ -588,7 +590,7 @@ namespace DerivativeCalculator
 
             if (op.numOperands == 2)
             {
-				(var resTree2, bool wasOperand2Successful) = AddLeafToTree(op.operand2, leafNode, onlyX, onlyConst);
+				(var resTree2, bool wasOperand2Successful) = AddLeafToTree(op.operand2, leafNode, onlyX, onlyConst, difficulty);
 
                 if (wasOperand2Successful)
                 {
@@ -602,90 +604,118 @@ namespace DerivativeCalculator
 
         public static TreeNode GenerateRandomTree (DifficultyMetrics difficulty)
         {
-            var opTypeList = GenerateOperatorList(difficulty);
+            bool isTreeGenerationSuccessfull = false;
 
-            TreeNode tree = null;
+			TreeNode tree = null;
 
-            while (opTypeList.Count > 0)
+			do
             {
-                int chosenOpIndex = random.Next() % opTypeList.Count;
-    
-                (tree, bool wasSuccessful) = AddOperatorToTree(tree, opTypeList[chosenOpIndex], difficulty);
+                tree = null;
 
-                if (wasSuccessful)
-                    opTypeList.RemoveAt(chosenOpIndex);
-            }
+                //Console.WriteLine("Generating tree...");
 
-            int compositionLevel = MaxLevelOfComposition(tree);
+                var opTypeList = GenerateOperatorList(difficulty);
+                
+                while (opTypeList.Count > 0)
+                {
+                    int chosenOpIndex = random.Next() % opTypeList.Count;
 
-			if (compositionLevel > difficulty.numMaxLevelOfComposition || compositionLevel < difficulty.numMinLevelOfComposition)
-            {
-                return GenerateRandomTree(difficulty); // this is bad, generate a new one!
-            }
+                    (tree, bool wasSuccessful) = AddOperatorToTree(tree, opTypeList[chosenOpIndex], difficulty);
 
-            (int numMix, int numX, int numConst) = CountNumLeaves(tree, difficulty);
+                    if (wasSuccessful)
+                        opTypeList.RemoveAt(chosenOpIndex);
+                }
 
-			var leafList = MakeLeafList(difficulty, numMix, numX, numConst);
+                int compositionLevel = MaxLevelOfComposition(tree);
 
-            List<TreeNode> xList = leafList.Where(leaf => leaf is Variable { name: 'x' }).ToList();
-			List<TreeNode> constList = leafList.Where(leaf => leaf is not Variable { name: 'x' }).ToList();
+                if (compositionLevel > difficulty.numMaxLevelOfComposition || compositionLevel < difficulty.numMinLevelOfComposition)
+                    continue;
 
-			for (int i = 0; i < numX; i++)
-			{
-				int chosenLeafIndex = random.Next() % xList.Count;
+                (int numMix, int numX, int numConst) = CountNumLeaves(tree, difficulty);
 
-				(tree, bool wasSuccessful) = AddLeafToTree(tree, xList[chosenLeafIndex], true, false);
+                var leafList = MakeLeafList(difficulty, numMix, numX, numConst);
 
-				if (wasSuccessful)
-					xList.RemoveAt(chosenLeafIndex);
-                else
-                    i--;
-			}
+                List<TreeNode> xList = leafList.Where(leaf => leaf is Variable { name: 'x' }).ToList();
+                List<TreeNode> constList = leafList.Where(leaf => leaf is not Variable { name: 'x' }).ToList();
 
-			for (int i = 0; i < numConst; i++)
-			{
-				int chosenLeafIndex = random.Next() % constList.Count;
+                for (int i = 0; i < numX; i++)
+                {
+                    int chosenLeafIndex = random.Next() % xList.Count;
 
-				(tree, bool wasSuccessful) = AddLeafToTree(tree, constList[chosenLeafIndex], false, true);
+                    (tree, bool wasSuccessful) = AddLeafToTree(tree, xList[chosenLeafIndex], true, false, difficulty);
 
-				if (wasSuccessful)
-					constList.RemoveAt(chosenLeafIndex);
-				else
-					i--;
-			}
+                    if (wasSuccessful)
+                        xList.RemoveAt(chosenLeafIndex);
+                    else
+                        i--;
+                }
 
-            List<TreeNode> remainingList = xList.Concat(constList).ToList();
+                for (int i = 0; i < numConst; i++)
+                {
+                    int chosenLeafIndex = random.Next() % constList.Count;
 
-			while (remainingList.Count > 0)
-            {
-                int chosenLeafIndex = random.Next() % remainingList.Count;
+                    (tree, bool wasSuccessful) = AddLeafToTree(tree, constList[chosenLeafIndex], false, true, difficulty);
 
-                (tree, bool wasSuccessful) = AddLeafToTree(tree, remainingList[chosenLeafIndex], false, false);
+                    if (wasSuccessful)
+                        constList.RemoveAt(chosenLeafIndex);
+                    else
+                        i--;
+                }
 
-                if (wasSuccessful)
-					remainingList.RemoveAt(chosenLeafIndex);
-            }
+                List<TreeNode> remainingList = xList.Concat(constList).ToList();
+
+                while (remainingList.Count > 0)
+                {
+                    int chosenLeafIndex = random.Next() % remainingList.Count;
+
+                    (tree, bool wasSuccessful) = AddLeafToTree(tree, remainingList[chosenLeafIndex], false, false, difficulty);
+
+                    if (wasSuccessful)
+                        remainingList.RemoveAt(chosenLeafIndex);
+                }
 
 
-			try
-            {
-                tree = TreeUtils.GetSimplestForm(tree);
+                if (TreeUtils.DoesTreeContainNull(tree))
+                    continue;
 
-			    if (TreeUtils.GetSimplestForm(tree.Diff('x')) is Constant diffConstant)
-                    if (difficulty.shouldYieldNonConstDiff)
-                        return GenerateRandomTree(difficulty);
-                    else if (diffConstant is Constant { value: 0 } && difficulty.shouldYieldNonZeroDiff) 
-			            return GenerateRandomTree(difficulty);
+                try
+                {
+                    tree = TreeUtils.GetSimplestForm(tree);
 
-                if (TreeUtils.DoesTreeContainNan(tree) || TreeUtils.DoesTreeContainNan(tree.Diff('x')))
-                    return GenerateRandomTree(difficulty);
-			} 
-            catch  // x/0 or something random
-            {
-				return GenerateRandomTree(difficulty);
-			}
+                    if (TreeUtils.DoesTreeContainNull(tree))
+						continue;
+
+					var diffTree = TreeUtils.GetSimplestForm(tree.Diff('x'));
+
+                    if (TreeUtils.DoesTreeContainNull(diffTree))
+						continue;
+
+					if (diffTree is Constant diffConstant)
+                        if (difficulty.shouldYieldNonConstDiff)
+							continue;
+						else if (diffConstant is Constant { value: 0 } && difficulty.shouldYieldNonZeroDiff)
+							continue;
+
+					if (TreeUtils.DoesTreeContainNan(tree) || TreeUtils.DoesTreeContainNan(tree.Diff('x')))
+						continue;
+
+					if (difficulty.constIsOnlyInt && TreeUtils.DoesTreeContainNonInt(tree))
+						continue;
+
+                    if (TreeUtils.DoesTreeConstainBadConstant(tree, difficulty.minConstValue, difficulty.maxConstValue))
+                        continue;
+				}
+                catch (Exception e) // x/0 or something random
+                {
+                    continue;
+                }
+
+                isTreeGenerationSuccessfull = true;
+
+            } while (isTreeGenerationSuccessfull == false);
 
 			return tree;
         }
     }
 }
+

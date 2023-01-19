@@ -39,11 +39,17 @@ namespace DerivativeCalculatorWebsite.Pages
 
 			TreeNode tree = ExerciseGenerator.GenerateRandomTree(difficulty);
 
+			TreeUtils.PrintTree(tree);
+			Console.WriteLine($"(={TreeUtils.CollapseTreeToString(tree)})");
+
+			TreeUtils.PrintTree(tree.Diff('x'));
+			Console.WriteLine($"(={TreeUtils.CollapseTreeToString(tree.Diff('x'))}");
+
 			string prettyInput = tree.ToLatexString();
 
 			try
 			{
-				derivativeOutput = DerivativeManager.DifferentiateTree(tree, 'x', out prettyInput, out prettySimplifiedInput, out prettySteps);
+				derivativeOutput = DerivativeManager.DifferentiateTree(tree, 'x', out prettyInput, out prettySimplifiedInput, out prettySteps, out _);
 			}
 			catch (Exception ex)
 			{

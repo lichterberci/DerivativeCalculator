@@ -47,6 +47,7 @@ namespace DerivativeCalculator
 		public bool IsConstant (char varToDiff) => TreeUtils.IsExpressionConstant(this, varToDiff);
 		public virtual TreeNode Simplify(bool skipSimplificationOfChildren = false) => this;
 		public virtual string ToLatexString () => this.ToPrettyString();
+		public TreeNode GetSimplestForm () => TreeUtils.GetSimplestForm(this);
 	}
 
 	public sealed class DerivativeSymbol : TreeNode
