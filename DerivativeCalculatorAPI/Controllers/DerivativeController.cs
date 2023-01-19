@@ -9,8 +9,10 @@ namespace DerivativeCalculatorAPI.Controllers
 	public class DerivativeController : ControllerBase
 	{
 		[HttpPost("differentiate")]
-		public ResponseData Post([FromBody] string input)
+		public ResponseData Post([FromQuery]SimplificationParams simplificationParams, [FromBody] string input)
 		{
+			simplificationParams = SimplificationParams.UpdateDefault(simplificationParams);
+
 			if (string.IsNullOrEmpty(input))
 			{
 				Console.WriteLine("Input is null when using body!");
@@ -25,7 +27,15 @@ namespace DerivativeCalculatorAPI.Controllers
 
 			try
 			{
-				outputAsLatex = DerivativeCalculator.DerivativeManager.DifferentiateString(input, out inputAsLatex, out simplifiedInputAsLatex, out stepsAsLatex, out stepDescriptions, out varToDiff);
+				outputAsLatex = DerivativeCalculator.DerivativeManager.DifferentiateString(
+					input, 
+					out inputAsLatex, 
+					out simplifiedInputAsLatex, 
+					out stepsAsLatex, 
+					out stepDescriptions, 
+					out varToDiff,
+					simplificationParams
+				);
 			}
 			catch (ParsingError e)
 			{
@@ -101,8 +111,10 @@ namespace DerivativeCalculatorAPI.Controllers
 		}
 
 		[HttpGet("differentiate/{input}")]
-		public ResponseData Get(string input)
+		public ResponseData Get([FromQuery] SimplificationParams simplificationParams, string input)
 		{
+			simplificationParams = SimplificationParams.UpdateDefault(simplificationParams);
+
 			string inputAsLatex, simplifiedInputAsLatex, outputAsLatex;
 			List<string> stepsAsLatex;
 			List<StepDescription> stepDescriptions;
@@ -116,7 +128,8 @@ namespace DerivativeCalculatorAPI.Controllers
 					out simplifiedInputAsLatex, 
 					out stepsAsLatex, 
 					out stepDescriptions,
-					out varToDiff
+					out varToDiff,
+					simplificationParams
 				);
 			}
 			catch (ParsingError e)
