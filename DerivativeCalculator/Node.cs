@@ -98,6 +98,7 @@ namespace DerivativeCalculator
 	public sealed class Constant : TreeNode
 	{
 		public static readonly Constant E = new Constant(Math.E);
+		public static readonly Constant PI = new Constant(Math.PI);
 		public double value;
 		public Constant(double val)
 		{
@@ -105,7 +106,12 @@ namespace DerivativeCalculator
 		}
 		public override string ToPrettyString()
 		{
-			return value == Math.E ? "e" : value.ToString("0.###");
+			return value switch
+			{
+				Math.E => "e",
+				Math.PI => "pi",
+				_ => value.ToString("0.###")
+			};
 		}
 		public override string ToString()
 		{
@@ -113,7 +119,12 @@ namespace DerivativeCalculator
 		}
 		public override string ToLatexString()
 		{
-			return value == Math.E ? "e" : value.ToString("0.###");
+			return value switch
+			{
+				Math.E => "e",
+				Math.PI => "\\pi",
+				_ => value.ToString("0.###")
+			};
 		}
 		public override TreeNode Eval(SimplificationParams simplificationParams = null)
 		{

@@ -1,23 +1,34 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿
+using System.Xml.Linq;
 
 namespace DerivativeCalculator
 {
 	public static class Parser
 	{
-		public static List<Node> ParseToList(string input)
+		public static string PrepareStringForParsing (string input)
 		{
 			if (string.IsNullOrWhiteSpace(input))
-				return new List<Node>();
+				throw new ParsingError("Input is empty or whitespace!");
 
-			List<Node> nodes = new List<Node>();
+			input = input.Trim();
+
+			input = input.ToLower();
 
 			input = input.Replace('.', ',');
 
+			input = input.Replace("pi", "P"); // capital P is \pi
+
 			input += ' '; // add a space to the end, so the for-each loop will catch all nodes
+
+			return input;
+		}
+
+		public static List<Node> ParseToList(string input)
+		{
+			if (string.IsNullOrWhiteSpace(input))
+				throw new ParsingError("Input is empty or whitespace!");
+
+			List<Node> nodes = new List<Node>();
 
 			bool isInNumber = false;
 			string tmp = "";
@@ -174,6 +185,18 @@ namespace DerivativeCalculator
 			return nodes;
 		}
 
+		public static List<Node> ReplaceVarPWithConstPi(List<Node> nodes)
+		{
+			for (int i = 0; i < nodes.Count; i++)
+			{
+				Node node = nodes[i];
+				if (node is Variable var)
+					if (var.name == 'P')
+						nodes[i] = Constant.PI;
+			}
+			return nodes;
+		}
+
 		public static List<Node> AddHiddenMultiplications(List<Node> nodes)
 		{
 			for (int i = 1; i < nodes.Count; i++)
@@ -318,6 +341,20 @@ namespace DerivativeCalculator
 
 				return op;
 			}
+		}
+
+		public static TreeNode ParseString (string input)
+		{
+			input = PrepareStringForParsing(input);
+
+			var nodes = ParseToList(input);
+			nodes = ReplaceVarPWithConstPi(nodes);
+			nodes = ReplaceVarEWithConstE(nodes);
+			nodes = HandleNegativeSigns(nodes);
+			nodes = AddHiddenMultiplications(nodes);
+			nodes = ApplyParentheses(nodes);
+
+			return MakeTreeFromList(nodes);
 		}
 	}
 

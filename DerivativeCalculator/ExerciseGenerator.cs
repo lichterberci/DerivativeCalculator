@@ -602,11 +602,16 @@ namespace DerivativeCalculator
             return (root, false);
         }
 
-        public static TreeNode GenerateRandomTree (DifficultyMetrics difficulty)
+        public static TreeNode GenerateRandomTree (DifficultyMetrics difficulty, SimplificationParams simplificationParams)
         {
             bool isTreeGenerationSuccessfull = false;
 
 			TreeNode tree = null;
+
+            simplificationParams = simplificationParams with
+            {
+                varToDiff = 'x'
+            };
 
 			do
             {
@@ -680,12 +685,12 @@ namespace DerivativeCalculator
 
                 try
                 {
-                    tree = TreeUtils.GetSimplestForm(tree, new SimplificationParams('x'));
+                    tree = TreeUtils.GetSimplestForm(tree, simplificationParams);
 
                     if (TreeUtils.DoesTreeContainNull(tree))
 						continue;
 
-					var diffTree = TreeUtils.GetSimplestForm(tree.Diff('x'), new SimplificationParams('x'));
+					var diffTree = TreeUtils.GetSimplestForm(tree.Diff('x'), simplificationParams);
 
                     if (TreeUtils.DoesTreeContainNull(diffTree))
 						continue;
@@ -696,7 +701,7 @@ namespace DerivativeCalculator
 						else if (diffConstant is Constant { value: 0 } && difficulty.shouldYieldNonZeroDiff)
 							continue;
 
-					if (TreeUtils.DoesTreeContainNan(tree) || TreeUtils.DoesTreeContainNan(tree.Diff('x')))
+					if (TreeUtils.DoesTreeContainNan(tree) || TreeUtils.DoesTreeContainNan(diffTree))
 						continue;
 
 					if (difficulty.constIsOnlyInt && TreeUtils.DoesTreeContainNonInt(tree))

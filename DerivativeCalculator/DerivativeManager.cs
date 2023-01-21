@@ -38,20 +38,7 @@ namespace DerivativeCalculator
 
 			try
 			{
-				nodes = Parser.ParseToList(input);
-				
-				nodes = Parser.ReplaceVarEWithConstE(nodes);
-				nodes = Parser.HandleNegativeSigns(nodes);
-				nodes = Parser.AddHiddenMultiplications(nodes);
-				nodes = Parser.ApplyParentheses(nodes);
-
-				if (nodes.Count == 0)
-				{
-					Console.WriteLine("Input is empty, or the parser is unable to parse it!");
-					throw new ParsingError("Input is empty, or the parser is unable to parse it!");
-				}
-
-				tree = Parser.MakeTreeFromList(nodes);
+				tree = Parser.ParseString(input);
 
 				inputAsLatex = new DerivativeSymbol(tree, varToDifferentiate).ToLatexString();
 

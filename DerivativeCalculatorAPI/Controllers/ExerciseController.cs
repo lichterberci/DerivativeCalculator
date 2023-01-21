@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using DerivativeCalculator;
 using System.Net;
+using System.Reflection.Emit;
 
 namespace DerivativeCalculatorAPI.Controllers
 {
@@ -8,16 +9,62 @@ namespace DerivativeCalculatorAPI.Controllers
 	[Route("/")]
 	public class ExerciseController : ControllerBase
 	{
+		/// <summary>
+		/// A general query to generate exercises
+		/// IMPORTANT: ONLY THIS QUERY SHOULD BE USED
+		/// </summary>
+		/// <param name="body">
+		/// Contains either the level or the difficultyMetrics, with the latter having priority.
+		/// Preferences can also be set here.
+		/// </param>
+		/// <returns>The generated exercise</returns>
 		[HttpPost("generate-exercise")]
-		public ResponseData Post([FromBody] DifficultyMetrics difficulty)
+		public ResponseData Post([FromBody] ExercieQueryBody body)
 		{
 			// TODO: validate difficulty
+
+
+			DifficultyMetrics difficulty;
+
+			if (body.difficultyMetrics is not null)
+			{
+				difficulty = (DifficultyMetrics)body.difficultyMetrics;
+			}
+			else if (body.level is not null)
+			{
+				difficulty = body.level.ToLower().Trim() switch
+				{
+					"easy" => DifficultyMetrics.Easy,
+					"medium" => DifficultyMetrics.Medium,
+					"hard" => DifficultyMetrics.Hard,
+					"hardcore" => DifficultyMetrics.Hardcore,
+					_ => DifficultyMetrics.Medium,
+				};
+			}
+			else
+			{
+				Console.WriteLine("Difficulty metrics and level are null!");
+
+				Response.Headers.Add("Access-Control-Expose-Headers", "x-exception-type, x-exception-message");
+				Response.Headers.Add("x-exception-type", "EXERCISE GENERATION ERROR");
+				Response.Headers.Add("x-exception-message", "Difficulty metrics and level are null!");
+
+				Response.StatusCode = (int)HttpStatusCode.BadRequest;
+				return new ResponseData();
+			}
+
+			var preferences = body.preferences ?? Preferences.Default;
+
+			var simplificationParams = SimplificationParams.Default with
+			{
+				opsNotToEval = preferences.simplificationPreferences.GetOpsNotToEval()
+			};
 
 			TreeNode tree;
 			
 			try
 			{
-				tree = ExerciseGenerator.GenerateRandomTree(difficulty); 
+				tree = ExerciseGenerator.GenerateRandomTree(difficulty, simplificationParams); 
 			} 
 			catch (ExerciseCouldNotBeGeneratedException e)
 			{
@@ -55,7 +102,8 @@ namespace DerivativeCalculatorAPI.Controllers
 					out inputAsLatex, 
 					out simplifiedInputAsLatex, 
 					out stepsAsLatex, 
-					out stepDescriptions
+					out stepDescriptions,
+					simplificationParams
 				);
 			}
 			catch (ParsingError e)
@@ -117,17 +165,23 @@ namespace DerivativeCalculatorAPI.Controllers
 			return new ResponseData(inputAsLatex, simplifiedInputAsLatex, outputAsLatex, stepsAsLatex, stepDescriptions, varToDiff);
 		}
 
-		// without data, the request is invalid
+		/// <summary>
+		/// Medium level query
+		/// IMPORTANT: SHOULD NOT BE USED
+		/// </summary>
+		/// <returns>The generated exercise</returns>
 		[HttpGet("generate-exercise")]
 		public ResponseData GetWithoutInput()
 		{
 			var difficulty = DifficultyMetrics.Medium;
 
+			var simplificationParams = SimplificationParams.Default;
+
 			TreeNode tree;
 
 			try
 			{
-				tree = ExerciseGenerator.GenerateRandomTree(difficulty);
+				tree = ExerciseGenerator.GenerateRandomTree(difficulty, simplificationParams);
 			}
 			catch (ExerciseCouldNotBeGeneratedException e)
 			{
@@ -165,7 +219,8 @@ namespace DerivativeCalculatorAPI.Controllers
 					out inputAsLatex,
 					out simplifiedInputAsLatex,
 					out stepsAsLatex,
-					out stepDescriptions
+					out stepDescriptions,
+					simplificationParams
 				);
 			}
 			catch (ParsingError e)
@@ -227,8 +282,15 @@ namespace DerivativeCalculatorAPI.Controllers
 			return new ResponseData(inputAsLatex, simplifiedInputAsLatex, outputAsLatex, stepsAsLatex, stepDescriptions, varToDiff);
 		}
 
+		/// <summary>
+		/// Variable level, with optional preferences from query
+		/// IMPORTANT: SHOULD NOT BE USED
+		/// </summary>
+		/// <param name="level">URI param</param>
+		/// <param name="preferences">Query params</param>
+		/// <returns>The generated exercise</returns>
 		[HttpGet("generate-exercise/{level}")]
-		public ResponseData Get(string level)
+		public ResponseData Get(string level, [FromQuery] Preferences preferences)
 		{
 			DifficultyMetrics difficulty = level.ToLower().Trim() switch
 			{
@@ -239,11 +301,16 @@ namespace DerivativeCalculatorAPI.Controllers
 				_ => DifficultyMetrics.Medium,
 			};
 
+			var simplificationParams = SimplificationParams.Default with
+			{
+				opsNotToEval = preferences.simplificationPreferences.GetOpsNotToEval()
+			};
+
 			TreeNode tree;
 
 			try
 			{
-				tree = ExerciseGenerator.GenerateRandomTree(difficulty);
+				tree = ExerciseGenerator.GenerateRandomTree(difficulty, simplificationParams);
 			}
 			catch (ExerciseCouldNotBeGeneratedException e)
 			{
@@ -281,7 +348,8 @@ namespace DerivativeCalculatorAPI.Controllers
 					out inputAsLatex,
 					out simplifiedInputAsLatex,
 					out stepsAsLatex,
-					out stepDescriptions
+					out stepDescriptions,
+					simplificationParams
 				);
 			}
 			catch (ParsingError e)
