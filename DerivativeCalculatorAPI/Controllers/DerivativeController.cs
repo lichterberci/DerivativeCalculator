@@ -17,7 +17,7 @@ namespace DerivativeCalculatorAPI.Controllers
 		public ResponseData Post([FromBody]DifferentiateQueryBody body)
 		{
 			var input = body.input ?? "";
-			var preferences = body.preferences;
+			var preferences = body.preferences ?? Preferences.Default;
 
 			var simplificationParams = SimplificationParams.Default with
 			{
