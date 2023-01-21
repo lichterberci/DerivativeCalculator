@@ -1,12 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection.Emit;
-using System.Security.AccessControl;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace DerivativeCalculator
+﻿namespace DerivativeCalculator
 {
 	public static class TreeUtils
 	{
@@ -67,7 +59,7 @@ namespace DerivativeCalculator
 			return root.Eval(simplificationParams);
 		}
 
-		public static bool IsTreeCalculatable (TreeNode root)
+		public static bool IsTreeCalculatable(TreeNode root)
 		{
 			if (root is Constant)
 				return true;
@@ -172,8 +164,45 @@ namespace DerivativeCalculator
 
 			throw new ArgumentException($"Unexpected argument type: {root.GetType()}");
 		}
-	
-		public static bool MatchPattern (TreeNode tree, TreeNode? pattern, out Dictionary<char, TreeNode?> wildcards)
+
+		private static (Dictionary<char, TreeNode>? zippedDict, bool wasSuccessful) ZipDicionaries(Dictionary<char, TreeNode>? left, Dictionary<char, TreeNode>? right)
+		{
+			var zippedDict = new Dictionary<char, TreeNode>();
+
+			if (left is null && right is null)
+			{
+				return (null, false);
+			}
+			if (left is null)
+			{
+				return (right, true);
+			}
+			if (right is null)
+			{
+				return (left, true);
+			}
+
+			foreach (var key in left.Keys.Concat(right.Keys).Distinct())
+			{
+				if (left.ContainsKey(key) && right.ContainsKey(key))
+				{
+					bool doMatch = MatchPattern(left[key], right[key], out _);
+
+					if (doMatch == false)
+						return (null, false);
+
+					zippedDict.Add(key, left[key]);
+				}
+				else if (left.ContainsKey(key))
+					zippedDict.Add(key, left[key]);
+				else if (right.ContainsKey(key))
+					zippedDict.Add(key, right[key]);
+			}
+
+			return (zippedDict, true);
+		}
+
+		public static bool MatchPattern(TreeNode tree, TreeNode? pattern, out Dictionary<char, TreeNode?> wildcards)
 		{
 			wildcards = null;
 
@@ -226,6 +255,65 @@ namespace DerivativeCalculator
 				if (treeOp.isCommutative == false)
 					return false;
 
+				// cannot hash it, because of the occasional switched ordering and things like that
+
+				if (treeOp.isCommutative && treeOp.isAssociative)
+				{
+					var treeOperandList = GetAssociativeOperands(treeOp, treeOp.type, treeOp.inverseType);
+					var patternOperandList = GetAssociativeOperands(patternOp, treeOp.type, treeOp.inverseType);
+
+					Dictionary<char, TreeNode> tempWildcards;
+
+					List<Dictionary<char, TreeNode>> operandWildcards = new();
+
+					for (int i = 0; i < treeOperandList.Count; i++)
+					{
+						var (treeOperand, isTreeOperandInverse) = treeOperandList[i];
+
+						for (int j = 0; j < patternOperandList.Count; j++)
+						{
+							var (patternOperand, isPatternOperandInverse) = patternOperandList[j];
+
+							if (isTreeOperandInverse != isPatternOperandInverse)
+								continue;
+
+							if (MatchPattern(treeOperand, patternOperand, out tempWildcards))
+							{
+								treeOperandList.RemoveAt(i--);
+								patternOperandList.RemoveAt(j--);
+
+								if (tempWildcards != null)
+									operandWildcards.Add(tempWildcards);
+							}
+						}
+					}
+
+					// if there are any elements left in the original lists, we don't have a match
+
+					if (treeOperandList.Count != 0 || patternOperandList.Count != 0)
+						return false;
+
+					if (operandWildcards.Count == 0)
+						return true;
+
+					var resultWildcards = operandWildcards.First();
+					operandWildcards.RemoveAt(0);
+
+					foreach (var opW in operandWildcards)
+					{
+						(resultWildcards, bool wasSuccessful) = ZipDicionaries(resultWildcards, opW);
+
+						if (wasSuccessful == false)
+							return false;
+					}
+
+					wildcards = resultWildcards;
+
+					return true;
+				}
+
+				// commutative, but not associative
+
 				operand1Match = MatchPattern(treeOp.operand2, patternOp.operand1, out operand1Wildcards);
 				operand2Match = MatchPattern(treeOp.operand1, patternOp.operand2, out operand2Wildcards);
 
@@ -233,45 +321,17 @@ namespace DerivativeCalculator
 					return false; // well, we tried...
 			}
 
-			var zippedDict = new Dictionary<char, TreeNode>();
+			var (zippedDict, couldZipDicts) = ZipDicionaries(operand1Wildcards, operand2Wildcards);
 
-			if (operand1Wildcards is null && operand2Wildcards is null)
-			{
-				return true;
-			}
-			if (operand1Wildcards is null)
-			{
-				wildcards = operand2Wildcards;
-				return true;
-			}
-			if (operand2Wildcards is null)
-			{
-				wildcards = operand1Wildcards;
-				return true;
-			}
-
-			foreach (var key in operand1Wildcards.Keys.Concat(operand2Wildcards.Keys).Distinct())
-			{
-				if (operand1Wildcards.ContainsKey(key) && operand2Wildcards.ContainsKey(key))
-				{
-					bool doMatch = MatchPattern(operand1Wildcards[key], operand2Wildcards[key], out _);
-
-					if (doMatch == false)
-						return false;
-
-					zippedDict.Add(key, operand1Wildcards[key]);
-				}
-				else if (operand1Wildcards.ContainsKey(key))
-					zippedDict.Add(key, operand1Wildcards[key]);
-				else if (operand2Wildcards.ContainsKey(key))
-					zippedDict.Add(key, operand2Wildcards[key]);
-			}
+			if (couldZipDicts == false)
+				return false;
 
 			wildcards = zippedDict;
+
 			return true;
 		}
-	
-		public static TreeNode GetSimplestForm (TreeNode tree, SimplificationParams parameters)
+
+		public static TreeNode GetSimplestForm(TreeNode tree, SimplificationParams parameters)
 		{
 			TreeNode _tree = CopyTree(tree);
 
@@ -295,7 +355,7 @@ namespace DerivativeCalculator
 
 			return _tree;
 		}
-	
+
 		public static List<(TreeNode, bool)> GetAssociativeOperands(TreeNode root, OperatorType type, OperatorType? inverseType, bool isInverse = false)
 		{
 			if (root is null)
@@ -311,14 +371,14 @@ namespace DerivativeCalculator
 
 			// on inverses, we flip, but just on the right operand
 			var leftList = GetAssociativeOperands(op.operand1, type, inverseType, isInverse);
-			var rightList = GetAssociativeOperands(op.operand2, type, inverseType, op.type == inverseType ? !isInverse : isInverse); 
+			var rightList = GetAssociativeOperands(op.operand2, type, inverseType, op.type == inverseType ? !isInverse : isInverse);
 
 			leftList.AddRange(rightList);
 
 			return leftList;
 		}
 
-		public static bool ContainsNullOperand (TreeNode root)
+		public static bool ContainsNullOperand(TreeNode root)
 		{
 			if (root is null)
 				return true;
@@ -332,7 +392,7 @@ namespace DerivativeCalculator
 				return ContainsNullOperand(op.operand1) || ContainsNullOperand(op.operand2);
 		}
 
-		public static bool DoesTreeContainNan (TreeNode root)
+		public static bool DoesTreeContainNan(TreeNode root)
 		{
 			if (root is null)
 				return false;
@@ -349,7 +409,7 @@ namespace DerivativeCalculator
 				return DoesTreeContainNan(op.operand1) || DoesTreeContainNan(op.operand2);
 		}
 
-		public static bool DoesTreeContainNonInt (TreeNode root)
+		public static bool DoesTreeContainNonInt(TreeNode root)
 		{
 			if (root is null)
 				return false;
@@ -366,7 +426,7 @@ namespace DerivativeCalculator
 				return DoesTreeContainNonInt(op.operand1) || DoesTreeContainNonInt(op.operand2);
 		}
 
-		public static bool DoesTreeContainNull (TreeNode root)
+		public static bool DoesTreeContainNull(TreeNode root)
 		{
 			if (root is null)
 				return true;
@@ -404,7 +464,7 @@ namespace DerivativeCalculator
 			}
 		}
 
-		public static List<TreeNode> SortNodesByVarNames (List<TreeNode> list, char? varToLeaveLast = null)
+		public static List<TreeNode> SortNodesByVarNames(List<TreeNode> list, char? varToLeaveLast = null)
 		{
 			// implement quicksort
 
@@ -432,8 +492,8 @@ namespace DerivativeCalculator
 			List<TreeNode> rightList = new();
 			List<TreeNode> expressionList = new();
 
-			foreach(var node in list)
-			{ 
+			foreach (var node in list)
+			{
 				if (node is Variable v)
 				{
 					if (v.name == varToLeaveLast)
@@ -482,7 +542,7 @@ namespace DerivativeCalculator
 						leftList.Add(node);
 					else
 						rightList.Add(node);
-					
+
 					continue;
 				}
 

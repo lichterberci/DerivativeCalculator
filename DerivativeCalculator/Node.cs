@@ -46,6 +46,7 @@ namespace DerivativeCalculator
 		public virtual string ToLatexString () => this.ToPrettyString();
 		public TreeNode GetSimplestForm (SimplificationParams simplificationParams) => TreeUtils.GetSimplestForm(this, simplificationParams);
 		public TreeNode Copy() => TreeUtils.CopyTree(this);
+		public void PrintToConsole() => Console.WriteLine(TreeUtils.CollapseTreeToString(this));
 	}
 
 	public sealed class DerivativeSymbol : TreeNode

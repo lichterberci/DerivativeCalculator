@@ -9,7 +9,28 @@ public partial class Program
 	public static void Main()
 	{
 
-		DerivativeManager.DifferentiateFromConsole();
+		//DerivativeManager.DifferentiateFromConsole();
+
+		var left = new Mult(
+			new Div(
+				new Variable('a'),
+				new Constant(2)
+			),
+			new Variable('b')
+		);
+
+		var right = new Div(
+			new Mult(
+				new Variable('a'),
+				new Variable('b')
+			),
+			new Constant(2)
+		);
+
+		left.PrintToConsole();
+		right.PrintToConsole();
+
+		Console.WriteLine(TreeUtils.MatchPattern(left, right, out _));
 
 		//var list = new List<TreeNode>()
 		//{
