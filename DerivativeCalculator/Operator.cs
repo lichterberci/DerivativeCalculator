@@ -2106,6 +2106,21 @@ namespace DerivativeCalculator
 				operand1 = operand1.Simplify(simplificationParams);
 			}
 
+			if (operand1 is Constant { value: Math.E })
+				return new Constant(1);
+
+			Dictionary<char, TreeNode> wildcards;
+
+			if (TreeUtils.MatchPattern(
+				operand1,
+				new Pow(
+					Constant.E,
+					new Wildcard('a')
+				),
+				out wildcards
+			))
+				return wildcards['a'];
+
 			return this;
 		}
 	}
