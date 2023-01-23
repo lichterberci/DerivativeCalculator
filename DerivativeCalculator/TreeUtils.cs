@@ -279,11 +279,15 @@
 
 							if (MatchPattern(treeOperand, patternOperand, out tempWildcards))
 							{
-								treeOperandList.RemoveAt(i--);
-								patternOperandList.RemoveAt(j--);
+								treeOperandList.RemoveAt(i);
+								patternOperandList.RemoveAt(j);
+
+								i--;  j--;
 
 								if (tempWildcards != null)
 									operandWildcards.Add(tempWildcards);
+
+								break;
 							}
 						}
 					}

@@ -11,26 +11,45 @@ public partial class Program
 
 		//DerivativeManager.DifferentiateFromConsole();
 
-		var left = new Mult(
-			new Div(
-				new Variable('a'),
-				new Constant(2)
-			),
-			new Variable('b')
-		);
+		//var left = new Mult(
+		//	new Div(
+		//		new Variable('a'),
+		//		new Constant(2)
+		//	),
+		//	new Variable('b')
+		//);
 
-		var right = new Div(
-			new Mult(
-				new Variable('a'),
-				new Variable('b')
-			),
-			new Constant(2)
-		);
+		//var right = new Div(
+		//	new Mult(
+		//		new Variable('a'),
+		//		new Variable('b')
+		//	),
+		//	new Constant(2)
+		//);
 
-		left.PrintToConsole();
-		right.PrintToConsole();
+		//left.PrintToConsole();
+		//right.PrintToConsole();
 
-		Console.WriteLine(TreeUtils.MatchPattern(left, right, out _));
+		//Console.WriteLine(TreeUtils.MatchPattern(left, right, out _));
+
+		const int maxIter = 2000;
+
+		for (int i = 0; i < maxIter; i++)
+		{
+			if (i % 100 == 0)
+				Console.WriteLine($"{i}/{maxIter}");
+
+			var exercise = ExerciseGenerator.GenerateRandomTree(
+				DifficultyMetrics.Hardcore, 
+				new SimplificationParams(
+					  'x'
+					)
+			);
+
+			DerivativeManager.DifferentiateTree(exercise, 'x', out _, out _, out _, out _, null);
+
+			//Console.WriteLine(exercise.ToLatexString() + " = " + exercise.Diff('x').ToLatexString());
+		}
 
 		//var list = new List<TreeNode>()
 		//{

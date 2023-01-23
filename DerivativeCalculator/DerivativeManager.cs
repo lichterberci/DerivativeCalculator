@@ -95,6 +95,11 @@ namespace DerivativeCalculator
 			if (simplificationParams == null)
 				simplificationParams = SimplificationParams.Default;
 
+			simplificationParams = simplificationParams with
+			{
+				varToDiff = varToDifferentiate
+			};
+
 			TreeNode tree = TreeUtils.CopyTree(input);
 
 			inputAsLatex = new DerivativeSymbol(tree, varToDifferentiate).ToLatexString();
@@ -105,8 +110,8 @@ namespace DerivativeCalculator
 
 			TreeNode diffTree;
 
-			try
-			{
+			//try
+			//{
 				diffTree = Differentiator.DifferentiateWithStepsRecorded(tree, varToDifferentiate, simplificationParams);
 
 				Console.WriteLine(TreeUtils.CollapseTreeToString(diffTree));
@@ -115,12 +120,12 @@ namespace DerivativeCalculator
 				stepDescriptions = Differentiator.stepDescriptions;
 
 				diffTree = TreeUtils.GetSimplestForm(diffTree, simplificationParams);
-			}
-			catch (Exception e)
-			{
-				Console.WriteLine($"An error occured while differentiating! ({e.Message}) {e.StackTrace}");
-				throw new DifferentiationException("An error occured while differentiating!");
-			}
+			//}
+			//catch (Exception e)
+			//{
+			//	Console.WriteLine($"An error occured while differentiating! ({e.Message}) {e.StackTrace}");
+			//	throw new DifferentiationException("An error occured while differentiating!");
+			//}
 
 			return diffTree.ToLatexString();
 		}
