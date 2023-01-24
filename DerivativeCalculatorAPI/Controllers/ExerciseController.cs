@@ -19,7 +19,7 @@ namespace DerivativeCalculatorAPI.Controllers
 		/// </param>
 		/// <returns>The generated exercise</returns>
 		[HttpPost("generate-exercise")]
-		public ResponseData Post([FromBody] ExercieQueryBody body)
+		public ResponseData Post([FromBody] ExerciseQueryBody body)
 		{
 			// TODO: validate difficulty
 

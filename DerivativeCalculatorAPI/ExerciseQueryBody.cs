@@ -2,7 +2,7 @@
 
 namespace DerivativeCalculatorAPI
 {
-	public sealed class ExercieQueryBody
+	public sealed class ExerciseQueryBody
 	{
 		public string? level { get; set; }
 		public DifficultyMetrics? difficultyMetrics { get; set; }

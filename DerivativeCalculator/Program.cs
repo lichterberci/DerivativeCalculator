@@ -9,7 +9,7 @@ public partial class Program
 	public static void Main()
 	{
 
-		//DerivativeManager.DifferentiateFromConsole();
+		DerivativeManager.DifferentiateFromConsole();
 
 		//var left = new Mult(
 		//	new Div(
@@ -32,24 +32,24 @@ public partial class Program
 
 		//Console.WriteLine(TreeUtils.MatchPattern(left, right, out _));
 
-		const int maxIter = 2000;
+		//const int maxIter = 2000;
 
-		for (int i = 0; i < maxIter; i++)
-		{
-			if (i % 100 == 0)
-				Console.WriteLine($"{i}/{maxIter}");
+		//for (int i = 0; i < maxIter; i++)
+		//{
+		//	if (i % 100 == 0)
+		//		Console.WriteLine($"{i}/{maxIter}");
 
-			var exercise = ExerciseGenerator.GenerateRandomTree(
-				DifficultyMetrics.Hardcore, 
-				new SimplificationParams(
-					  'x'
-					)
-			);
+		//	var exercise = ExerciseGenerator.GenerateRandomTree(
+		//		DifficultyMetrics.Hardcore, 
+		//		new SimplificationParams(
+		//			  'x'
+		//			)
+		//	);
 
-			DerivativeManager.DifferentiateTree(exercise, 'x', out _, out _, out _, out _, null);
+		//	DerivativeManager.DifferentiateTree(exercise, 'x', out _, out _, out _, out _, null);
 
-			//Console.WriteLine(exercise.ToLatexString() + " = " + exercise.Diff('x').ToLatexString());
-		}
+		//	//Console.WriteLine(exercise.ToLatexString() + " = " + exercise.Diff('x').ToLatexString());
+		//}
 
 		//var list = new List<TreeNode>()
 		//{
