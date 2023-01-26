@@ -1192,10 +1192,7 @@ namespace DerivativeCalculator
 							TreeNode b = wildcards['b'];
 
 							if (TreeUtils.MatchPattern(
-								new Pow(
-									otherNode,
-									powerDict[otherNode]
-								).Simplify(simplificationParams),
+								otherNode,
 								new Pow(
 									new Wildcard('c'),
 									new Wildcard('d')
@@ -1204,7 +1201,12 @@ namespace DerivativeCalculator
 							)
 							{
 								TreeNode c = wildcards['c'];
-								TreeNode d = wildcards['d'];
+								// we multiply, because the powerdict might look something like this:
+								// x^4 --- 2 (=x^8)
+								TreeNode d = new Mult( 
+									wildcards['d'],
+									powerDict[otherNode]
+								);
 
 								// eg.: a == c --> a^(b+d)
 								bool ac = TreeUtils.MatchPattern(a, c, out _);
@@ -1239,8 +1241,8 @@ namespace DerivativeCalculator
 								node,
 								new Pow(
 									otherNode,
-						powerDict[otherNode]
-						).Simplify(simplificationParams) // simplify, because it might have nested pows,which can be simplified down
+									powerDict[otherNode]
+								).Simplify(simplificationParams) // simplify, because it might have nested pows,which can be simplified down
 							),
 							new Mult(
 								new Pow(
@@ -1366,7 +1368,12 @@ namespace DerivativeCalculator
 							)
 							{
 								TreeNode c = wildcards['c'];
-								TreeNode d = wildcards['d'];
+								// we multiply, because the powerdict might look something like this:
+								// x^4 --- 2 (=x^8)
+								TreeNode d = new Mult(
+									wildcards['d'],
+									powerDict[otherNode]
+								);
 
 								// eg.: a == c --> a^(b+d)
 								bool ac = TreeUtils.MatchPattern(a, c, out _);

@@ -11,8 +11,8 @@ public partial class Program
 
 		//DerivativeManager.DifferentiateFromConsole();
 
-		TreeNode tree = new Mult(
-			new Div(
+		TreeNode tree = new Div(
+			new Mult(
 				new Abs(new Variable('x')),
 				new Pow(new Variable('x'), new Constant(3))
 			),
