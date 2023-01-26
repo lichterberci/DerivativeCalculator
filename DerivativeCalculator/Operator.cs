@@ -1192,7 +1192,10 @@ namespace DerivativeCalculator
 							TreeNode b = wildcards['b'];
 
 							if (TreeUtils.MatchPattern(
-								otherNode,
+								new Pow(
+									otherNode,
+									powerDict[otherNode]
+								).Simplify(simplificationParams),
 								new Pow(
 									new Wildcard('c'),
 									new Wildcard('d')

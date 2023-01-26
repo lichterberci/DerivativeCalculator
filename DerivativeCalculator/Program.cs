@@ -9,7 +9,23 @@ public partial class Program
 	public static void Main()
 	{
 
-		DerivativeManager.DifferentiateFromConsole();
+		//DerivativeManager.DifferentiateFromConsole();
+
+		TreeNode tree = new Mult(
+			new Div(
+				new Abs(new Variable('x')),
+				new Pow(new Variable('x'), new Constant(3))
+			),
+			new Pow(new Variable('x'), new Constant(2))
+		);
+
+		tree.PrintToConsole();
+
+		tree = tree.Simplify(SimplificationParams.Default);
+		//tree = tree.GetSimplestForm(SimplificationParams.Default);
+
+		tree.PrintToConsole();
+
 
 		//var left = new Mult(
 		//	new Div(
