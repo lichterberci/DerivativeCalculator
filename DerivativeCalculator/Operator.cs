@@ -256,21 +256,52 @@ namespace DerivativeCalculator
 		}
 		public static bool IsOperatorTypeCommutative(OperatorType type)
 		{
-			switch (type)
+			return type switch
 			{
-				case OperatorType.Add:
-					return true;
-				case OperatorType.Mult:
-					return true;
-				default:
-					return false;
-			}
+				OperatorType.Add or OperatorType.Mult => true,
+				_ => false
+			};
 		}
 		public bool isCommutative
 		{
 			get
 			{
 				return IsOperatorTypeCommutative(this.type);
+			}
+		}
+		public bool isInverseCommutative
+		{
+			get
+			{
+				if (inverseType is null)
+					return false;
+
+				return IsOperatorTypeCommutative((OperatorType)inverseType);
+			}
+		}
+		public static bool IsOperatorTypeAssociative (OperatorType type)
+		{
+			return type switch
+			{
+				OperatorType.Add or OperatorType.Mult => true,
+				_ => false
+			};
+		}
+		public bool isAssociative
+		{
+			get
+			{
+				return IsOperatorTypeAssociative(this.type);
+			}
+		}
+		public bool isInverseAssociative
+		{
+			get
+			{
+				if (inverseType is null)
+					return false;
+
+				return IsOperatorTypeAssociative((OperatorType)inverseType);
 			}
 		}
 		public static OperatorType? GetInverse(OperatorType type)
@@ -285,6 +316,38 @@ namespace DerivativeCalculator
 					return OperatorType.Div;
 				case OperatorType.Div:
 					return OperatorType.Mult;
+				case OperatorType.Sin:
+					return OperatorType.Arcsin;
+				case OperatorType.Cos:
+					return OperatorType.Arccos;
+				case OperatorType.Tan:
+					return OperatorType.Arctan;
+				case OperatorType.Cot:
+					return OperatorType.Arccot;
+				case OperatorType.Arcsin:
+					return OperatorType.Sin;
+				case OperatorType.Arccos:
+					return OperatorType.Cos;
+				case OperatorType.Arctan:
+					return OperatorType.Tan;
+				case OperatorType.Arccot:
+					return OperatorType.Cot;
+				case OperatorType.Sinh:
+					return OperatorType.Arsinh;
+				case OperatorType.Cosh:
+					return OperatorType.Arcosh;
+				case OperatorType.Tanh:
+					return OperatorType.Artanh;
+				case OperatorType.Coth:
+					return OperatorType.Arcoth;
+				case OperatorType.Arsinh:
+					return OperatorType.Sinh;
+				case OperatorType.Arcosh:
+					return OperatorType.Cosh;
+				case OperatorType.Artanh:
+					return OperatorType.Tanh;
+				case OperatorType.Arcoth:
+					return OperatorType.Coth;
 				default:
 					return null;
 			}
@@ -2111,6 +2174,21 @@ namespace DerivativeCalculator
 			{
 				operand1 = operand1.Simplify(simplificationParams);
 			}
+
+			if (operand1 is Constant { value: Math.E })
+				return new Constant(1);
+
+			Dictionary<char, TreeNode> wildcards;
+
+			if (TreeUtils.MatchPattern(
+				operand1,
+				new Pow(
+					Constant.E,
+					new Wildcard('a')
+				),
+				out wildcards
+			))
+				return wildcards['a'];
 
 			return this;
 		}

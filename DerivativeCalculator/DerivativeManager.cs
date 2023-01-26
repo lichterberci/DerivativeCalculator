@@ -38,20 +38,7 @@ namespace DerivativeCalculator
 
 			try
 			{
-				nodes = Parser.ParseToList(input);
-				
-				nodes = Parser.ReplaceVarEWithConstE(nodes);
-				nodes = Parser.HandleNegativeSigns(nodes);
-				nodes = Parser.AddHiddenMultiplications(nodes);
-				nodes = Parser.ApplyParentheses(nodes);
-
-				if (nodes.Count == 0)
-				{
-					Console.WriteLine("Input is empty, or the parser is unable to parse it!");
-					throw new ParsingError("Input is empty, or the parser is unable to parse it!");
-				}
-
-				tree = Parser.MakeTreeFromList(nodes);
+				tree = Parser.ParseString(input);
 
 				inputAsLatex = new DerivativeSymbol(tree, varToDifferentiate).ToLatexString();
 
@@ -108,6 +95,11 @@ namespace DerivativeCalculator
 			if (simplificationParams == null)
 				simplificationParams = SimplificationParams.Default;
 
+			simplificationParams = simplificationParams with
+			{
+				varToDiff = varToDifferentiate
+			};
+
 			TreeNode tree = TreeUtils.CopyTree(input);
 
 			inputAsLatex = new DerivativeSymbol(tree, varToDifferentiate).ToLatexString();
@@ -118,8 +110,8 @@ namespace DerivativeCalculator
 
 			TreeNode diffTree;
 
-			try
-			{
+			//try
+			//{
 				diffTree = Differentiator.DifferentiateWithStepsRecorded(tree, varToDifferentiate, simplificationParams);
 
 				Console.WriteLine(TreeUtils.CollapseTreeToString(diffTree));
@@ -128,12 +120,12 @@ namespace DerivativeCalculator
 				stepDescriptions = Differentiator.stepDescriptions;
 
 				diffTree = TreeUtils.GetSimplestForm(diffTree, simplificationParams);
-			}
-			catch (Exception e)
-			{
-				Console.WriteLine($"An error occured while differentiating! ({e.Message}) {e.StackTrace}");
-				throw new DifferentiationException("An error occured while differentiating!");
-			}
+			//}
+			//catch (Exception e)
+			//{
+			//	Console.WriteLine($"An error occured while differentiating! ({e.Message}) {e.StackTrace}");
+			//	throw new DifferentiationException("An error occured while differentiating!");
+			//}
 
 			return diffTree.ToLatexString();
 		}
