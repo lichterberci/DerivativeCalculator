@@ -16,11 +16,13 @@ using System.Transactions;
 
 using DerivativeCalculator;
 
+using Microsoft.VisualBasic;
+
 namespace DerivativeCalculator
 {
 	public enum OperatorType
 	{
-		Add, Sub, Mult, Div, Pow, Sin, Cos, Tan, Log, Ln, Cot, Arcsin, Arccos, Arctan, Arccot, Sinh, Cosh, Tanh, Coth, Arsinh, Arcosh, Artanh, Arcoth
+		Add, Sub, Mult, Div, Pow, Sin, Cos, Tan, Log, Ln, Cot, Arcsin, Arccos, Arctan, Arccot, Sinh, Cosh, Tanh, Coth, Arsinh, Arcosh, Artanh, Arcoth, Abs
 	}
 
 	public abstract class Operator : TreeNode
@@ -102,6 +104,8 @@ namespace DerivativeCalculator
 					return new Artanh(operand1, priority);
 				case OperatorType.Arcoth:
 					return new Arcoth(operand1, priority);
+				case OperatorType.Abs:
+					return new Abs(operand1, priority);
 				default:
 					throw new ArgumentException($"Type {_type} is not handled!");
 			}
@@ -200,6 +204,8 @@ namespace DerivativeCalculator
 					return "artanh";
 				case OperatorType.Arcoth:
 					return "arcoth";
+				case OperatorType.Abs:
+					return "abs";
 				default:
 					return "UNKNOWN_OPERATOR";
 			}
@@ -2903,6 +2909,60 @@ namespace DerivativeCalculator
 		public override string ToLatexString()
 		{
 			return $@"arcoth\left({{{operand1.ToLatexString()}}}\right)";
+		}
+
+		public override TreeNode Simplify(SimplificationParams simplificationParams, bool skipSimplificationOfChildren = false)
+		{
+			if (skipSimplificationOfChildren == false)
+			{
+				operand1 = operand1.Simplify(simplificationParams);
+			}
+
+			return this;
+		}
+	}
+
+	public sealed class Abs : Operator
+	{
+		public Abs(TreeNode? operand = null, int? priority = null) : base(OperatorType.Abs, operand, null, priority) { }
+
+		public override TreeNode Eval(SimplificationParams simplificationParams = null)
+		{
+			operand1 = operand1.Eval(simplificationParams);
+
+			if (this.ShouldEval(simplificationParams) == false)
+				return this;
+
+			if (operand1 is Constant c)
+				return new Constant(Math.Abs(c.value));
+			else
+				return this;
+		}
+
+		public override TreeNode Diff(char varToDiff)
+		{
+			if (Differentiator.numStapsTaken++ >= Differentiator.maxSteps)
+			{
+				return new DerivativeSymbol(this, varToDiff);
+			}
+
+			Differentiator.AddStepDescription(new StepDescription(
+				$@"\frac{{d}}{{dx}}\lvert x \rvert = \frac{{\lvert x \rvert}}{{x}}",
+				operand1.ToLatexString()
+			));
+
+			return new Mult(
+				new Div(
+					new Abs(operand1),
+					operand1
+				),
+				operand1.Diff(varToDiff)
+			);
+		}
+
+		public override string ToLatexString()
+		{
+			return $@"\lvert {{{operand1.ToLatexString()}}} \rvert";
 		}
 
 		public override TreeNode Simplify(SimplificationParams simplificationParams, bool skipSimplificationOfChildren = false)

@@ -40,6 +40,7 @@ namespace DerivativeCalculator
 					|| (
 						tmp.Length > 0
 						&& Parenthesis.IsParenthesis(tmp[0])) // if next is parenthesis
+					|| tmp[0] == '|' // absolute value bar
 					|| (
 						Operator.ParseFromString(tmp) != null 
 						&& Operator.ParseFromString(tmp + c) == null
@@ -77,6 +78,12 @@ namespace DerivativeCalculator
 								else
 								{
 									nodes.Add(new Variable(tmp[0]));
+									tmp = "";
+								}
+
+								if (tmp[0] == '|')
+								{
+									nodes.Add(new AbsoluteValueBar());
 									tmp = "";
 								}
 							}
@@ -120,6 +127,33 @@ namespace DerivativeCalculator
 				if (isInNumber == false && tmp.Length > 0)
 					if (char.IsDigit(tmp[0]))
 						isInNumber = true;
+			}
+
+			return nodes;
+		}
+
+		public static List<Node> HandleAbsoluteValueBars (List<Node> nodes)
+		{
+			int i = 0, j = nodes.Count;
+
+			while (i < j)
+			{
+				if (nodes[i] is not AbsoluteValueBar)
+				{
+					i++;
+					continue;
+				}
+
+				if (nodes[j] is not AbsoluteValueBar)
+				{
+					j--;
+					continue;
+				}
+
+				// both i and j are on a valid bar
+				nodes.Insert(i, new Abs());
+				nodes[i] = new Parenthesis('(');
+				nodes[j] = new Parenthesis(')');
 			}
 
 			return nodes;

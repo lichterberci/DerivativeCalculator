@@ -31,6 +31,15 @@ namespace DerivativeCalculator
 		}
 	}
 
+	public sealed class AbsoluteValueBar : Node
+	{
+		public AbsoluteValueBar() { }
+		public override string ToString()
+		{
+			return "AbsoluteValueBar()";
+		}
+	}
+
 	public sealed class NullTreeNode : TreeNode
 	{
 		public override string ToString() => "NULL_NODE";
