@@ -48,10 +48,13 @@ namespace DerivativeCalculator
 						&& char.IsLetter(tmp[0]) 
 						&& !char.IsLetter(c)) // if we are in var, but it is closed
 					|| Parenthesis.IsParenthesis(c) // number, var, etc followed by a '(' or ')'
+					|| c == '|'
 					|| (
 						tmp.Length > 0
 						&& Parenthesis.IsParenthesis(tmp[0])) // if next is parenthesis
-					|| tmp[0] == '|' // absolute value bar
+					|| (
+						tmp.Length > 0
+						&& tmp[0] == '|') // absolute value bar
 					|| (
 						Operator.ParseFromString(tmp) != null 
 						&& Operator.ParseFromString(tmp + c) == null
@@ -86,15 +89,14 @@ namespace DerivativeCalculator
 									nodes.Add(new Parenthesis(tmp[0]));
 									tmp = "";
 								}
+								else if (tmp[0] == '|')
+								{
+									nodes.Add(new AbsoluteValueBar());
+									tmp = "";
+								}
 								else
 								{
 									nodes.Add(new Variable(tmp[0]));
-									tmp = "";
-								}
-
-								if (tmp[0] == '|')
-								{
-									nodes.Add(new AbsoluteValueBar());
 									tmp = "";
 								}
 							}
@@ -145,7 +147,7 @@ namespace DerivativeCalculator
 
 		public static List<Node> HandleAbsoluteValueBars (List<Node> nodes)
 		{
-			int i = 0, j = nodes.Count;
+			int i = 0, j = nodes.Count - 1;
 
 			while (i < j)
 			{
@@ -162,9 +164,11 @@ namespace DerivativeCalculator
 				}
 
 				// both i and j are on a valid bar
-				nodes.Insert(i, new Abs());
 				nodes[i] = new Parenthesis('(');
 				nodes[j] = new Parenthesis(')');
+				
+				nodes.Insert(i, new Abs());
+				j++; // necessary, because the insert added an item to the list
 			}
 
 			return nodes;
@@ -382,6 +386,7 @@ namespace DerivativeCalculator
 			input = PrepareStringForParsing(input);
 
 			var nodes = ParseToList(input);
+			nodes = HandleAbsoluteValueBars(nodes);
 			nodes = ReplaceVarPWithConstPi(nodes);
 			nodes = ReplaceVarEWithConstE(nodes);
 			nodes = HandleNegativeSigns(nodes);
