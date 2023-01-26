@@ -3050,6 +3050,47 @@ namespace DerivativeCalculator
 				operand1 = operand1.Simplify(simplificationParams);
 			}
 
+			if (operand1 is Abs)
+				return operand1;
+
+			if (operand1 is Pow { operand1: Constant { value: > 0 } }) // c^x where c > 0
+				return operand1;
+
+			if (
+				operand1 is Pow { operand2: Constant exponent } 
+				&& Math.Floor(exponent.value) == exponent.value // int
+				&& (int)exponent.value % 2 == 0 // even
+			) // x^n where n is even
+				return operand1;
+
+			if (operand1 is Pow { operand2: Constant { value: < 1 } }) // sqrt, etc.
+				return operand1;
+
+			if (operand1 is Cosh)
+				return operand1;
+
+			if (operand1 is Arccot)
+				return operand1;
+
+			if (operand1 is Mult mult)
+			{
+				if (mult.operand1 is Constant { value: < 0 } c1)
+					return new Abs(
+						new Mult(
+							new Constant(-c1.value),
+							mult.operand2
+						)
+					);
+
+				if (mult.operand2 is Constant { value: < 0 } c2)
+					return new Abs(
+						new Mult(
+							mult.operand1,
+							new Constant(-c2.value)
+						)
+					);
+			}
+
 			return this;
 		}
 	}
