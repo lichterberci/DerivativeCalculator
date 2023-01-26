@@ -337,7 +337,7 @@ namespace DerivativeCalculatorAPI.Controllers
 
 			string inputAsLatex, simplifiedInputAsLatex, outputAsLatex;
 			List<string> stepsAsLatex;
-			List<StepDescription> stepDescriptions;
+			List<StepDescription?> stepDescriptions;
 			char varToDiff = 'x';
 
 			try
