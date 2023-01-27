@@ -1161,11 +1161,14 @@ namespace DerivativeCalculator
 							out wildcards
 						))
 						{
-							powerDict.Remove(otherNode);
 							powerDict[node] = new Add(
-										wildcards['c'],
-										new Constant(1)
+								   new Add(
+											wildcards['c'],
+											new Constant(1)
+										),
+										powerDict[otherNode]
 									);
+							powerDict.Remove(otherNode);
 							addToDict = false;
 							break;
 						}
@@ -1173,7 +1176,7 @@ namespace DerivativeCalculator
 						// x * x ---> x^2
 						if (TreeUtils.MatchPattern(node, otherNode, out _))
 						{
-							powerDict[otherNode] = new Constant(2);
+							powerDict[otherNode] = new Add(powerDict[otherNode], new Constant(1));
 							addToDict = false;
 							break;
 						}
@@ -1340,7 +1343,7 @@ namespace DerivativeCalculator
 						// x / x ---> 1
 						if (TreeUtils.MatchPattern(node, otherNode, out _))
 						{
-							powerDict.Remove(otherNode);
+							powerDict[otherNode] = new Sub(powerDict[otherNode], new Constant(1));
 							addToDict = false;
 							break;
 						}
@@ -1404,22 +1407,23 @@ namespace DerivativeCalculator
 							}
 						}
 
-						// a^c / b^c ---> (a/b)^c
+						// otherNode   node
+						// a^c      /   b^c ---> (a/b)^c
 						if (TreeUtils.MatchPattern(
 							new Div(
 								node,
 								new Pow(
 									otherNode,
 									powerDict[otherNode]
-								)
+								).Simplify(simplificationParams)
 							),
 							new Div(
 								new Pow(
-									new Wildcard('a'),
+									new Wildcard('b'),
 									new Wildcard('c')
 								),
 								new Pow(
-									new Wildcard('b'),
+									new Wildcard('a'),
 									new Wildcard('c')
 								)
 							),

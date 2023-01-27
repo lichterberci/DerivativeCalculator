@@ -9,7 +9,9 @@ public partial class Program
 	public static void Main()
 	{
 
-		//DerivativeManager.DifferentiateFromConsole();
+		DerivativeManager.DifferentiateFromConsole();
+
+		return;
 
 		TreeNode tree = new Div(
 			new Mult(
