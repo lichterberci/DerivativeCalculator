@@ -101,14 +101,14 @@ namespace DerivativeCalculator
 				numAllowedFromEachOperatorType = new Dictionary<OperatorType, int>()
 				{
 					{OperatorType.Add,  6},
-					{OperatorType.Sub,  3},
+					{OperatorType.Sub,  2},
 					{OperatorType.Mult, 5},
 					{OperatorType.Div,  3},
-					{OperatorType.Pow,  5},
-					{OperatorType.Sin,  2},
-					{OperatorType.Cos,  2},
-					{OperatorType.Tan,  2},
-					{OperatorType.Ln,   2},
+					{OperatorType.Pow,  4},
+					{OperatorType.Sin,  1},
+					{OperatorType.Cos,  1},
+					{OperatorType.Tan,  1},
+					{OperatorType.Ln,   1},
 					{OperatorType.Abs,  1}
 				},
 				difficultyOfPower = DifficultyOfPower.BothCanBeDependent,
