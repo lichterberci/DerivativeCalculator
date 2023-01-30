@@ -1756,6 +1756,10 @@ namespace DerivativeCalculator
 				else
 					return simplifiedForm;
 			}
+			else
+			{
+				return simplifiedForm;
+			}
 		}
 
 		public override string ToLatexString()
