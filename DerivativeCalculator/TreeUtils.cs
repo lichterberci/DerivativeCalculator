@@ -584,5 +584,30 @@
 
 			return constList.Concat(leftList).Concat(new List<TreeNode> { pivot }).Concat(rightList).Concat(expressionList).ToList();
 		}
+
+		public static bool DoesTreeContainInvalidOp (TreeNode tree, ref Dictionary<OperatorType, int> numAllowedOps)
+		{
+			if (tree is not Operator)
+				return false;
+
+			Operator op = tree as Operator;
+
+			if (numAllowedOps.ContainsKey(op.type) == false)
+				return true;
+
+			if (numAllowedOps[op.type] <= 0)
+				return true;
+
+			numAllowedOps[op.type] -= 1;
+
+			if (op.numOperands == 1)
+			{
+				return DoesTreeContainInvalidOp(op.operand1, ref numAllowedOps);
+			}
+			else
+			{
+				return DoesTreeContainInvalidOp(op.operand1, ref numAllowedOps) || DoesTreeContainInvalidOp(op.operand2, ref numAllowedOps);
+			}
+		}
 	}
 }

@@ -602,6 +602,45 @@ namespace DerivativeCalculator
             return (root, false);
         }
 
+        private static bool IsTreeOk (TreeNode tree, DifficultyMetrics difficulty, SimplificationParams simplificationParams)
+        {
+            if (TreeUtils.DoesTreeContainNull(tree))
+                return false;
+
+			var diffTree = TreeUtils.GetSimplestForm(tree.Diff('x'), simplificationParams);
+
+            if (TreeUtils.DoesTreeContainNull(diffTree))
+                return false;
+
+            if (diffTree is Constant diffConstant)
+                if (difficulty.shouldYieldNonConstDiff)
+                    return false;
+                else if (diffConstant is Constant { value: 0 } && difficulty.shouldYieldNonZeroDiff)
+                    return false;
+
+            if (TreeUtils.DoesTreeContainNan(tree) || TreeUtils.DoesTreeContainNan(diffTree))
+                return false;
+
+            if (difficulty.constIsOnlyInt && TreeUtils.DoesTreeContainNonInt(tree))
+                return false;
+
+            if (TreeUtils.DoesTreeConstainBadConstant(tree, difficulty.minConstValue, difficulty.maxConstValue))
+                return false;
+
+            int compLevel = MaxLevelOfComposition(tree);
+
+            if (compLevel < difficulty.numMinLevelOfComposition || compLevel > difficulty.numMaxLevelOfComposition)
+                return false;
+
+            // copy, because it is a sideeffect
+            var tempDict = new Dictionary<OperatorType, int>(difficulty.numAllowedFromEachOperatorType);
+
+			if (TreeUtils.DoesTreeContainInvalidOp(tree, ref tempDict))
+                return false;
+
+            return true;
+		}
+
         public static TreeNode GenerateRandomTree (DifficultyMetrics difficulty, SimplificationParams simplificationParams)
         {
             bool isTreeGenerationSuccessfull = false;
@@ -687,27 +726,7 @@ namespace DerivativeCalculator
                 {
                     tree = TreeUtils.GetSimplestForm(tree, simplificationParams);
 
-                    if (TreeUtils.DoesTreeContainNull(tree))
-						continue;
-
-					var diffTree = TreeUtils.GetSimplestForm(tree.Diff('x'), simplificationParams);
-
-                    if (TreeUtils.DoesTreeContainNull(diffTree))
-						continue;
-
-					if (diffTree is Constant diffConstant)
-                        if (difficulty.shouldYieldNonConstDiff)
-							continue;
-						else if (diffConstant is Constant { value: 0 } && difficulty.shouldYieldNonZeroDiff)
-							continue;
-
-					if (TreeUtils.DoesTreeContainNan(tree) || TreeUtils.DoesTreeContainNan(diffTree))
-						continue;
-
-					if (difficulty.constIsOnlyInt && TreeUtils.DoesTreeContainNonInt(tree))
-						continue;
-
-                    if (TreeUtils.DoesTreeConstainBadConstant(tree, difficulty.minConstValue, difficulty.maxConstValue))
+                    if (IsTreeOk(tree, difficulty, simplificationParams))
                         continue;
 				}
                 catch (Exception e) // x/0 or something random
