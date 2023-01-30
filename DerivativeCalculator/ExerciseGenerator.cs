@@ -126,7 +126,8 @@ namespace DerivativeCalculator
             operatorTypesThatCountAsComposition = new OperatorType[]
             {
                 OperatorType.Mult,
-                OperatorType.Pow,
+                OperatorType.Div,
+				OperatorType.Pow,
                 OperatorType.Ln, 
                 OperatorType.Log, 
                 OperatorType.Sin, 
@@ -346,6 +347,11 @@ namespace DerivativeCalculator
                 {
                     // multiplying by a constant is not comp
                     if (op.operand1 is not Constant && op.operand2 is not Constant)
+                        newDepth = depth + 1;
+                }
+                else if (op.type == OperatorType.Div)
+                {
+                    if (op.operand2 is not Constant)
                         newDepth = depth + 1;
                 }
                 else
