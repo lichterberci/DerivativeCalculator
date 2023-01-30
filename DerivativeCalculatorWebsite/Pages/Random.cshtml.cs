@@ -37,7 +37,7 @@ namespace DerivativeCalculatorWebsite.Pages
 				_ => DifficultyMetrics.Medium
 			};
 
-			TreeNode tree = ExerciseGenerator.GenerateRandomTree(difficulty);
+			TreeNode tree = ExerciseGenerator.GenerateRandomTree(difficulty, SimplificationParams.Default);
 
 			TreeUtils.PrintTree(tree);
 			Console.WriteLine($"(={TreeUtils.CollapseTreeToString(tree)})");
