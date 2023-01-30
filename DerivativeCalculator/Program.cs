@@ -9,13 +9,19 @@ public partial class Program
 	public static void Main()
 	{
 
-		//DerivativeManager.DifferentiateFromConsole();
+		DerivativeManager.DifferentiateFromConsole();
 
-		//return;
+		return;
 
-		TreeNode tree = new Add(
-			new Pow(new Variable('x'), new Constant(2)),	
-			new Pow(new Variable('x'), new Constant(2))
+		TreeNode tree = new Div(
+			new Mult(
+				new Mult(
+					  new Constant(-1),
+					  new Constant(2)
+				  ),
+				new Variable('x')
+			),	
+			new Variable('y')
 		);
 
 		tree.PrintToConsole();

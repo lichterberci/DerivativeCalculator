@@ -1036,26 +1036,44 @@ namespace DerivativeCalculator
 
 			var (powerDict, constantPart) = ApplyRules(operands, simplificationParams);
 
-			if (constantPart != 1.0)
-				powerDict.Add(new Constant(constantPart), new Constant(1));
+			//if (constantPart != 1.0)
+			//	powerDict.Add(new Constant(constantPart), new Constant(1));
 
 			if (powerDict.Keys.Count == 0)
-				return new Constant(1);
+				return new Constant(constantPart);
 
 			// if we have managed to simplify to a single expression
 			if (powerDict.Keys.Count == 1)
 			{
 				(var key, var pow) = powerDict.First();
 
-				if (pow is Constant { value: 1 })
-					return key;
-				else if (pow is Constant { value: -1 })
-					return new Div(new Constant(1), key);
+				if (constantPart != 1.0)
+				{
+					if (pow is Constant { value: 1 })
+						return new Mult(new Constant(constantPart), key);
+					else if (pow is Constant { value: -1 })
+						return new Div(new Constant(constantPart), key);
+					else
+						return new Mult(
+							new Constant(constantPart),
+							new Pow(
+								powerDict.Keys.First(),
+								powerDict.Values.First()
+							)
+						);
+				}
 				else
-					return new Pow(
-						powerDict.Keys.First(),
-						powerDict.Values.First()
-					);
+				{
+					if (pow is Constant { value: 1 })
+						return key;
+					else if (pow is Constant { value: -1 })
+						return new Div(new Constant(1), key);
+					else
+						return new Pow(
+								powerDict.Keys.First(),
+								powerDict.Values.First()
+							);
+				}
 			}
 
 			// building 2 trees
@@ -1084,11 +1102,20 @@ namespace DerivativeCalculator
 			var multRoot = BuildTreeFromKeyPowPais(multList);
 
 			if (divList.Count == 0)
-				return multRoot;
+				if (constantPart != 1.0)
+					return new Mult(new Constant(constantPart), multRoot);
+				else
+					return multRoot;
 
 			var divRoot = BuildTreeFromKeyPowPais(divList);
 
-			return new Div(multRoot, divRoot);
+			if (constantPart != 1.0)
+				return new Mult(
+					 new Constant(constantPart),
+					 new Div(multRoot, divRoot)
+					 );
+			else
+				return new Div(multRoot, divRoot);
 		}
 
 		private (Dictionary<TreeNode, TreeNode> powerDict, double constantPart) ApplyRules (List<(TreeNode, bool)> operands, SimplificationParams simplificationParams)
@@ -1718,15 +1745,16 @@ namespace DerivativeCalculator
 
 			// we bring the negative sign out to the front, if we can
 
-			if (simplifiedForm is Div { operand1: Mult } m)
+			if (simplifiedForm is Div { operand1: Mult } simplifiedFormWithMult)
 			{
-				var operands = TreeUtils.GetAssociativeOperands(m, OperatorType.Mult, OperatorType.Div);
+				var operands = TreeUtils.GetAssociativeOperands(simplifiedFormWithMult, OperatorType.Mult, OperatorType.Div);
 
 				bool thereIsNegative = false;
 
 				foreach (var (operand, isInverse) in operands)
 				{
-					thereIsNegative = true;
+					if (operand is Constant { value: <0 })
+						thereIsNegative = true;
 				}
 
 				if (thereIsNegative)
@@ -1735,23 +1763,24 @@ namespace DerivativeCalculator
 						new Div(
 							new Mult(
 								new Constant(-1),
-								m.operand1
+								simplifiedFormWithMult.operand1
 							).Simplify(simplificationParams),
-							m.operand2
+							simplifiedFormWithMult.operand2
 						)
 					);
 				else
 					return simplifiedForm;
 			}
-			else if (simplifiedForm is Div { operand1: Div } d)
+			else if (simplifiedForm is Div { operand1: Div } simplifiedFormWithDiv)
 			{
-				var operands = TreeUtils.GetAssociativeOperands(d, OperatorType.Div, OperatorType.Mult);
+				var operands = TreeUtils.GetAssociativeOperands(simplifiedFormWithDiv, OperatorType.Div, OperatorType.Mult);
 
 				bool thereIsNegative = false;
 
 				foreach (var (operand, isInverse) in operands)
 				{
-					thereIsNegative = true;
+					if (operand is Constant { value: < 0 })
+						thereIsNegative = true;
 				}
 
 				if (thereIsNegative)
@@ -1760,9 +1789,9 @@ namespace DerivativeCalculator
 						new Div(
 							new Mult(
 								new Constant(-1),
-								d.operand1
+								simplifiedFormWithDiv.operand1
 							).Simplify(simplificationParams),
-							d.operand2
+							simplifiedFormWithDiv.operand2
 						)
 					);
 				else
