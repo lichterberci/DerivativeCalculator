@@ -1732,8 +1732,14 @@ namespace DerivativeCalculator
 				if (thereIsNegative)
 					return new Mult(
 						new Constant(-1),
-						simplifiedForm
-					).Simplify(simplificationParams);
+						new Div(
+							new Mult(
+								new Constant(-1),
+								m.operand1
+							).Simplify(simplificationParams),
+							m.operand2
+						)
+					);
 				else
 					return simplifiedForm;
 			}
@@ -1751,8 +1757,14 @@ namespace DerivativeCalculator
 				if (thereIsNegative)
 					return new Mult(
 						new Constant(-1),
-						simplifiedForm
-					).Simplify(simplificationParams);
+						new Div(
+							new Mult(
+								new Constant(-1),
+								d.operand1
+							).Simplify(simplificationParams),
+							d.operand2
+						)
+					);
 				else
 					return simplifiedForm;
 			}
