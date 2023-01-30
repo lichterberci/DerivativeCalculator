@@ -125,8 +125,28 @@ namespace DerivativeCalculator
 
             operatorTypesThatCountAsComposition = new OperatorType[]
             {
-                OperatorType.Sin, OperatorType.Cos, OperatorType.Tan, OperatorType.Ln, OperatorType.Log, OperatorType.Pow // pow is special !!!
-            };
+                OperatorType.Mult,
+                OperatorType.Pow,
+                OperatorType.Ln, 
+                OperatorType.Log, 
+                OperatorType.Sin, 
+                OperatorType.Cos, 
+                OperatorType.Tan, 
+                OperatorType.Cot,
+				OperatorType.Arcsin,
+				OperatorType.Arccos,
+				OperatorType.Arctan,
+				OperatorType.Arccot,
+				OperatorType.Sinh,
+				OperatorType.Cosh,
+				OperatorType.Tanh,
+				OperatorType.Coth,
+				OperatorType.Arsinh,
+				OperatorType.Arcosh,
+				OperatorType.Artanh,
+				OperatorType.Arcoth,
+				OperatorType.Abs
+			};
 		}
 
         private static List<OperatorType> GenerateOperatorList (DifficultyMetrics difficulty)
@@ -322,7 +342,16 @@ namespace DerivativeCalculator
 
             if (operatorTypesThatCountAsComposition.Contains(op.type))
             {
-			    newDepth = depth + 1;
+                if (op.type == OperatorType.Mult)
+                {
+                    // multiplying by a constant is not comp
+                    if (op.operand1 is not Constant && op.operand2 is not Constant)
+                        newDepth = depth + 1;
+                }
+                else
+                {
+			        newDepth = depth + 1;
+                }
 			}
 
 			if (op.numOperands == 1)
