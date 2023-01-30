@@ -108,7 +108,8 @@ namespace DerivativeCalculator
 					{OperatorType.Sin,  2},
 					{OperatorType.Cos,  2},
 					{OperatorType.Tan,  2},
-					{OperatorType.Ln,   2}
+					{OperatorType.Ln,   2},
+					{OperatorType.Abs,  1}
 				},
 				difficultyOfPower = DifficultyOfPower.BothCanBeDependent,
 				difficultyOfMultiplication = DifficultyOfMultiplication.BothCanBeDependent,
@@ -153,6 +154,7 @@ namespace DerivativeCalculator
 					{OperatorType.Arcosh,   2},
 					{OperatorType.Artanh,   2},
 					{OperatorType.Arcoth,   2},
+					{OperatorType.Abs,   2},
 				},
 				difficultyOfPower = DifficultyOfPower.BothCanBeDependent,
 				difficultyOfMultiplication = DifficultyOfMultiplication.BothCanBeDependent,

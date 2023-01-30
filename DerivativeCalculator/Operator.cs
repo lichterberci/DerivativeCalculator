@@ -1,22 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Dynamic;
-using System.Linq;
-using System.Net.Http.Headers;
-using System.Reflection.Metadata;
-using System.Reflection.Metadata.Ecma335;
-using System.Runtime.CompilerServices;
-using System.Security.AccessControl;
-using System.Security.Cryptography;
-using System.Text;
-using System.Threading.Tasks;
-using System.Transactions;
-
-using DerivativeCalculator;
-
-using Microsoft.VisualBasic;
+﻿using System.Data;
 
 namespace DerivativeCalculator
 {
@@ -462,6 +444,12 @@ namespace DerivativeCalculator
 
 			var subtractionRoot = BuildTreeFromKeyCoeffPairs(subtractionList, simplificationParams);
 
+			if (additionList.Count == 0)
+				return new Mult(
+				new Constant(-1),
+					subtractionRoot
+				);
+
 			return new Sub(additionRoot, subtractionRoot);
 		}
 
@@ -795,6 +783,10 @@ namespace DerivativeCalculator
 				// new entry
 				if (node is Constant constant)
 					coefficientDict[new Constant(val: 1)] = isNodeInverse ? new Constant(-constant.value) : node;
+				else if (node is Mult { operand1: Constant c1 } m1)
+					coefficientDict[m1.operand2] = isNodeInverse ? new Constant(-c1.value) : c1;
+				else if (node is Mult { operand2: Constant c2 } m2)
+					coefficientDict[m2.operand1] = isNodeInverse ? new Constant(-c2.value) : c2;
 				else
 					coefficientDict[node] = new Constant(isNodeInverse ? -1 : 1);
 			}
