@@ -1,4 +1,5 @@
 ﻿using System.Data;
+using System.Linq;
 
 namespace DerivativeCalculator
 {
@@ -1710,10 +1711,51 @@ namespace DerivativeCalculator
 			if (operand1.Eval(simplificationParams) is Constant { value: 0 })
 				return new Constant(0);
 
-			return new Mult(
+			var simplifiedForm = new Mult(
 				new Constant(1),
 				this
 			).Simplify(simplificationParams, true);
+
+			// we bring the negative sign out to the front, if we can
+
+			if (simplifiedForm is Div { operand1: Mult } m)
+			{
+				var operands = TreeUtils.GetAssociativeOperands(m, OperatorType.Mult, OperatorType.Div);
+
+				bool thereIsNegative = false;
+
+				foreach (var (operand, isInverse) in operands)
+				{
+					thereIsNegative = true;
+				}
+
+				if (thereIsNegative)
+					return new Mult(
+						new Constant(-1),
+						simplifiedForm
+					).Simplify(simplificationParams);
+				else
+					return simplifiedForm;
+			}
+			else if (simplifiedForm is Div { operand1: Div } d)
+			{
+				var operands = TreeUtils.GetAssociativeOperands(d, OperatorType.Div, OperatorType.Mult);
+
+				bool thereIsNegative = false;
+
+				foreach (var (operand, isInverse) in operands)
+				{
+					thereIsNegative = true;
+				}
+
+				if (thereIsNegative)
+					return new Mult(
+						new Constant(-1),
+						simplifiedForm
+					).Simplify(simplificationParams);
+				else
+					return simplifiedForm;
+			}
 		}
 
 		public override string ToLatexString()
