@@ -171,7 +171,7 @@
 
 			if (left is null && right is null)
 			{
-				return (null, false);
+				return (null, true);
 			}
 			if (left is null)
 			{
@@ -181,6 +181,9 @@
 			{
 				return (left, true);
 			}
+
+			if (left.Keys.Count == 0 && right.Keys.Count == 0)
+				return (null, true);
 
 			foreach (var key in left.Keys.Concat(right.Keys).Distinct())
 			{
