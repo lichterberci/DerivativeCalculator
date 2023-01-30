@@ -726,7 +726,7 @@ namespace DerivativeCalculator
                 {
                     tree = TreeUtils.GetSimplestForm(tree, simplificationParams);
 
-                    if (IsTreeOk(tree, difficulty, simplificationParams))
+                    if (IsTreeOk(tree, difficulty, simplificationParams) == false)
                         continue;
 				}
                 catch (Exception e) // x/0 or something random
