@@ -257,20 +257,6 @@ namespace DerivativeCalculator
 			if (root is not Operator op)
 				return (root, false);
 
-            bool isNewOpEasyMult = op is Mult { operand1: PlaceHolderLeaf { canBeX: false }, operand2: PlaceHolderLeaf { canBeX: true } }
-                                || op is Mult { operand1: PlaceHolderLeaf { canBeX: true }, operand2: PlaceHolderLeaf { canBeX: false } };
-
-            // disallow one placeholder to turn into a constant (to avoid 2 constants)
-            if (isNewOpEasyMult)
-            {
-                if (op.operand1 is PlaceHolderLeaf { canBeX: true } ph1)
-                    ph1.canBeConstant = false;
-                else if (op.operand2 is PlaceHolderLeaf { canBeX: true } ph2)
-                    ph2.canBeConstant = false;
-                else // neither can be constant
-                    return (root, false);
-            }
-
 			if (op.numOperands == 1)
             {
 				if (op.operand1 is Operator)
@@ -287,8 +273,16 @@ namespace DerivativeCalculator
 				if (op.operand1 is PlaceHolderLeaf { canBeX: true })
                 {
                     // can only place c*x, so everything elso must not be considered
-                    if (isNewOpEasyMult == false && op.operand1 is PlaceHolderLeaf { cannotBeExpressionOnlyMultipleOfX: true })
-                        return (root, false);
+                    if (op.operand1 is PlaceHolderLeaf { cannotBeExpressionOnlyMultipleOfX: true })
+                    {
+                        if (newOp is not Mult)
+                            return (root, false);
+
+                        if (newOp.operand1 is PlaceHolderLeaf { canBeX: true } ph1)
+                            ph1.canBeConstant = false;
+                        else if (newOp.operand2 is PlaceHolderLeaf { canBeX: true } ph2)
+							ph2.canBeConstant = false;
+					}
 
                     op.operand1 = newOp;
                     return (root, true);
@@ -314,13 +308,21 @@ namespace DerivativeCalculator
 
                     if (op.operand2 is PlaceHolderLeaf { canBeX: true })
                     {
-                        // can only place c*x, so everything elso must not be considered
-                        if (isNewOpEasyMult || op.operand2 is PlaceHolderLeaf { cannotBeExpressionOnlyMultipleOfX: false })
-                        {
-                            op.operand2 = newOp;
-                            return (root, true);
-                        }
-                    }
+						// can only place c*x, so everything elso must not be considered
+						if (op.operand2 is PlaceHolderLeaf { cannotBeExpressionOnlyMultipleOfX: true })
+						{
+							if (newOp is not Mult)
+								return (root, false);
+
+							if (newOp.operand1 is PlaceHolderLeaf { canBeX: true } ph1)
+								ph1.canBeConstant = false;
+							else if (newOp.operand2 is PlaceHolderLeaf { canBeX: true } ph2)
+								ph2.canBeConstant = false;
+						}
+
+                        op.operand2 = newOp;
+                        return (root, true);
+					}
                 }
 
                 if (op.operand1 is Operator)
@@ -337,11 +339,19 @@ namespace DerivativeCalculator
 				if (op.operand1 is PlaceHolderLeaf { canBeX: true })
 				{
 					// can only place c*x, so everything elso must not be considered
-					if (isNewOpEasyMult || op.operand1 is PlaceHolderLeaf { cannotBeExpressionOnlyMultipleOfX: false })
+					if (op.operand1 is PlaceHolderLeaf { cannotBeExpressionOnlyMultipleOfX: true })
 					{
-						op.operand1 = newOp;
-						return (root, true);
+						if (newOp is not Mult)
+							return (root, false);
+
+						if (newOp.operand1 is PlaceHolderLeaf { canBeX: true } ph1)
+							ph1.canBeConstant = false;
+						else if (newOp.operand2 is PlaceHolderLeaf { canBeX: true } ph2)
+							ph2.canBeConstant = false;
 					}
+
+					op.operand1 = newOp;
+					return (root, true);
 				}
 
                 if (op.operand2 is Operator)
@@ -358,11 +368,19 @@ namespace DerivativeCalculator
 				if (op.operand2 is PlaceHolderLeaf { canBeX: true })
 				{
 					// can only place c*x, so everything elso must not be considered
-					if (isNewOpEasyMult || op.operand2 is PlaceHolderLeaf { cannotBeExpressionOnlyMultipleOfX: false })
+					if (op.operand2 is PlaceHolderLeaf { cannotBeExpressionOnlyMultipleOfX: true })
 					{
-						op.operand2 = newOp;
-						return (root, true);
+						if (newOp is not Mult)
+							return (root, false);
+
+						if (newOp.operand1 is PlaceHolderLeaf { canBeX: true } ph1)
+							ph1.canBeConstant = false;
+						else if (newOp.operand2 is PlaceHolderLeaf { canBeX: true } ph2)
+							ph2.canBeConstant = false;
 					}
+
+					op.operand2 = newOp;
+					return (root, true);
 				}
             }
 

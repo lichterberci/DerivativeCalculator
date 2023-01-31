@@ -180,9 +180,9 @@ namespace DerivativeCalculator
 			{
 				numAllowedFromEachOperatorType = new Dictionary<OperatorType, int>()
 				{
-					{OperatorType.Add,  10 },
-					{OperatorType.Div,  10 },
-					{OperatorType.Pow,  10 }
+					{OperatorType.Mult,  10 },
+					{OperatorType.Ln,    1 },
+					{OperatorType.Pow,   1 }
 				},
 				difficultyOfPower = DifficultyOfPower.PolinomOrSimpleExponential,
 				difficultyOfMultiplication = DifficultyOfMultiplication.OnlyConstant,
@@ -192,12 +192,13 @@ namespace DerivativeCalculator
 				numMaxLevelOfComposition = 1,
 				numMinParameters = 0,
 				numMaxParameters = 0,
-				minConstValue = -100,
-				maxConstValue = 1,
+				minConstValue = -10,
+				maxConstValue = 10,
 				constIsOnlyInt = true,
 				parameterChance = 0.0f,
 				shouldYieldNonZeroDiff = true,
-				shouldYieldNonConstDiff = false
+				shouldYieldNonConstDiff = true,
+				absTrigHypLogFunctionsCanOnlyContainMultiplesOfXOrX = true
 			};
 		}
 	}

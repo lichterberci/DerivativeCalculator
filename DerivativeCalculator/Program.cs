@@ -61,7 +61,7 @@ public partial class Program
 				Console.WriteLine($"{i}/{maxIter}");
 
 			var exercise = ExerciseGenerator.GenerateRandomTree(
-				DifficultyMetrics.Medium,
+				DifficultyMetrics.Test,
 				new SimplificationParams(
 					  'x'
 					)
