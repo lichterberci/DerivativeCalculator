@@ -48,11 +48,11 @@ namespace DerivativeCalculator
 			{
 				numAllowedFromEachOperatorType = new Dictionary<OperatorType, int>()
 				{
-					{ OperatorType.Add, 6 },
-					{ OperatorType.Sub, 3 },
-					{ OperatorType.Mult, 4 },
-					{ OperatorType.Div, 1 },
-					{ OperatorType.Pow, 2 }
+					{ OperatorType.Add,		6 },
+					{ OperatorType.Sub,		3 },
+					{ OperatorType.Mult,	5 },
+					{ OperatorType.Div,		1 },
+					{ OperatorType.Pow,		2 }
 				},
 				difficultyOfPower = DifficultyOfPower.Polinom,
 				difficultyOfMultiplication = DifficultyOfMultiplication.OnlyConstant,
@@ -104,7 +104,7 @@ namespace DerivativeCalculator
 				{
 					{OperatorType.Add,  6},
 					{OperatorType.Sub,  2},
-					{OperatorType.Mult, 5},
+					{OperatorType.Mult, 10},
 					{OperatorType.Div,  3},
 					{OperatorType.Pow,  4},
 					{OperatorType.Sin,  1},

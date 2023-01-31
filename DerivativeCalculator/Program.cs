@@ -9,27 +9,27 @@ public partial class Program
 	public static void Main()
 	{
 
-		DerivativeManager.DifferentiateFromConsole();
+		//DerivativeManager.DifferentiateFromConsole();
 
-		return;
+		//return;
 
-		TreeNode tree = new Div(
-			new Mult(
-				new Mult(
-					  new Constant(-1),
-					  new Constant(2)
-				  ),
-				new Variable('x')
-			),	
-			new Variable('y')
-		);
+		//TreeNode tree = new Div(
+		//	new Mult(
+		//		new Mult(
+		//			  new Constant(-1),
+		//			  new Constant(2)
+		//		  ),
+		//		new Variable('x')
+		//	),	
+		//	new Variable('y')
+		//);
 
-		tree.PrintToConsole();
+		//tree.PrintToConsole();
 
-		tree = tree.Simplify(SimplificationParams.Default);
-		//tree = tree.GetSimplestForm(SimplificationParams.Default);
+		//tree = tree.Simplify(SimplificationParams.Default);
+		////tree = tree.GetSimplestForm(SimplificationParams.Default);
 
-		tree.PrintToConsole();
+		//tree.PrintToConsole();
 
 
 		//var left = new Mult(
@@ -53,24 +53,24 @@ public partial class Program
 
 		//Console.WriteLine(TreeUtils.MatchPattern(left, right, out _));
 
-		//const int maxIter = 2000;
+		const int maxIter = 2000;
 
-		//for (int i = 0; i < maxIter; i++)
-		//{
-		//	if (i % 100 == 0)
-		//		Console.WriteLine($"{i}/{maxIter}");
+		for (int i = 0; i < maxIter; i++)
+		{
+			if (i % 100 == 0)
+				Console.WriteLine($"{i}/{maxIter}");
 
-		//	var exercise = ExerciseGenerator.GenerateRandomTree(
-		//		DifficultyMetrics.Hardcore, 
-		//		new SimplificationParams(
-		//			  'x'
-		//			)
-		//	);
+			var exercise = ExerciseGenerator.GenerateRandomTree(
+				DifficultyMetrics.Medium,
+				new SimplificationParams(
+					  'x'
+					)
+			);
 
-		//	DerivativeManager.DifferentiateTree(exercise, 'x', out _, out _, out _, out _, null);
+			DerivativeManager.DifferentiateTree(exercise, 'x', out _, out _, out _, out _, null);
 
-		//	//Console.WriteLine(exercise.ToLatexString() + " = " + exercise.Diff('x').ToLatexString());
-		//}
+			//Console.WriteLine(exercise.ToLatexString() + " = " + exercise.Diff('x').ToLatexString());
+		}
 
 		//var list = new List<TreeNode>()
 		//{

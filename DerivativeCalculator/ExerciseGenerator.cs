@@ -7,12 +7,12 @@ namespace DerivativeCalculator
     
     public class PlaceHolderLeaf : TreeNode
     {
-        public readonly bool canBeConstant;
-        public readonly bool canBeX;
-        public readonly double minValue;
-        public readonly bool isMinValueInclusive;
-        public readonly double maxValue; // inclusive
-        public readonly bool cannotBeExpressionOnlyMultipleOfX; // 2x is fine, but 3x-2 or sin(x) are not
+        public bool canBeConstant;
+        public bool canBeX;
+        public double minValue;
+        public bool isMinValueInclusive;
+        public double maxValue; // inclusive
+        public bool cannotBeExpressionOnlyMultipleOfX; // 2x is fine, but 3x-2 or sin(x) are not
 
         public PlaceHolderLeaf(bool canBeConstant, bool canBeX, bool cannotBeExpressionOnlyMultipleOfX = false)
         {
@@ -257,8 +257,19 @@ namespace DerivativeCalculator
 			if (root is not Operator op)
 				return (root, false);
 
-            bool isNewOpEasyMult = op is Mult { operand1: PlaceHolderLeaf { canBeConstant: false }, operand2: PlaceHolderLeaf { canBeX: true } }
-                                || op is Mult { operand2: PlaceHolderLeaf { canBeConstant: false }, operand1: PlaceHolderLeaf { canBeX: true } };
+            bool isNewOpEasyMult = op is Mult { operand1: PlaceHolderLeaf { canBeX: false }, operand2: PlaceHolderLeaf { canBeX: true } }
+                                || op is Mult { operand1: PlaceHolderLeaf { canBeX: true }, operand2: PlaceHolderLeaf { canBeX: false } };
+
+            // disallow one placeholder to turn into a constant (to avoid 2 constants)
+            if (isNewOpEasyMult)
+            {
+                if (op.operand1 is PlaceHolderLeaf { canBeX: true } ph1)
+                    ph1.canBeConstant = false;
+                else if (op.operand2 is PlaceHolderLeaf { canBeX: true } ph2)
+                    ph2.canBeConstant = false;
+                else // neither can be constant
+                    return (root, false);
+            }
 
 			if (op.numOperands == 1)
             {
@@ -303,12 +314,12 @@ namespace DerivativeCalculator
 
                     if (op.operand2 is PlaceHolderLeaf { canBeX: true })
                     {
-						// can only place c*x, so everything elso must not be considered
-						if (isNewOpEasyMult == false && op.operand2 is PlaceHolderLeaf { cannotBeExpressionOnlyMultipleOfX: true })
-							return (root, false);
-
-						op.operand2 = newOp;
-                        return (root, true);
+                        // can only place c*x, so everything elso must not be considered
+                        if (isNewOpEasyMult || op.operand2 is PlaceHolderLeaf { cannotBeExpressionOnlyMultipleOfX: false })
+                        {
+                            op.operand2 = newOp;
+                            return (root, true);
+                        }
                     }
                 }
 
@@ -326,12 +337,12 @@ namespace DerivativeCalculator
 				if (op.operand1 is PlaceHolderLeaf { canBeX: true })
 				{
 					// can only place c*x, so everything elso must not be considered
-					if (isNewOpEasyMult == false && op.operand1 is PlaceHolderLeaf { cannotBeExpressionOnlyMultipleOfX: true })
-						return (root, false);
-
-					op.operand1 = newOp;
-                    return (root, true);
-                }
+					if (isNewOpEasyMult || op.operand1 is PlaceHolderLeaf { cannotBeExpressionOnlyMultipleOfX: false })
+					{
+						op.operand1 = newOp;
+						return (root, true);
+					}
+				}
 
                 if (op.operand2 is Operator)
                 {
@@ -347,12 +358,12 @@ namespace DerivativeCalculator
 				if (op.operand2 is PlaceHolderLeaf { canBeX: true })
 				{
 					// can only place c*x, so everything elso must not be considered
-					if (isNewOpEasyMult == false && op.operand2 is PlaceHolderLeaf { cannotBeExpressionOnlyMultipleOfX: true })
-						return (root, false);
-
-					op.operand2 = newOp;
-                    return (root, true);
-                }
+					if (isNewOpEasyMult || op.operand2 is PlaceHolderLeaf { cannotBeExpressionOnlyMultipleOfX: false })
+					{
+						op.operand2 = newOp;
+						return (root, true);
+					}
+				}
             }
 
 			return (root, false);
@@ -407,12 +418,13 @@ namespace DerivativeCalculator
                 if (root is not PlaceHolderLeaf ph)
                     throw new ExerciseCouldNotBeGeneratedException("root is of invalid type!");
 
-                return (ph.canBeConstant, ph.canBeX) switch
+                return (ph.canBeConstant, ph.canBeX, ph.cannotBeExpressionOnlyMultipleOfX) switch
                 {
-                    (false, true ) => (0, 1, 0),
-                    (true,  false) => (0, 0, 1),
-                    (true,  true ) => (1, 0, 0),
-                    (false, false) => (0, 0, 0)
+                    (_,     _,     true ) => (0, 1, 0),
+                    (false, true,  false) => (0, 1, 0),
+                    (true,  false, false) => (0, 0, 1),
+                    (true,  true,  false) => (1, 0, 0),
+                    (false, false, false) => (0, 0, 0)
 				};
             }
 
@@ -547,6 +559,14 @@ namespace DerivativeCalculator
 							return (root, true);
 						}
                     }
+                    else if (ph1.cannotBeExpressionOnlyMultipleOfX)
+                    {
+                        if (leafIsX)
+                        {
+                            op.operand1 = leafNode;
+                            return (root, true);
+                        }
+					}
                     else
                     {
 						if (
@@ -558,7 +578,7 @@ namespace DerivativeCalculator
 							op.operand1 = leafNode;
 							return (root, true);
 						}
-					}
+                    }
 				}
             }
             else
@@ -583,6 +603,14 @@ namespace DerivativeCalculator
 						if (ph1.canBeConstant && ph1.canBeX == false && leafIsX == false)
 						{
 							//Console.WriteLine($"{ph1} -> {leafNode}");
+							op.operand1 = leafNode;
+							return (root, true);
+						}
+					}
+					else if (ph1.cannotBeExpressionOnlyMultipleOfX)
+					{
+						if (leafIsX)
+						{
 							op.operand1 = leafNode;
 							return (root, true);
 						}
@@ -621,6 +649,14 @@ namespace DerivativeCalculator
 						if (ph2.canBeConstant && ph2.canBeX == false && leafIsX == false)
 						{
 							//Console.WriteLine($"{ph2} -> {leafNode}");
+							op.operand2 = leafNode;
+							return (root, true);
+						}
+					}
+					else if (ph2.cannotBeExpressionOnlyMultipleOfX)
+					{
+						if (leafIsX)
+						{
 							op.operand2 = leafNode;
 							return (root, true);
 						}
@@ -709,6 +745,9 @@ namespace DerivativeCalculator
 
 			TreeNode tree = null;
 
+            const int loopIterLimit = 200;
+            int loopCounter = 0; // for safety
+
             simplificationParams = simplificationParams with
             {
                 varToDiff = 'x'
@@ -721,7 +760,8 @@ namespace DerivativeCalculator
                 //Console.WriteLine("Generating tree...");
 
                 var opTypeList = GenerateOperatorList(difficulty);
-                
+
+                loopCounter = 0;
                 while (opTypeList.Count > 0)
                 {
                     int chosenOpIndex = random.Next() % opTypeList.Count;
@@ -730,7 +770,15 @@ namespace DerivativeCalculator
 
                     if (wasSuccessful)
                         opTypeList.RemoveAt(chosenOpIndex);
+
+                    if (++loopCounter > loopIterLimit)
+                        break;
                 }
+
+                if (loopCounter > loopIterLimit)
+                    continue;
+                else
+                    loopCounter = 0;
 
                 int compositionLevel = MaxLevelOfComposition(tree);
 
@@ -770,6 +818,7 @@ namespace DerivativeCalculator
 
                 List<TreeNode> remainingList = xList.Concat(constList).ToList();
 
+                loopCounter = 0;
                 while (remainingList.Count > 0)
                 {
                     int chosenLeafIndex = random.Next() % remainingList.Count;
@@ -778,10 +827,17 @@ namespace DerivativeCalculator
 
                     if (wasSuccessful)
                         remainingList.RemoveAt(chosenLeafIndex);
+
+                    if (++loopCounter > loopIterLimit)
+                        break;
                 }
 
+				if (loopCounter > loopIterLimit)
+					continue;
+				else
+					loopCounter = 0;
 
-                if (TreeUtils.DoesTreeContainNull(tree))
+				if (TreeUtils.DoesTreeContainNull(tree))
                     continue;
 
                 try
