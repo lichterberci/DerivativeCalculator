@@ -8,7 +8,7 @@ namespace DerivativeCalculator
 {
 	public enum DifficultyOfPower
 	{
-		Polinom, PolinomOrExponential, BothCanBeDependent
+		Polinom, PolinomOrSimpleExponential, BothCanBeDependent
 	}
 
 	public enum DifficultyOfMultiplication
@@ -33,7 +33,7 @@ namespace DerivativeCalculator
 		public float parameterChance;
 		public bool shouldYieldNonZeroDiff;
 		public bool shouldYieldNonConstDiff;
-
+		public bool absTrigHypLogFunctionsCanOnlyContainMultiplesOfXOrX;
 
 		public static readonly DifficultyMetrics Easy;
 		public static readonly DifficultyMetrics Medium;
@@ -48,11 +48,11 @@ namespace DerivativeCalculator
 			{
 				numAllowedFromEachOperatorType = new Dictionary<OperatorType, int>()
 				{
-					{OperatorType.Add,  6},
-					{OperatorType.Sub,  3},
-					{OperatorType.Mult, 4},
-					{OperatorType.Div,  1},
-					{OperatorType.Pow,  2}
+					{ OperatorType.Add, 6 },
+					{ OperatorType.Sub, 3 },
+					{ OperatorType.Mult, 4 },
+					{ OperatorType.Div, 1 },
+					{ OperatorType.Pow, 2 }
 				},
 				difficultyOfPower = DifficultyOfPower.Polinom,
 				difficultyOfMultiplication = DifficultyOfMultiplication.OnlyConstant,
@@ -67,7 +67,8 @@ namespace DerivativeCalculator
 				constIsOnlyInt = true,
 				parameterChance = 0.0f,
 				shouldYieldNonZeroDiff = true,
-				shouldYieldNonConstDiff = false
+				shouldYieldNonConstDiff = false,
+				absTrigHypLogFunctionsCanOnlyContainMultiplesOfXOrX = true
 			};
 
 			Medium = new()
@@ -80,7 +81,7 @@ namespace DerivativeCalculator
 					{OperatorType.Div,  3},
 					{OperatorType.Pow,  5}
 				},
-				difficultyOfPower = DifficultyOfPower.PolinomOrExponential,
+				difficultyOfPower = DifficultyOfPower.PolinomOrSimpleExponential,
 				difficultyOfMultiplication = DifficultyOfMultiplication.BothCanBeDependent,
 				numMinOperators = 5,
 				numMaxOperators = 10,
@@ -93,7 +94,8 @@ namespace DerivativeCalculator
 				constIsOnlyInt = true,
 				parameterChance = 0.0f,
 				shouldYieldNonZeroDiff = true,
-				shouldYieldNonConstDiff = true
+				shouldYieldNonConstDiff = true,
+				absTrigHypLogFunctionsCanOnlyContainMultiplesOfXOrX = true
 			};
 
 			Hard = new()
@@ -124,7 +126,8 @@ namespace DerivativeCalculator
 				constIsOnlyInt = true,
 				parameterChance = 0.3f,
 				shouldYieldNonZeroDiff = true,
-				shouldYieldNonConstDiff = true
+				shouldYieldNonConstDiff = true,
+				absTrigHypLogFunctionsCanOnlyContainMultiplesOfXOrX = false
 			};
 
 			Hardcore = new()
@@ -154,7 +157,7 @@ namespace DerivativeCalculator
 					{OperatorType.Arcosh,   2},
 					{OperatorType.Artanh,   2},
 					{OperatorType.Arcoth,   2},
-					{OperatorType.Abs,   2},
+					{OperatorType.Abs,		2},
 				},
 				difficultyOfPower = DifficultyOfPower.BothCanBeDependent,
 				difficultyOfMultiplication = DifficultyOfMultiplication.BothCanBeDependent,
@@ -169,7 +172,8 @@ namespace DerivativeCalculator
 				constIsOnlyInt = false,
 				parameterChance = 0.6f,
 				shouldYieldNonZeroDiff = true,
-				shouldYieldNonConstDiff = true
+				shouldYieldNonConstDiff = true,
+				absTrigHypLogFunctionsCanOnlyContainMultiplesOfXOrX = false
 			};
 
 			Test = new()
@@ -180,7 +184,7 @@ namespace DerivativeCalculator
 					{OperatorType.Div,  10 },
 					{OperatorType.Pow,  10 }
 				},
-				difficultyOfPower = DifficultyOfPower.PolinomOrExponential,
+				difficultyOfPower = DifficultyOfPower.PolinomOrSimpleExponential,
 				difficultyOfMultiplication = DifficultyOfMultiplication.OnlyConstant,
 				numMinOperators = 2,
 				numMaxOperators = 7,

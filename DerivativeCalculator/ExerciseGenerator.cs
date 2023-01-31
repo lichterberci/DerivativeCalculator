@@ -12,8 +12,9 @@ namespace DerivativeCalculator
         public readonly double minValue;
         public readonly bool isMinValueInclusive;
         public readonly double maxValue; // inclusive
+        public readonly bool cannotBeExpressionOnlyMultipleOfX; // 2x is fine, but 3x-2 or sin(x) are not
 
-        public PlaceHolderLeaf(bool canBeConstant, bool canBeX)
+        public PlaceHolderLeaf(bool canBeConstant, bool canBeX, bool cannotBeExpressionOnlyMultipleOfX = false)
         {
             this.canBeConstant = canBeConstant;
             this.canBeX = canBeX;
@@ -21,9 +22,10 @@ namespace DerivativeCalculator
             this.minValue = double.MinValue;
             this.isMinValueInclusive = true;
             this.maxValue = double.MaxValue;
+            this.cannotBeExpressionOnlyMultipleOfX = cannotBeExpressionOnlyMultipleOfX;
         }
 
-		public PlaceHolderLeaf(bool canBeConstant, bool canBeX, double minValue, bool isMinValueInclusive)
+        public PlaceHolderLeaf(bool canBeConstant, bool canBeX, double minValue, bool isMinValueInclusive, bool cannotBeExpressionOnlyMultipleOfX = false)
 		{
 			this.canBeConstant = canBeConstant;
 			this.canBeX = canBeX;
@@ -31,9 +33,10 @@ namespace DerivativeCalculator
             this.isMinValueInclusive = isMinValueInclusive;
 
 			this.maxValue = double.MaxValue;
+            this.cannotBeExpressionOnlyMultipleOfX = cannotBeExpressionOnlyMultipleOfX;
 		}
 
-		public PlaceHolderLeaf(bool canBeConstant, bool canBeX, double minValue, bool isMinValueInclusive, double maxValue)
+		public PlaceHolderLeaf(bool canBeConstant, bool canBeX, double minValue, bool isMinValueInclusive, double maxValue, bool cannotBeExpressionOnlyMultipleOfX = false)
 		{
 			this.canBeConstant = canBeConstant;
 			this.canBeX = canBeX;
@@ -41,9 +44,10 @@ namespace DerivativeCalculator
 			this.isMinValueInclusive = isMinValueInclusive;
 
 			this.maxValue = maxValue;
+			this.cannotBeExpressionOnlyMultipleOfX = cannotBeExpressionOnlyMultipleOfX;
 		}
 
-        public override string ToString()
+		public override string ToString()
         {
 			string min = minValue == double.MinValue ? "MIN" : minValue.ToString();
 			string max = maxValue == double.MaxValue ? "MAX" : maxValue.ToString();
@@ -206,9 +210,9 @@ namespace DerivativeCalculator
                     (newOp.operand1, newOp.operand2) = difficulty.difficultyOfPower switch
                     {
                         DifficultyOfPower.Polinom => (new PlaceHolderLeaf(false, true), new PlaceHolderLeaf(true, false)),
-                        DifficultyOfPower.PolinomOrExponential => random.Next() % 2 == 0 ?
+                        DifficultyOfPower.PolinomOrSimpleExponential => random.Next() % 2 == 0 ?
                                                                     (new PlaceHolderLeaf(false, true), new PlaceHolderLeaf(true, false)) :
-                                                                    (new PlaceHolderLeaf(true, false, 0, false), new PlaceHolderLeaf(false, true)),
+                                                                    (new PlaceHolderLeaf(true, false, 0, false), new PlaceHolderLeaf(false, true, true)),
                         _ => (new PlaceHolderLeaf(true, true, 0, false), new PlaceHolderLeaf(true, true))
                     };
                     break;
@@ -226,7 +230,10 @@ namespace DerivativeCalculator
 				default:
                     if (newOp.numOperands == 1)
                     {
-                        newOp.operand1 = new PlaceHolderLeaf(false, true);
+                        if (difficulty.absTrigHypLogFunctionsCanOnlyContainMultiplesOfXOrX)
+                            newOp.operand1 = new PlaceHolderLeaf(false, true, true);
+                        else
+                            newOp.operand1 = new PlaceHolderLeaf(false, true);
                     }
                     else
                     {
@@ -250,6 +257,9 @@ namespace DerivativeCalculator
 			if (root is not Operator op)
 				return (root, false);
 
+            bool isNewOpEasyMult = op is Mult { operand1: PlaceHolderLeaf { canBeConstant: false }, operand2: PlaceHolderLeaf { canBeX: true } }
+                                || op is Mult { operand2: PlaceHolderLeaf { canBeConstant: false }, operand1: PlaceHolderLeaf { canBeX: true } };
+
 			if (op.numOperands == 1)
             {
 				if (op.operand1 is Operator)
@@ -265,6 +275,10 @@ namespace DerivativeCalculator
 
 				if (op.operand1 is PlaceHolderLeaf { canBeX: true })
                 {
+                    // can only place c*x, so everything elso must not be considered
+                    if (isNewOpEasyMult == false && op.operand1 is PlaceHolderLeaf { cannotBeExpressionOnlyMultipleOfX: true })
+                        return (root, false);
+
                     op.operand1 = newOp;
                     return (root, true);
                 }
@@ -289,7 +303,11 @@ namespace DerivativeCalculator
 
                     if (op.operand2 is PlaceHolderLeaf { canBeX: true })
                     {
-                        op.operand2 = newOp;
+						// can only place c*x, so everything elso must not be considered
+						if (isNewOpEasyMult == false && op.operand2 is PlaceHolderLeaf { cannotBeExpressionOnlyMultipleOfX: true })
+							return (root, false);
+
+						op.operand2 = newOp;
                         return (root, true);
                     }
                 }
@@ -307,7 +325,11 @@ namespace DerivativeCalculator
 
 				if (op.operand1 is PlaceHolderLeaf { canBeX: true })
 				{
-                    op.operand1 = newOp;
+					// can only place c*x, so everything elso must not be considered
+					if (isNewOpEasyMult == false && op.operand1 is PlaceHolderLeaf { cannotBeExpressionOnlyMultipleOfX: true })
+						return (root, false);
+
+					op.operand1 = newOp;
                     return (root, true);
                 }
 
@@ -324,10 +346,15 @@ namespace DerivativeCalculator
 
 				if (op.operand2 is PlaceHolderLeaf { canBeX: true })
 				{
-                    op.operand2 = newOp;
+					// can only place c*x, so everything elso must not be considered
+					if (isNewOpEasyMult == false && op.operand2 is PlaceHolderLeaf { cannotBeExpressionOnlyMultipleOfX: true })
+						return (root, false);
+
+					op.operand2 = newOp;
                     return (root, true);
                 }
             }
+
 			return (root, false);
 		}
 
