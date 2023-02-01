@@ -180,16 +180,15 @@ namespace DerivativeCalculator
 			{
 				numAllowedFromEachOperatorType = new Dictionary<OperatorType, int>()
 				{
-					{OperatorType.Mult,  10 },
-					{OperatorType.Ln,    1 },
-					{OperatorType.Pow,   1 }
+					{OperatorType.Mult,  5 },
+					{OperatorType.Ln,    1 }
 				},
 				difficultyOfPower = DifficultyOfPower.PolinomOrSimpleExponential,
 				difficultyOfMultiplication = DifficultyOfMultiplication.OnlyConstant,
 				numMinOperators = 2,
-				numMaxOperators = 7,
-				numMinLevelOfComposition = 0,
-				numMaxLevelOfComposition = 1,
+				numMaxOperators = 5,
+				numMinLevelOfComposition = 1,
+				numMaxLevelOfComposition = 2,
 				numMinParameters = 0,
 				numMaxParameters = 0,
 				minConstValue = -10,

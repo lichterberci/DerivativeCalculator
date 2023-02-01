@@ -54,12 +54,24 @@ namespace DerivativeCalculator
 
 			string range = $"{(isMinValueInclusive ? "[" : "(")}{min}; {max}]";
 
-			if (canBeX && canBeConstant)
-                return $"Placeholder(x | c {range})";
-            else if (canBeX)
-                return "Placeholder(x)";
+            if (cannotBeExpressionOnlyMultipleOfX)
+            {
+			    if (canBeX && canBeConstant)
+                    return $"Placeholder(x | c {range})";
+                else if (canBeX)
+                    return "Placeholder(x)";
+                else
+                    return $"Placeholder(c {range})";
+            }
             else
-                return $"Placeholder(c {range})";
+            {
+				if (canBeX && canBeConstant)
+					return $"Placeholder(f(x) | c {range})";
+				else if (canBeX)
+					return "Placeholder(f(x))";
+				else
+					return $"Placeholder(c {range})";
+			}
         }
 
         public bool IsConstantValid (TreeNode root)
@@ -219,7 +231,7 @@ namespace DerivativeCalculator
                 case OperatorType.Mult:
                     (newOp.operand1, newOp.operand2) = difficulty.difficultyOfMultiplication switch
                     {
-                        DifficultyOfMultiplication.OnlyConstant => (new PlaceHolderLeaf(true, false), new PlaceHolderLeaf(false, true)),
+                        DifficultyOfMultiplication.OnlyConstant => (new PlaceHolderLeaf(true, true, true), new PlaceHolderLeaf(false, true)),
                         _ => (new PlaceHolderLeaf(true, true), new PlaceHolderLeaf(false, true))
                     };
                     break;
@@ -306,19 +318,18 @@ namespace DerivativeCalculator
                         }
                     }
 
-                    if (op.operand2 is PlaceHolderLeaf { canBeX: true })
+                    if (op.operand2 is PlaceHolderLeaf { canBeX: true, cannotBeExpressionOnlyMultipleOfX: false })
                     {
-						// can only place c*x, so everything elso must not be considered
-						if (op.operand2 is PlaceHolderLeaf { cannotBeExpressionOnlyMultipleOfX: true })
-						{
-							if (newOp is not Mult)
-								return (root, false);
+                        op.operand2 = newOp;
+                        return (root, true);
+					}
 
-							if (newOp.operand1 is PlaceHolderLeaf { canBeX: true } ph1)
-								ph1.canBeConstant = false;
-							else if (newOp.operand2 is PlaceHolderLeaf { canBeX: true } ph2)
-								ph2.canBeConstant = false;
-						}
+                    if (op.operand2 is PlaceHolderLeaf { canBeX: true, cannotBeExpressionOnlyMultipleOfX: true } && newOp is Mult)
+                    {
+						if (newOp.operand1 is PlaceHolderLeaf { canBeX: true } ph1)
+							ph1.canBeConstant = false;
+						else if (newOp.operand2 is PlaceHolderLeaf { canBeX: true } ph2)
+							ph2.canBeConstant = false;
 
                         op.operand2 = newOp;
                         return (root, true);
@@ -336,25 +347,24 @@ namespace DerivativeCalculator
                     }
                 }
 
-				if (op.operand1 is PlaceHolderLeaf { canBeX: true })
+				if (op.operand1 is PlaceHolderLeaf { canBeX: true, cannotBeExpressionOnlyMultipleOfX: false })
 				{
-					// can only place c*x, so everything elso must not be considered
-					if (op.operand1 is PlaceHolderLeaf { cannotBeExpressionOnlyMultipleOfX: true })
-					{
-						if (newOp is not Mult)
-							return (root, false);
-
-						if (newOp.operand1 is PlaceHolderLeaf { canBeX: true } ph1)
-							ph1.canBeConstant = false;
-						else if (newOp.operand2 is PlaceHolderLeaf { canBeX: true } ph2)
-							ph2.canBeConstant = false;
-					}
-
 					op.operand1 = newOp;
 					return (root, true);
 				}
 
-                if (op.operand2 is Operator)
+				if (op.operand1 is PlaceHolderLeaf { canBeX: true, cannotBeExpressionOnlyMultipleOfX: true } && newOp is Mult)
+				{
+					if (newOp.operand1 is PlaceHolderLeaf { canBeX: true } ph1)
+						ph1.canBeConstant = false;
+					else if (newOp.operand2 is PlaceHolderLeaf { canBeX: true } ph2)
+						ph2.canBeConstant = false;
+
+					op.operand1  = newOp;
+					return (root, true);
+				}
+
+				if (op.operand2 is Operator)
                 {
                     (var tree, bool wasSuccessful) = AddOperatorToTree(op.operand2, type, difficulty);
 
@@ -365,29 +375,31 @@ namespace DerivativeCalculator
                     }
                 }
 
-				if (op.operand2 is PlaceHolderLeaf { canBeX: true })
+				if (op.operand2 is PlaceHolderLeaf { canBeX: true, cannotBeExpressionOnlyMultipleOfX: false })
 				{
-					// can only place c*x, so everything elso must not be considered
-					if (op.operand2 is PlaceHolderLeaf { cannotBeExpressionOnlyMultipleOfX: true })
-					{
-						if (newOp is not Mult)
-							return (root, false);
+					op.operand2 = newOp;
+					return (root, true);
+				}
 
-						if (newOp.operand1 is PlaceHolderLeaf { canBeX: true } ph1)
-							ph1.canBeConstant = false;
-						else if (newOp.operand2 is PlaceHolderLeaf { canBeX: true } ph2)
-							ph2.canBeConstant = false;
-					}
+				if (op.operand2 is PlaceHolderLeaf { canBeX: true, cannotBeExpressionOnlyMultipleOfX: true } && newOp is Mult)
+				{
+					if (newOp.operand1 is PlaceHolderLeaf { canBeX: true } ph1)
+						ph1.canBeConstant = false;
+					else if (newOp.operand2 is PlaceHolderLeaf { canBeX: true } ph2)
+						ph2.canBeConstant = false;
 
 					op.operand2 = newOp;
 					return (root, true);
 				}
-            }
+			}
 
 			return (root, false);
 		}
 
-        private static int MaxLevelOfComposition (TreeNode root, int depth = 0)
+
+
+    
+		private static int MaxLevelOfComposition (TreeNode root, int depth = 0)
         {
             if (root is null)
                 return depth;
@@ -400,14 +412,13 @@ namespace DerivativeCalculator
             if (operatorTypesThatCountAsComposition.Contains(op.type))
             {
                 if (op.type == OperatorType.Mult)
-                {
-                    // multiplying by a constant is not comp
-                    if (op.operand1 is not Constant && op.operand2 is not Constant)
-                        newDepth = depth + 1;
+                {   
+                    if (op.operand1 is Operator && op.operand2 is Operator)
+						newDepth = depth + 1;
                 }
                 else if (op.type == OperatorType.Div)
                 {
-                    if (op.operand2 is not Constant)
+                    if (op.operand2 is not Constant && op.operand2 is not PlaceHolderLeaf { canBeX: false, canBeConstant: true })
                         newDepth = depth + 1;
                 }
                 else
@@ -561,7 +572,10 @@ namespace DerivativeCalculator
 
                     if (onlyX)
                     {
-						if (ph1.canBeX && ph1.canBeConstant == false && leafIsX)
+						if (
+                            (ph1.canBeX && ph1.canBeConstant == false && leafIsX)
+                            || (ph1.cannotBeExpressionOnlyMultipleOfX && leafIsX)
+                        )
 						{
 							//Console.WriteLine($"{ph1} -> {leafNode}");
 							op.operand1 = leafNode;
@@ -609,7 +623,10 @@ namespace DerivativeCalculator
 
 					if (onlyX)
 					{
-						if (ph1.canBeX && ph1.canBeConstant == false && leafIsX)
+						if (
+                            (ph1.canBeX && ph1.canBeConstant == false && leafIsX)
+							|| (ph1.cannotBeExpressionOnlyMultipleOfX && leafIsX)
+						)
 						{
 							//Console.WriteLine($"{ph1} -> {leafNode}");
 							op.operand1 = leafNode;
@@ -655,7 +672,10 @@ namespace DerivativeCalculator
 
 					if (onlyX)
 					{
-						if (ph2.canBeX && ph2.canBeConstant == false && leafIsX)
+						if (
+                            (ph2.canBeX && ph2.canBeConstant == false && leafIsX)
+                            || (ph2.cannotBeExpressionOnlyMultipleOfX && leafIsX)
+						)
 						{
 							//Console.WriteLine($"{ph2} -> {leafNode}");
 							op.operand2 = leafNode;
