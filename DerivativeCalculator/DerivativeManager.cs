@@ -114,7 +114,7 @@ namespace DerivativeCalculator
 			//{
 				diffTree = Differentiator.DifferentiateWithStepsRecorded(tree, varToDifferentiate, simplificationParams);
 
-				Console.WriteLine(TreeUtils.CollapseTreeToString(diffTree));
+				//Console.WriteLine(TreeUtils.CollapseTreeToString(diffTree));
 
 				stepsAsLatex = Differentiator.steps;
 				stepDescriptions = Differentiator.stepDescriptions;

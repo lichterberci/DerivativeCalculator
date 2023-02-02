@@ -612,5 +612,20 @@
 				return DoesTreeContainInvalidOp(op.operand1, ref numAllowedOps) || DoesTreeContainInvalidOp(op.operand2, ref numAllowedOps);
 			}
 		}
+
+		public static int OperatorCountOfTree (TreeNode root)
+		{
+			if (root is not Operator op)
+				return 0;
+
+			if (op.numOperands == 1)
+			{
+				return 1 + OperatorCountOfTree(op.operand1);
+			}
+			else
+			{
+				return 1 + OperatorCountOfTree(op.operand1) + OperatorCountOfTree(op.operand2);
+			}
+		}
 	}
 }

@@ -192,7 +192,7 @@ namespace DerivativeCalculator
 
                 foreach ((OperatorType key, int value) in numOperandsRemainingFromType)
                 {
-                    if (runningSum + value >= randomIndex)
+                    if (runningSum + value > randomIndex)
                     {
                         // we have found it
                         result.Add(key);
@@ -290,10 +290,10 @@ namespace DerivativeCalculator
                         if (newOp is not Mult)
                             return (root, false);
 
-                        if (newOp.operand1 is PlaceHolderLeaf { canBeX: true } ph1)
-                            ph1.canBeConstant = false;
-                        else if (newOp.operand2 is PlaceHolderLeaf { canBeX: true } ph2)
-							ph2.canBeConstant = false;
+						// regardless of the current configuration, it will be a c*x
+
+						newOp.operand1 = new PlaceHolderLeaf(true, false, false);
+						newOp.operand2 = new PlaceHolderLeaf(false, true, true);
 					}
 
                     op.operand1 = newOp;
@@ -326,12 +326,12 @@ namespace DerivativeCalculator
 
                     if (op.operand2 is PlaceHolderLeaf { canBeX: true, cannotBeExpressionOnlyMultipleOfX: true } && newOp is Mult)
                     {
-						if (newOp.operand1 is PlaceHolderLeaf { canBeX: true } ph1)
-							ph1.canBeConstant = false;
-						else if (newOp.operand2 is PlaceHolderLeaf { canBeX: true } ph2)
-							ph2.canBeConstant = false;
+						// regardless of the current configuration, it will be a c*x
 
-                        op.operand2 = newOp;
+						newOp.operand1 = new PlaceHolderLeaf(true, false, false);
+						newOp.operand2 = new PlaceHolderLeaf(false, true, true);
+
+						op.operand2 = newOp;
                         return (root, true);
 					}
                 }
@@ -355,10 +355,10 @@ namespace DerivativeCalculator
 
 				if (op.operand1 is PlaceHolderLeaf { canBeX: true, cannotBeExpressionOnlyMultipleOfX: true } && newOp is Mult)
 				{
-					if (newOp.operand1 is PlaceHolderLeaf { canBeX: true } ph1)
-						ph1.canBeConstant = false;
-					else if (newOp.operand2 is PlaceHolderLeaf { canBeX: true } ph2)
-						ph2.canBeConstant = false;
+                    // regardless of the current configuration, it will be a c*x
+
+                    newOp.operand1 = new PlaceHolderLeaf(true, false, false);
+                    newOp.operand2 = new PlaceHolderLeaf(false, true, true);
 
 					op.operand1  = newOp;
 					return (root, true);
@@ -383,10 +383,10 @@ namespace DerivativeCalculator
 
 				if (op.operand2 is PlaceHolderLeaf { canBeX: true, cannotBeExpressionOnlyMultipleOfX: true } && newOp is Mult)
 				{
-					if (newOp.operand1 is PlaceHolderLeaf { canBeX: true } ph1)
-						ph1.canBeConstant = false;
-					else if (newOp.operand2 is PlaceHolderLeaf { canBeX: true } ph2)
-						ph2.canBeConstant = false;
+					// regardless of the current configuration, it will be a c*x
+
+					newOp.operand1 = new PlaceHolderLeaf(true, false, false);
+					newOp.operand2 = new PlaceHolderLeaf(false, true, true);
 
 					op.operand2 = newOp;
 					return (root, true);
@@ -395,9 +395,6 @@ namespace DerivativeCalculator
 
 			return (root, false);
 		}
-
-
-
     
 		private static int MaxLevelOfComposition (TreeNode root, int depth = 0)
         {
@@ -774,7 +771,12 @@ namespace DerivativeCalculator
 			if (TreeUtils.DoesTreeContainInvalidOp(tree, ref tempDict))
                 return false;
 
-            return true;
+            int operatorCount = TreeUtils.OperatorCountOfTree(tree);
+
+            if (operatorCount > difficulty.numMaxOperators || operatorCount < difficulty.numMinOperators)
+                return false;
+
+			return true;
 		}
 
         public static TreeNode GenerateRandomTree (DifficultyMetrics difficulty, SimplificationParams simplificationParams)

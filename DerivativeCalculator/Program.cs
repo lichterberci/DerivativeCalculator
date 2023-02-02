@@ -69,7 +69,8 @@ public partial class Program
 
 			DerivativeManager.DifferentiateTree(exercise, 'x', out _, out _, out _, out _, null);
 
-			//Console.WriteLine(exercise.ToLatexString() + " = " + exercise.Diff('x').ToLatexString());
+			exercise.PrintToConsole();
+			//exercise.Diff('x').PrintToConsole();
 		}
 
 		//var list = new List<TreeNode>()
