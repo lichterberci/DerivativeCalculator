@@ -2320,7 +2320,7 @@ namespace DerivativeCalculator
 			}
 
 			Differentiator.AddStepDescription(new StepDescription(
-				$@"\frac{{d}}{{dx}}\log_{{10}}(x) = \frac{{1}}{{\ln\left(10\right)\cdotx}}",
+				$@"\frac{{d}}{{dx}}\log_{{10}}(x) = \frac{{1}}{{\ln\left(10\right) \cdot x}}",
 				operand1.ToLatexString()
 			));
 
