@@ -322,6 +322,9 @@ namespace DerivativeCalculator
 				}
 				else if (node is Operator op)
 					op.prioirty += priorityOffset;
+
+				if (priorityOffset < 0)
+					throw new ParsingError("Parenthesis are not facing correctly!");
 			}
 
 			if (priorityOffset != 0)
