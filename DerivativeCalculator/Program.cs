@@ -11,7 +11,7 @@ public partial class Program
 
 		//DerivativeManager.DifferentiateFromConsole();
 
-		string result = DerivativeManager.DifferentiateString("x|x|", out _, out _, out _, out _, out _);
+		string result = DerivativeManager.DifferentiateString("x|x^2|+abs(2x)", out _, out _, out _, out _, out _);
 		//Console.WriteLine(result);
 
 		//return;

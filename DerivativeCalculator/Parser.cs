@@ -10,6 +10,9 @@ namespace DerivativeCalculator
 			if (string.IsNullOrWhiteSpace(input))
 				throw new ParsingError("Input is empty or whitespace!");
 
+			if (input.Count(c => c == '|') > 2)
+				throw new ParsingError("The number of vertical bars ('|') should not exceed 2, because it would be ambiguous! Use abs() instead!");
+
 			input = input.Trim();
 
 			input = input.ToLower();
