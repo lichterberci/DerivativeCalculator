@@ -16,7 +16,10 @@
 			if (root is DerivativeSymbol)
 				return false;
 
-			return IsExpressionConstant((root as Operator).operand1, varToDiff) && IsExpressionConstant((root as Operator).operand2, varToDiff);
+			if (root is not Operator op)
+				return false;
+
+			return IsExpressionConstant(op.operand1, varToDiff) && IsExpressionConstant(op.operand2, varToDiff);
 		}
 
 		public static void PrintTree(TreeNode root, int depth = 0)
