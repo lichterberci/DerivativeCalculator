@@ -776,6 +776,9 @@ namespace DerivativeCalculator
             if (operatorCount > difficulty.numMaxOperators || operatorCount < difficulty.numMinOperators)
                 return false;
 
+            if (IsMultDivPowDifficultyOk(tree, difficulty) == false)
+                return false;
+
 			return true;
 		}
 
@@ -889,6 +892,46 @@ namespace DerivativeCalculator
 				return DoesTreeContainNan(op.operand1);
 			else
 				return DoesTreeContainNan(op.operand1) || DoesTreeContainNan(op.operand2);
+		}
+
+        private static bool IsMultDivPowDifficultyOk (TreeNode root, DifficultyMetrics difficulty)
+        {
+            if (root is not Operator op)
+                return true;
+
+            if (op is Mult)
+                return (difficulty.difficultyOfMultiplication, op.operand1.IsConstant('x'), op.operand2.IsConstant('x')) switch
+                {
+                    (DifficultyOfMultiplication.OnlyConstant, true, false) => true,
+                    (DifficultyOfMultiplication.OnlyConstant, false, true) => true,
+                    (DifficultyOfMultiplication.OnlyConstant, _, _) => false,
+                    (DifficultyOfMultiplication.BothCanBeDependent, _, _) => true
+				};
+
+            if (op is Div)
+				return (difficulty.difficultyOfMultiplication, op.operand1.IsConstant('x'), op.operand2.IsConstant('x')) switch
+				{
+					(DifficultyOfMultiplication.OnlyConstant, _, true) => true,
+					(DifficultyOfMultiplication.OnlyConstant, _, _) => false,
+					(DifficultyOfMultiplication.BothCanBeDependent, _, _) => true
+				};
+
+            if (op is Pow)
+				return (difficulty.difficultyOfPower, op.operand1.IsConstant('x'), op.operand2.IsConstant('x')) switch
+				{
+					(DifficultyOfPower.Polinom, _, true) => true,
+					(DifficultyOfPower.Polinom, _, _) => false,
+					(DifficultyOfPower.PolinomOrSimpleExponential, false, true) => true,
+					(DifficultyOfPower.PolinomOrSimpleExponential, true, false) => true,
+					(DifficultyOfPower.PolinomOrSimpleExponential, true, true) => true,
+					(DifficultyOfPower.PolinomOrSimpleExponential, false, false) => false,
+					(DifficultyOfPower.BothCanBeDependent, _, _) => true,
+				};
+
+            if (op.numOperands == 1)
+                return IsMultDivPowDifficultyOk(op.operand1, difficulty);
+            else
+                return IsMultDivPowDifficultyOk(op.operand1, difficulty) && IsMultDivPowDifficultyOk(op.operand2, difficulty);
 		}
 
 		public static TreeNode GenerateRandomTree (DifficultyMetrics difficulty, SimplificationParams simplificationParams)
