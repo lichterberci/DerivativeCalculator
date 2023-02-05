@@ -11,6 +11,9 @@ public partial class Program
 
 		//DerivativeManager.DifferentiateFromConsole();
 
+		string result = DerivativeManager.DifferentiateString("sin|x|", out _, out _, out _, out _, out _);
+		//Console.WriteLine(result);
+
 		//return;
 
 		//TreeNode tree = new Div(
@@ -53,25 +56,25 @@ public partial class Program
 
 		//Console.WriteLine(TreeUtils.MatchPattern(left, right, out _));
 
-		const int maxIter = 2000;
+		//const int maxIter = 2000;
 
-		for (int i = 0; i < maxIter; i++)
-		{
-			if (i % 100 == 0)
-				Console.WriteLine($"{i}/{maxIter}");
+		//for (int i = 0; i < maxIter; i++)
+		//{
+		//	if (i % 100 == 0)
+		//		Console.WriteLine($"{i}/{maxIter}");
 
-			var exercise = ExerciseGenerator.GenerateRandomTree(
-				DifficultyMetrics.Easy,
-				new SimplificationParams(
-					  'x'
-					)
-			);
+		//	var exercise = ExerciseGenerator.GenerateRandomTree(
+		//		DifficultyMetrics.Easy,
+		//		new SimplificationParams(
+		//			  'x'
+		//			)
+		//	);
 
-			DerivativeManager.DifferentiateTree(exercise, 'x', out _, out _, out _, out _, null);
+		//	DerivativeManager.DifferentiateTree(exercise, 'x', out _, out _, out _, out _, null);
 
-			exercise.PrintToConsole();
-			//exercise.Diff('x').PrintToConsole();
-		}
+		//	exercise.PrintToConsole();
+		//	//exercise.Diff('x').PrintToConsole();
+		//}
 
 		//var list = new List<TreeNode>()
 		//{
