@@ -1,0 +1,91 @@
+"filename", "language", "Markdown", "JavaScript", "CSS", "XML", "JSON", "C#", "ASP.NET Razor", "comment", "blank", "total"
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorAPI\.config\dotnet-tools.json", "JSON", 0, 0, 0, 0, 12, 0, 0, 0, 0, 12
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorAPI\Controllers\DerivativeController.cs", "C#", 0, 0, 0, 0, 0, 169, 0, 16, 33, 218
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorAPI\Controllers\ExerciseController.cs", "C#", 0, 0, 0, 0, 0, 320, 0, 22, 69, 411
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorAPI\DerivativeCalculatorAPI.csproj", "XML", 0, 0, 0, 13, 0, 0, 0, 0, 5, 18
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorAPI\DifferentiateQueryBody.cs", "C#", 0, 0, 0, 0, 0, 8, 0, 0, 1, 9
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorAPI\ExerciseQueryBody.cs", "C#", 0, 0, 0, 0, 0, 10, 0, 0, 2, 12
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorAPI\Preferences.cs", "C#", 0, 0, 0, 0, 0, 26, 0, 0, 7, 33
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorAPI\Program.cs", "C#", 0, 0, 0, 0, 0, 27, 0, 17, 13, 57
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorAPI\Properties\ServiceDependencies\DerivativeCalculatorAPI - Web Deploy\apis1.arm.json", "JSON", 0, 0, 0, 0, 131, 0, 0, 0, 0, 131
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorAPI\Properties\ServiceDependencies\DerivativeCalculatorAPI - Web Deploy\profile.arm.json", "JSON", 0, 0, 0, 0, 113, 0, 0, 0, 0, 113
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorAPI\Properties\launchSettings.json", "JSON", 0, 0, 0, 0, 31, 0, 0, 0, 1, 32
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorAPI\Properties\serviceDependencies.DerivativeCalculatorAPI - Web Deploy.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 0, 8
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorAPI\Properties\serviceDependencies.json", "JSON", 0, 0, 0, 0, 7, 0, 0, 0, 0, 7
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorAPI\ResponseData.cs", "C#", 0, 0, 0, 0, 0, 23, 0, 0, 3, 26
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorAPI\appsettings.Development.json", "JSON", 0, 0, 0, 0, 8, 0, 0, 0, 1, 9
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorAPI\appsettings.json", "JSON", 0, 0, 0, 0, 9, 0, 0, 0, 1, 10
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorWebsite\.config\dotnet-tools.json", "JSON", 0, 0, 0, 0, 12, 0, 0, 0, 0, 12
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorWebsite\DerivativeCalculatorWebsite.csproj", "XML", 0, 0, 0, 16, 0, 0, 0, 0, 6, 22
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorWebsite\Pages\Error.cshtml", "ASP.NET Razor", 0, 0, 0, 0, 0, 0, 23, 0, 4, 27
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorWebsite\Pages\Error.cshtml.cs", "C#", 0, 0, 0, 0, 0, 22, 0, 0, 6, 28
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorWebsite\Pages\Index.cshtml", "ASP.NET Razor", 0, 0, 0, 0, 0, 0, 85, 1, 33, 119
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorWebsite\Pages\Index.cshtml.cs", "C#", 0, 0, 0, 0, 0, 44, 0, 9, 13, 66
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorWebsite\Pages\Privacy.cshtml", "ASP.NET Razor", 0, 0, 0, 0, 0, 0, 7, 0, 2, 9
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorWebsite\Pages\Privacy.cshtml.cs", "C#", 0, 0, 0, 0, 0, 16, 0, 0, 3, 19
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorWebsite\Pages\Random.cshtml", "ASP.NET Razor", 0, 0, 0, 0, 0, 0, 94, 0, 32, 126
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorWebsite\Pages\Random.cshtml.cs", "C#", 0, 0, 0, 0, 0, 65, 0, 0, 17, 82
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorWebsite\Pages\Shared\_Layout.cshtml", "ASP.NET Razor", 0, 0, 0, 0, 0, 0, 45, 0, 2, 47
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorWebsite\Pages\Shared\_Layout.cshtml.css", "CSS", 0, 0, 38, 0, 0, 0, 0, 2, 9, 49
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorWebsite\Pages\Shared\_ValidationScriptsPartial.cshtml", "ASP.NET Razor", 0, 0, 0, 0, 0, 0, 2, 0, 1, 3
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorWebsite\Pages\_ViewImports.cshtml", "ASP.NET Razor", 0, 0, 0, 0, 0, 0, 3, 0, 1, 4
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorWebsite\Pages\_ViewStart.cshtml", "ASP.NET Razor", 0, 0, 0, 0, 0, 0, 3, 0, 1, 4
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorWebsite\Program.cs", "C#", 0, 0, 0, 0, 0, 15, 0, 4, 11, 30
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorWebsite\Properties\ServiceDependencies\DerivativeCalculatorWebsite20221201230426 - Web Deploy\profile.arm.json", "JSON", 0, 0, 0, 0, 113, 0, 0, 0, 0, 113
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorWebsite\Properties\launchSettings.json", "JSON", 0, 0, 0, 0, 28, 0, 0, 0, 1, 29
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorWebsite\appsettings.Development.json", "JSON", 0, 0, 0, 0, 9, 0, 0, 0, 1, 10
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorWebsite\appsettings.json", "JSON", 0, 0, 0, 0, 9, 0, 0, 0, 1, 10
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorWebsite\sprites\icon.svg", "XML", 0, 0, 0, 140, 0, 0, 0, 0, 1, 141
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorWebsite\wwwroot\css\site.css", "CSS", 0, 0, 170, 0, 0, 0, 0, 0, 35, 205
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorWebsite\wwwroot\js\site.js", "JavaScript", 0, 0, 0, 0, 0, 0, 0, 3, 2, 5
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorWebsite\wwwroot\lib\bootstrap\dist\css\bootstrap-grid.css", "CSS", 0, 0, 3855, 0, 0, 0, 0, 7, 1135, 4997
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorWebsite\wwwroot\lib\bootstrap\dist\css\bootstrap-grid.min.css", "CSS", 0, 0, 1, 0, 0, 0, 0, 6, 0, 7
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorWebsite\wwwroot\lib\bootstrap\dist\css\bootstrap-grid.rtl.css", "CSS", 0, 0, 3855, 0, 0, 0, 0, 7, 1134, 4996
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorWebsite\wwwroot\lib\bootstrap\dist\css\bootstrap-grid.rtl.min.css", "CSS", 0, 0, 1, 0, 0, 0, 0, 6, 0, 7
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorWebsite\wwwroot\lib\bootstrap\dist\css\bootstrap-reboot.css", "CSS", 0, 0, 347, 0, 0, 0, 0, 16, 64, 427
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorWebsite\wwwroot\lib\bootstrap\dist\css\bootstrap-reboot.min.css", "CSS", 0, 0, 1, 0, 0, 0, 0, 7, 0, 8
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorWebsite\wwwroot\lib\bootstrap\dist\css\bootstrap-reboot.rtl.css", "CSS", 0, 0, 353, 0, 0, 0, 0, 8, 63, 424
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorWebsite\wwwroot\lib\bootstrap\dist\css\bootstrap-reboot.rtl.min.css", "CSS", 0, 0, 1, 0, 0, 0, 0, 7, 0, 8
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorWebsite\wwwroot\lib\bootstrap\dist\css\bootstrap-utilities.css", "CSS", 0, 0, 3729, 0, 0, 0, 0, 9, 1128, 4866
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorWebsite\wwwroot\lib\bootstrap\dist\css\bootstrap-utilities.min.css", "CSS", 0, 0, 1, 0, 0, 0, 0, 6, 0, 7
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorWebsite\wwwroot\lib\bootstrap\dist\css\bootstrap-utilities.rtl.css", "CSS", 0, 0, 3725, 0, 0, 0, 0, 7, 1125, 4857
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorWebsite\wwwroot\lib\bootstrap\dist\css\bootstrap-utilities.rtl.min.css", "CSS", 0, 0, 1, 0, 0, 0, 0, 6, 0, 7
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorWebsite\wwwroot\lib\bootstrap\dist\css\bootstrap.css", "CSS", 0, 0, 9453, 0, 0, 0, 0, 27, 1741, 11221
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorWebsite\wwwroot\lib\bootstrap\dist\css\bootstrap.min.css", "CSS", 0, 0, 2, 0, 0, 0, 0, 5, 0, 7
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorWebsite\wwwroot\lib\bootstrap\dist\css\bootstrap.rtl.css", "CSS", 0, 0, 9455, 0, 0, 0, 0, 7, 1735, 11197
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorWebsite\wwwroot\lib\bootstrap\dist\css\bootstrap.rtl.min.css", "CSS", 0, 0, 2, 0, 0, 0, 0, 5, 0, 7
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorWebsite\wwwroot\lib\bootstrap\dist\js\bootstrap.bundle.js", "JavaScript", 0, 4846, 0, 0, 0, 0, 0, 584, 1351, 6781
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorWebsite\wwwroot\lib\bootstrap\dist\js\bootstrap.bundle.min.js", "JavaScript", 0, 1, 0, 0, 0, 0, 0, 6, 0, 7
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorWebsite\wwwroot\lib\bootstrap\dist\js\bootstrap.esm.js", "JavaScript", 0, 3418, 0, 0, 0, 0, 0, 495, 1065, 4978
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorWebsite\wwwroot\lib\bootstrap\dist\js\bootstrap.esm.min.js", "JavaScript", 0, 1, 0, 0, 0, 0, 0, 6, 0, 7
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorWebsite\wwwroot\lib\bootstrap\dist\js\bootstrap.js", "JavaScript", 0, 3457, 0, 0, 0, 0, 0, 501, 1069, 5027
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorWebsite\wwwroot\lib\bootstrap\dist\js\bootstrap.min.js", "JavaScript", 0, 1, 0, 0, 0, 0, 0, 6, 0, 7
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorWebsite\wwwroot\lib\jquery-validation-unobtrusive\jquery.validate.unobtrusive.js", "JavaScript", 0, 306, 0, 0, 0, 0, 0, 73, 54, 433
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorWebsite\wwwroot\lib\jquery-validation-unobtrusive\jquery.validate.unobtrusive.min.js", "JavaScript", 0, 1, 0, 0, 0, 0, 0, 4, 1, 6
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorWebsite\wwwroot\lib\jquery-validation\LICENSE.md", "Markdown", 18, 0, 0, 0, 0, 0, 0, 0, 5, 23
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorWebsite\wwwroot\lib\jquery-validation\dist\additional-methods.js", "JavaScript", 0, 630, 0, 0, 0, 0, 0, 395, 133, 1158
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorWebsite\wwwroot\lib\jquery-validation\dist\additional-methods.min.js", "JavaScript", 0, 1, 0, 0, 0, 0, 0, 3, 0, 4
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorWebsite\wwwroot\lib\jquery-validation\dist\jquery.validate.js", "JavaScript", 0, 1184, 0, 0, 0, 0, 0, 183, 234, 1601
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorWebsite\wwwroot\lib\jquery-validation\dist\jquery.validate.min.js", "JavaScript", 0, 1, 0, 0, 0, 0, 0, 3, 0, 4
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorWebsite\wwwroot\lib\jquery\dist\jquery.js", "JavaScript", 0, 6906, 0, 0, 0, 0, 0, 1890, 2077, 10873
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculatorWebsite\wwwroot\lib\jquery\dist\jquery.min.js", "JavaScript", 0, 1, 0, 0, 0, 0, 0, 1, 1, 3
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculator\.VSCodeCounter\2023-01-01_15-46-09\details.md", "Markdown", 36, 0, 0, 0, 0, 0, 0, 0, 6, 42
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculator\.VSCodeCounter\2023-01-01_15-46-09\diff-details.md", "Markdown", 9, 0, 0, 0, 0, 0, 0, 0, 6, 15
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculator\.VSCodeCounter\2023-01-01_15-46-09\diff.md", "Markdown", 12, 0, 0, 0, 0, 0, 0, 0, 7, 19
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculator\.VSCodeCounter\2023-01-01_15-46-09\results.json", "JSON", 0, 0, 0, 0, 1, 0, 0, 0, 0, 1
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculator\.VSCodeCounter\2023-01-01_15-46-09\results.md", "Markdown", 27, 0, 0, 0, 0, 0, 0, 0, 7, 34
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculator\DerivativeCalculator.csproj", "XML", 0, 0, 0, 9, 0, 0, 0, 0, 3, 12
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculator\DerivativeManager.cs", "C#", 0, 0, 0, 0, 0, 117, 0, 10, 38, 165
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculator\Differentiator.cs", "C#", 0, 0, 0, 0, 0, 60, 0, 1, 24, 85
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculator\Difficulty.cs", "C#", 0, 0, 0, 0, 0, 194, 0, 0, 11, 205
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculator\Exceptions.cs", "C#", 0, 0, 0, 0, 0, 32, 0, 0, 5, 37
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculator\ExerciseGenerator.cs", "C#", 0, 0, 0, 0, 0, 724, 0, 18, 162, 904
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculator\Node.cs", "C#", 0, 0, 0, 0, 0, 192, 0, 0, 23, 215
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculator\Operator.cs", "C#", 0, 0, 0, 0, 0, 2632, 0, 81, 477, 3190
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculator\Parser.cs", "C#", 0, 0, 0, 0, 0, 324, 0, 14, 63, 401
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculator\Program.cs", "C#", 0, 0, 0, 0, 0, 24, 0, 81, 39, 144
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculator\SimplificationParams.cs", "C#", 0, 0, 0, 0, 0, 14, 0, 0, 4, 18
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculator\StepDescription.cs", "C#", 0, 0, 0, 0, 0, 20, 0, 0, 3, 23
+"c:\Users\licht\source\repos\DerivativeCalculator\DerivativeCalculator\TreeUtils.cs", "C#", 0, 0, 0, 0, 0, 478, 0, 9, 145, 632
+"c:\Users\licht\source\repos\DerivativeCalculator\README.md", "Markdown", 4, 0, 0, 0, 0, 0, 0, 0, 3, 7
+"Total", "-", 106, 20754, 34990, 178, 491, 5556, 262, 4574, 15459, 82370
