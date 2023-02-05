@@ -737,12 +737,12 @@ namespace DerivativeCalculator
 
         private static bool IsTreeOk (TreeNode tree, DifficultyMetrics difficulty, SimplificationParams simplificationParams)
         {
-            if (TreeUtils.DoesTreeContainNull(tree))
+            if (DoesTreeContainNull(tree))
                 return false;
 
 			var diffTree = TreeUtils.GetSimplestForm(tree.Diff('x'), simplificationParams);
 
-            if (TreeUtils.DoesTreeContainNull(diffTree))
+            if (DoesTreeContainNull(diffTree))
                 return false;
 
             if (diffTree is Constant diffConstant)
@@ -751,13 +751,13 @@ namespace DerivativeCalculator
                 else if (diffConstant is Constant { value: 0 } && difficulty.shouldYieldNonZeroDiff)
                     return false;
 
-            if (TreeUtils.DoesTreeContainNan(tree) || TreeUtils.DoesTreeContainNan(diffTree))
+            if (DoesTreeContainNan(tree) || DoesTreeContainNan(diffTree))
                 return false;
 
-            if (difficulty.constIsOnlyInt && TreeUtils.DoesTreeContainNonInt(tree))
+            if (difficulty.constIsOnlyInt && DoesTreeContainNonInt(tree))
                 return false;
 
-            if (TreeUtils.DoesTreeConstainBadConstant(tree, difficulty.minConstValue, difficulty.maxConstValue))
+            if (DoesTreeConstainBadConstant(tree, difficulty.minConstValue, difficulty.maxConstValue))
                 return false;
 
             int compLevel = MaxLevelOfComposition(tree);
@@ -768,10 +768,10 @@ namespace DerivativeCalculator
             // copy, because it is a sideeffect
             var tempDict = new Dictionary<OperatorType, int>(difficulty.numAllowedFromEachOperatorType);
 
-			if (TreeUtils.DoesTreeContainInvalidOp(tree, ref tempDict))
+			if (DoesTreeContainInvalidOp(tree, ref tempDict))
                 return false;
 
-            int operatorCount = TreeUtils.OperatorCountOfTree(tree);
+            int operatorCount = OperatorCountOfTree(tree);
 
             if (operatorCount > difficulty.numMaxOperators || operatorCount < difficulty.numMinOperators)
                 return false;
@@ -779,7 +779,119 @@ namespace DerivativeCalculator
 			return true;
 		}
 
-        public static TreeNode GenerateRandomTree (DifficultyMetrics difficulty, SimplificationParams simplificationParams)
+		private static int OperatorCountOfTree(TreeNode root)
+		{
+			if (root is not Operator op)
+				return 0;
+
+			if (op.numOperands == 1)
+			{
+				return 1 + OperatorCountOfTree(op.operand1);
+			}
+			else
+			{
+				return 1 + OperatorCountOfTree(op.operand1) + OperatorCountOfTree(op.operand2);
+			}
+		}
+
+		private static bool DoesTreeContainInvalidOp(TreeNode tree, ref Dictionary<OperatorType, int> numAllowedOps)
+		{
+			if (tree is not Operator)
+				return false;
+
+			Operator op = tree as Operator;
+
+			if (numAllowedOps.ContainsKey(op.type) == false)
+				return true;
+
+			if (numAllowedOps[op.type] <= 0)
+				return true;
+
+			numAllowedOps[op.type] -= 1;
+
+			if (op.numOperands == 1)
+			{
+				return DoesTreeContainInvalidOp(op.operand1, ref numAllowedOps);
+			}
+			else
+			{
+				return DoesTreeContainInvalidOp(op.operand1, ref numAllowedOps) || DoesTreeContainInvalidOp(op.operand2, ref numAllowedOps);
+			}
+		}
+
+		private static bool DoesTreeConstainBadConstant(TreeNode root, double min, double max)
+		{
+			if (root is null)
+				return false;
+
+			if (root is Constant c)
+				return c.value < min || c.value > max;
+
+			if (root is not Operator op)
+				return false;
+
+			if (op.numOperands == 1)
+			{
+				return DoesTreeConstainBadConstant(op.operand1, min, max);
+			}
+			else
+			{
+				return DoesTreeConstainBadConstant(op.operand1, min, max) || DoesTreeConstainBadConstant(op.operand2, min, max);
+			}
+		}
+
+		private static bool DoesTreeContainNull(TreeNode root)
+		{
+			if (root is null)
+				return true;
+
+			if (root is Constant { value: Double.NaN })
+				return false;
+
+			if (root is not Operator op)
+				return false;
+
+			if (op.numOperands == 1)
+				return DoesTreeContainNull(op.operand1);
+			else
+				return DoesTreeContainNull(op.operand1) || DoesTreeContainNull(op.operand2);
+		}
+
+		private static bool DoesTreeContainNonInt(TreeNode root)
+		{
+			if (root is null)
+				return false;
+
+			if (root is Constant c)
+				return c.value != Math.Floor(c.value);
+
+			if (root is not Operator op)
+				return false;
+
+			if (op.numOperands == 1)
+				return DoesTreeContainNonInt(op.operand1);
+			else
+				return DoesTreeContainNonInt(op.operand1) || DoesTreeContainNonInt(op.operand2);
+		}
+
+		private static bool DoesTreeContainNan(TreeNode root)
+		{
+			if (root is null)
+				return false;
+
+			if (root is Constant c)
+				return double.IsNaN(c.value) || double.IsInfinity(c.value);
+
+			if (root is not Operator op)
+				return false;
+
+			if (op.numOperands == 1)
+				return DoesTreeContainNan(op.operand1);
+			else
+				return DoesTreeContainNan(op.operand1) || DoesTreeContainNan(op.operand2);
+		}
+
+		public static TreeNode GenerateRandomTree (DifficultyMetrics difficulty, SimplificationParams simplificationParams)
         {
             bool isTreeGenerationSuccessfull = false;
 
@@ -877,7 +989,7 @@ namespace DerivativeCalculator
 				else
 					loopCounter = 0;
 
-				if (TreeUtils.DoesTreeContainNull(tree))
+				if (DoesTreeContainNull(tree))
                     continue;
 
                 try

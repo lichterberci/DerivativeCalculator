@@ -399,78 +399,6 @@
 				return ContainsNullOperand(op.operand1) || ContainsNullOperand(op.operand2);
 		}
 
-		public static bool DoesTreeContainNan(TreeNode root)
-		{
-			if (root is null)
-				return false;
-
-			if (root is Constant c)
-				return double.IsNaN(c.value) || double.IsInfinity(c.value);
-
-			if (root is not Operator op)
-				return false;
-
-			if (op.numOperands == 1)
-				return DoesTreeContainNan(op.operand1);
-			else
-				return DoesTreeContainNan(op.operand1) || DoesTreeContainNan(op.operand2);
-		}
-
-		public static bool DoesTreeContainNonInt(TreeNode root)
-		{
-			if (root is null)
-				return false;
-
-			if (root is Constant c)
-				return c.value != Math.Floor(c.value);
-
-			if (root is not Operator op)
-				return false;
-
-			if (op.numOperands == 1)
-				return DoesTreeContainNonInt(op.operand1);
-			else
-				return DoesTreeContainNonInt(op.operand1) || DoesTreeContainNonInt(op.operand2);
-		}
-
-		public static bool DoesTreeContainNull(TreeNode root)
-		{
-			if (root is null)
-				return true;
-
-			if (root is Constant { value: Double.NaN })
-				return false;
-
-			if (root is not Operator op)
-				return false;
-
-			if (op.numOperands == 1)
-				return DoesTreeContainNull(op.operand1);
-			else
-				return DoesTreeContainNull(op.operand1) || DoesTreeContainNull(op.operand2);
-		}
-
-		public static bool DoesTreeConstainBadConstant(TreeNode root, double min, double max)
-		{
-			if (root is null)
-				return false;
-
-			if (root is Constant c)
-				return c.value < min || c.value > max;
-
-			if (root is not Operator op)
-				return false;
-
-			if (op.numOperands == 1)
-			{
-				return DoesTreeConstainBadConstant(op.operand1, min, max);
-			}
-			else
-			{
-				return DoesTreeConstainBadConstant(op.operand1, min, max) || DoesTreeConstainBadConstant(op.operand2, min, max);
-			}
-		}
-
 		public static List<TreeNode> SortNodesByVarNames(List<TreeNode> list, char? varToLeaveLast = null)
 		{
 			// implement quicksort
@@ -586,46 +514,6 @@
 			rightList = SortNodesByVarNames(rightList, varToLeaveLast);
 
 			return constList.Concat(leftList).Concat(new List<TreeNode> { pivot }).Concat(rightList).Concat(expressionList).ToList();
-		}
-
-		public static bool DoesTreeContainInvalidOp (TreeNode tree, ref Dictionary<OperatorType, int> numAllowedOps)
-		{
-			if (tree is not Operator)
-				return false;
-
-			Operator op = tree as Operator;
-
-			if (numAllowedOps.ContainsKey(op.type) == false)
-				return true;
-
-			if (numAllowedOps[op.type] <= 0)
-				return true;
-
-			numAllowedOps[op.type] -= 1;
-
-			if (op.numOperands == 1)
-			{
-				return DoesTreeContainInvalidOp(op.operand1, ref numAllowedOps);
-			}
-			else
-			{
-				return DoesTreeContainInvalidOp(op.operand1, ref numAllowedOps) || DoesTreeContainInvalidOp(op.operand2, ref numAllowedOps);
-			}
-		}
-
-		public static int OperatorCountOfTree (TreeNode root)
-		{
-			if (root is not Operator op)
-				return 0;
-
-			if (op.numOperands == 1)
-			{
-				return 1 + OperatorCountOfTree(op.operand1);
-			}
-			else
-			{
-				return 1 + OperatorCountOfTree(op.operand1) + OperatorCountOfTree(op.operand2);
-			}
-		}
+		}		
 	}
 }
