@@ -52,10 +52,14 @@ namespace DerivativeCalculator
 					throw new ParsingError("Parsing error: tree is empty!");
 				}
 			}
+			catch (ParsingError parsingError)
+			{
+				throw parsingError;
+			}
 			catch (Exception e)
 			{
 				Console.WriteLine("Parsing error!");
-				throw new ParsingError("Parsing error!");
+				throw new ParsingError($"{e.GetType()}: {e.Message}");
 			}
 
 			TreeNode diffTree;
@@ -73,10 +77,14 @@ namespace DerivativeCalculator
 
 				diffTree = TreeUtils.GetSimplestForm(diffTree, simplificationParams);
 			}
+			catch (DifferentiationException differentiationException)
+			{
+				throw differentiationException;
+			}
 			catch (Exception e)
 			{
 				Console.WriteLine($"An error occured while differentiating! ({e.Message}) {e.StackTrace}");
-				throw new DifferentiationException("An error occured while differentiating!");
+				throw new DifferentiationException($"{e.GetType()}: {e.Message}");
 			}
 
 			return diffTree.ToLatexString();
