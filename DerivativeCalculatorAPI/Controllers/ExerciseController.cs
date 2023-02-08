@@ -2,6 +2,8 @@
 using DerivativeCalculator;
 using System.Net;
 using System.Reflection.Emit;
+using System.Text.Json.Serialization;
+using System.Text.Json;
 
 namespace DerivativeCalculatorAPI.Controllers
 {
@@ -9,6 +11,13 @@ namespace DerivativeCalculatorAPI.Controllers
 	[Route("/")]
 	public class ExerciseController : ControllerBase
 	{
+		private readonly ILogger<ExerciseController> _logger;
+
+		public ExerciseController(ILogger<ExerciseController> logger)
+		{
+			_logger = logger;
+		}
+
 		/// <summary>
 		/// A general query to generate exercises
 		/// IMPORTANT: ONLY THIS QUERY SHOULD BE USED
@@ -23,12 +32,29 @@ namespace DerivativeCalculatorAPI.Controllers
 		{
 			// TODO: validate difficulty
 
+			_logger.LogInformation("Generating exercise from body!");
 
 			DifficultyMetrics difficulty;
 
 			if (body.difficultyMetrics is not null)
 			{
-				difficulty = (DifficultyMetrics)body.difficultyMetrics;
+				try
+				{
+					difficulty = (DifficultyMetrics)body.difficultyMetrics;
+				} 
+				catch (Exception e)
+				{
+					Console.WriteLine("Difficulty metrics invalid!");
+
+					Response.Headers.Add("Access-Control-Expose-Headers", "x-exception-type, x-exception-message");
+					Response.Headers.Add("x-exception-type", "EXERCISE GENERATION ERROR");
+					Response.Headers.Add("x-exception-message", "Difficulty metricsare invalid!");
+
+					_logger.LogWarning($"Difficulty metrics could not be converted! body: \n{JsonSerializer.Serialize(body)} \n${e.Message} \n${e.StackTrace}");
+
+					Response.StatusCode = (int)HttpStatusCode.BadRequest;
+					return new ResponseData();
+				}
 			}
 			else if (body.level is not null)
 			{
@@ -48,6 +74,8 @@ namespace DerivativeCalculatorAPI.Controllers
 				Response.Headers.Add("Access-Control-Expose-Headers", "x-exception-type, x-exception-message");
 				Response.Headers.Add("x-exception-type", "EXERCISE GENERATION ERROR");
 				Response.Headers.Add("x-exception-message", "Difficulty metrics and level are null!");
+
+				_logger.LogWarning($"Difficulty metrics and level are null! body: \n{JsonSerializer.Serialize(body)}");
 
 				Response.StatusCode = (int)HttpStatusCode.BadRequest;
 				return new ResponseData();
@@ -74,6 +102,8 @@ namespace DerivativeCalculatorAPI.Controllers
 				Response.Headers.Add("x-exception-type", "EXERCISE GENERATION ERROR");
 				Response.Headers.Add("x-exception-message", e.Message);
 
+				_logger.LogWarning($"ExerciseCouldNotBeGeneratedException: {e.Message} {e.StackTrace}");
+
 				Response.StatusCode = (int)HttpStatusCode.InternalServerError;
 				return new ResponseData();
 			}
@@ -84,6 +114,8 @@ namespace DerivativeCalculatorAPI.Controllers
 				Response.Headers.Add("Access-Control-Expose-Headers", "x-exception-type, x-exception-message");
 				Response.Headers.Add("x-exception-type", "UNKNOWN");
 				Response.Headers.Add("x-exception-message", e.Message);
+
+				_logger.LogError($"Unknown error: {e.Message} {e.StackTrace}");
 
 				Response.StatusCode = (int)HttpStatusCode.InternalServerError;
 				return new ResponseData();
@@ -114,6 +146,8 @@ namespace DerivativeCalculatorAPI.Controllers
 				Response.Headers.Add("x-exception-type", "PARSING ERROR");
 				Response.Headers.Add("x-exception-message", e.Message);
 
+				_logger.LogWarning($"ParsingError: {e.Message} {e.StackTrace}");
+
 				Response.StatusCode = (int)HttpStatusCode.BadRequest;
 				return new ResponseData();
 			}
@@ -124,6 +158,8 @@ namespace DerivativeCalculatorAPI.Controllers
 				Response.Headers.Add("Access-Control-Expose-Headers", "x-exception-type, x-exception-message");
 				Response.Headers.Add("x-exception-type", "DIFFERENTIATION ERROR");
 				Response.Headers.Add("x-exception-message", e.Message);
+
+				_logger.LogWarning($"DifferentiationException: {e.Message} {e.StackTrace}");
 
 				Response.StatusCode = (int)HttpStatusCode.BadRequest;
 				return new ResponseData();
@@ -136,6 +172,8 @@ namespace DerivativeCalculatorAPI.Controllers
 				Response.Headers.Add("x-exception-type", "SIMPLIFICATION ERROR");
 				Response.Headers.Add("x-exception-message", e.Message);
 
+				_logger.LogWarning($"SimplificationException: {e.Message} {e.StackTrace}");
+
 				Response.StatusCode = (int)HttpStatusCode.BadRequest;
 				return new ResponseData();
 			}
@@ -146,6 +184,8 @@ namespace DerivativeCalculatorAPI.Controllers
 				Response.Headers.Add("Access-Control-Expose-Headers", "x-exception-type, x-exception-message");
 				Response.Headers.Add("x-exception-type", "EVALUATION ERROR");
 				Response.Headers.Add("x-exception-message", e.Message);
+
+				_logger.LogWarning($"NotFiniteNumberException: {e.Message} {e.StackTrace}");
 
 				Response.StatusCode = (int)HttpStatusCode.BadRequest;
 				return new ResponseData();
@@ -158,9 +198,13 @@ namespace DerivativeCalculatorAPI.Controllers
 				Response.Headers.Add("x-exception-type", "UNKNOWN");
 				Response.Headers.Add("x-exception-message", e.Message);
 
-				Response.StatusCode = (int)HttpStatusCode.BadRequest;
+				_logger.LogError($"Unknown error: {e.Message} {e.StackTrace}");
+
+				Response.StatusCode = (int)HttpStatusCode.InternalServerError;
 				return new ResponseData();
 			}
+
+			_logger.LogInformation($"Exercise generated successfully! (level={body.level}, difficultyMetrics={JsonSerializer.Serialize(body.difficultyMetrics)}, exercise={inputAsLatex})");
 
 			return new ResponseData(inputAsLatex, simplifiedInputAsLatex, outputAsLatex, stepsAsLatex, stepDescriptions, varToDiff);
 		}
@@ -179,6 +223,8 @@ namespace DerivativeCalculatorAPI.Controllers
 
 			TreeNode tree;
 
+			_logger.LogInformation("Generating exercise without body or URI params!");
+
 			try
 			{
 				tree = ExerciseGenerator.GenerateRandomTree(difficulty, simplificationParams);
@@ -191,6 +237,9 @@ namespace DerivativeCalculatorAPI.Controllers
 				Response.Headers.Add("x-exception-type", "EXERCISE GENERATION ERROR");
 				Response.Headers.Add("x-exception-message", e.Message);
 
+				_logger.LogWarning($"ExerciseCouldNotBeGeneratedException: {e.Message} {e.StackTrace}");
+				_logger.LogWarning($"ExerciseCouldNotBeGeneratedException: {e.Message} {e.StackTrace}");
+
 				Response.StatusCode = (int)HttpStatusCode.InternalServerError;
 				return new ResponseData();
 			}
@@ -201,6 +250,8 @@ namespace DerivativeCalculatorAPI.Controllers
 				Response.Headers.Add("Access-Control-Expose-Headers", "x-exception-type, x-exception-message");
 				Response.Headers.Add("x-exception-type", "UNKNOWN");
 				Response.Headers.Add("x-exception-message", e.Message);
+
+				_logger.LogError($"Unknown error: {e.Message} {e.StackTrace}");
 
 				Response.StatusCode = (int)HttpStatusCode.InternalServerError;
 				return new ResponseData();
@@ -231,6 +282,8 @@ namespace DerivativeCalculatorAPI.Controllers
 				Response.Headers.Add("x-exception-type", "PARSING ERROR");
 				Response.Headers.Add("x-exception-message", e.Message);
 
+				_logger.LogWarning($"ParsingError: {e.Message} {e.StackTrace}");
+
 				Response.StatusCode = (int)HttpStatusCode.BadRequest;
 				return new ResponseData();
 			}
@@ -241,6 +294,8 @@ namespace DerivativeCalculatorAPI.Controllers
 				Response.Headers.Add("Access-Control-Expose-Headers", "x-exception-type, x-exception-message");
 				Response.Headers.Add("x-exception-type", "DIFFERENTIATION ERROR");
 				Response.Headers.Add("x-exception-message", e.Message);
+
+				_logger.LogWarning($"DifferentiationException: {e.Message} {e.StackTrace}");
 
 				Response.StatusCode = (int)HttpStatusCode.BadRequest;
 				return new ResponseData();
@@ -253,6 +308,8 @@ namespace DerivativeCalculatorAPI.Controllers
 				Response.Headers.Add("x-exception-type", "SIMPLIFICATION ERROR");
 				Response.Headers.Add("x-exception-message", e.Message);
 
+				_logger.LogWarning($"SimplificationException: {e.Message} {e.StackTrace}");
+
 				Response.StatusCode = (int)HttpStatusCode.BadRequest;
 				return new ResponseData();
 			}
@@ -263,6 +320,8 @@ namespace DerivativeCalculatorAPI.Controllers
 				Response.Headers.Add("Access-Control-Expose-Headers", "x-exception-type, x-exception-message");
 				Response.Headers.Add("x-exception-type", "EVALUATION ERROR");
 				Response.Headers.Add("x-exception-message", e.Message);
+
+				_logger.LogWarning($"NotFiniteNumberException: {e.Message} {e.StackTrace}");
 
 				Response.StatusCode = (int)HttpStatusCode.BadRequest;
 				return new ResponseData();
@@ -275,9 +334,13 @@ namespace DerivativeCalculatorAPI.Controllers
 				Response.Headers.Add("x-exception-type", "UNKNOWN");
 				Response.Headers.Add("x-exception-message", e.Message);
 
-				Response.StatusCode = (int)HttpStatusCode.BadRequest;
+				_logger.LogError($"Unkown error: {e.Message} {e.StackTrace}");
+
+				Response.StatusCode = (int)HttpStatusCode.InternalServerError;
 				return new ResponseData();
 			}
+
+			_logger.LogInformation($"Exercise generated successfully! (exercise={inputAsLatex})");
 
 			return new ResponseData(inputAsLatex, simplifiedInputAsLatex, outputAsLatex, stepsAsLatex, stepDescriptions, varToDiff);
 		}
@@ -320,6 +383,8 @@ namespace DerivativeCalculatorAPI.Controllers
 				Response.Headers.Add("x-exception-type", "EXERCISE GENERATION ERROR");
 				Response.Headers.Add("x-exception-message", e.Message);
 
+				_logger.LogWarning($"ExerciseCouldNotBeGeneratedException: {e.Message} {e.StackTrace}");
+
 				Response.StatusCode = (int)HttpStatusCode.InternalServerError;
 				return new ResponseData();
 			}
@@ -330,6 +395,8 @@ namespace DerivativeCalculatorAPI.Controllers
 				Response.Headers.Add("Access-Control-Expose-Headers", "x-exception-type, x-exception-message");
 				Response.Headers.Add("x-exception-type", "UNKNOWN ERROR");
 				Response.Headers.Add("x-exception-message", e.Message);
+
+				_logger.LogError($"Unknown error: {e.Message} {e.StackTrace}");
 
 				Response.StatusCode = (int)HttpStatusCode.InternalServerError;
 				return new ResponseData();
@@ -360,6 +427,8 @@ namespace DerivativeCalculatorAPI.Controllers
 				Response.Headers.Add("x-exception-type", "PARSING ERROR");
 				Response.Headers.Add("x-exception-message", e.Message);
 
+				_logger.LogWarning($"ParsingError: {e.Message} {e.StackTrace}");
+
 				Response.StatusCode = (int)HttpStatusCode.BadRequest;
 				return new ResponseData();
 			}
@@ -370,6 +439,8 @@ namespace DerivativeCalculatorAPI.Controllers
 				Response.Headers.Add("x-exception-type", "DIFFERENTIATION ERROR");
 				Response.Headers.Add("x-exception-message", e.Message);
 
+				_logger.LogWarning($"DifferentiationException: {e.Message} {e.StackTrace}");
+
 				Response.StatusCode = (int)HttpStatusCode.BadRequest;
 				return new ResponseData();
 			}
@@ -379,6 +450,8 @@ namespace DerivativeCalculatorAPI.Controllers
 
 				Response.Headers.Add("x-exception-type", "SIMPLIFICATION ERROR");
 				Response.Headers.Add("x-exception-message", e.Message);
+
+				_logger.LogWarning($"SimplificationException: {e.Message} {e.StackTrace}");
 
 				Response.StatusCode = (int)HttpStatusCode.BadRequest;
 				return new ResponseData();
@@ -391,6 +464,8 @@ namespace DerivativeCalculatorAPI.Controllers
 				Response.Headers.Add("x-exception-type", "EVALUATION ERROR");
 				Response.Headers.Add("x-exception-message", e.Message);
 
+				_logger.LogWarning($"NotFiniteNumberException: {e.Message} {e.StackTrace}");
+
 				Response.StatusCode = (int)HttpStatusCode.BadRequest;
 				return new ResponseData();
 			}
@@ -401,9 +476,13 @@ namespace DerivativeCalculatorAPI.Controllers
 				Response.Headers.Add("x-exception-type", "UNKNOWN");
 				Response.Headers.Add("x-exception-message", e.Message);
 
-				Response.StatusCode = (int)HttpStatusCode.BadRequest;
+				_logger.LogError($"Unkown error: {e.Message} {e.StackTrace}");
+
+				Response.StatusCode = (int)HttpStatusCode.InternalServerError;
 				return new ResponseData();
 			}
+
+			_logger.LogInformation($"Exercise generated succesfully! (level={level}, exercise={inputAsLatex})");
 
 			return new ResponseData(inputAsLatex, simplifiedInputAsLatex, outputAsLatex, stepsAsLatex, stepDescriptions, varToDiff);
 		}
