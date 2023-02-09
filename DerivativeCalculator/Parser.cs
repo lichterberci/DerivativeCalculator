@@ -171,7 +171,7 @@ namespace DerivativeCalculator
 				nodes[j] = new Parenthesis(')');
 				
 				nodes.Insert(j, new Parenthesis(')'));
-				nodes.Insert(i, new Abs(null, 4));
+				nodes.Insert(i, new Abs(null, 5));
 				nodes.Insert(i, new Parenthesis('('));
 				j++; // necessary, because the insert added an item to the list
 			}

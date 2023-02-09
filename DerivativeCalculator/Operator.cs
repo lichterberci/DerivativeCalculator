@@ -98,15 +98,15 @@ namespace DerivativeCalculator
 			switch (_type)
 			{
 				case OperatorType.Add:
-					return 1;
 				case OperatorType.Sub:
 					return 1;
 				case OperatorType.Mult:
-					return 2;
 				case OperatorType.Div:
 					return 2;
-				default:
+				case OperatorType.Pow:
 					return 3;
+				default:
+					return 4;
 			}
 		}
 		public int basePriority
