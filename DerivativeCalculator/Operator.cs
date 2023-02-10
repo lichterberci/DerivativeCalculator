@@ -776,6 +776,170 @@ namespace DerivativeCalculator
 							}
 						}
 					}
+					/*
+							if (TreeUtils.MatchPattern(
+								new Constant(1),
+								new Pow(new Sin(new Wildcard('a')), new Constant(2))
+								, out wildcards
+							))
+							{
+								TreeNode a = wildcards['a'];
+								addToDict = false;
+								coefficientDict[otherNode] = new Pow(new Cos(a), new Constant(2));
+								coefficientDict.Remove(node);
+							}
+							*/
+							//A TESZTEK NEM MŰKÖDNEK BUTA VAGYOK
+							if (TreeUtils.MatchPattern(
+								node,
+								new Pow(
+									new Wildcard('x'),
+									new Div(
+										new Log(new Wildcard('x')),
+										new Log(new Wildcard('a'))
+									)
+								),
+								out wildcards
+							))
+							{
+								TreeNode x = wildcards['x'];
+								TreeNode a = wildcards['a'];
+
+								coefficientDict.Remove(node);
+
+								coefficientDict[a] = x;
+								
+
+								addToDict = false;
+								break;
+							}
+
+                            //cos(a + b) = cos(a)cos(b) - sin(a)sin(b)
+                            if (TreeUtils.MatchPattern(
+								node,
+								new Cos(new Add(new Wildcard('a'), new Wildcard('b'))),
+								out wildcards
+							))
+                            {
+                                TreeNode a = wildcards['a'];
+                                TreeNode b = wildcards['b'];
+
+                                if (TreeUtils.MatchPattern(
+                                    otherNode,
+                                    new Cos(new Add(new Wildcard('c'), new Wildcard('d'))),
+                                    out wildcards
+                                ))
+                                {
+                                    TreeNode c = wildcards['c'];
+                                    TreeNode d = wildcards['d'];
+
+                                    bool ac = TreeUtils.MatchPattern(a, c, out _);
+                                    bool bd = TreeUtils.MatchPattern(b, d, out _);
+                                    bool add = TreeUtils.MatchPattern(a, new Add(c, d), out _);
+                                    bool sub = TreeUtils.MatchPattern(b, new Sub(d, c), out _);
+
+                                    if (add && bd || sub && ac)
+                                    {
+                                        coefficientDict.Remove(otherNode);
+
+                                        if (coefficientDict.ContainsKey(node) == false)
+                                            coefficientDict[node] = new Sub(
+                                                new Mult(new Cos(a), new Cos(b)),
+                                                new Mult(new Sin(a), new Sin(b))
+                                            );
+                                        else
+                                            coefficientDict[node] = new Add(
+                                                coefficientDict[node],
+                                                new Sub(
+                                                    new Mult(new Cos(a), new Cos(b)),
+                                                    new Mult(new Sin(a), new Sin(b))
+                                                )
+                                            );
+
+                                        addToDict = false;
+                                        break;
+                                    }
+                                }
+                            }
+
+
+                            // 2sinxcosx = sin2x
+                            if (TreeUtils.MatchPattern(
+                                node,
+                                new Mult( new Mult(
+                                    new Wildcard('a'),
+                                    new Cos(new Wildcard('x'))),
+                                    new Sin(new Wildcard('x'))
+                                ),
+                                out wildcards
+								))
+                            {
+                                TreeNode a = wildcards['a'];
+                                TreeNode x = wildcards['x'];
+
+                                // Check if a is equal to 2
+                                if (TreeUtils.MatchPattern(a, new Constant(2), out _))
+                                {
+                                    // Replace node with sin(2x)
+                                    coefficientDict[node] = new Sin(new Mult(new Constant(2), x));
+                                }
+                            }
+                            if (TreeUtils.MatchPattern(
+								node,
+								new Sub(
+									new Mult(
+										new Cos(new Wildcard('a')),
+										new Cos(new Wildcard('b'))
+									),
+									new Mult(
+										new Sin(new Wildcard('c')),
+										new Sin(new Wildcard('d'))
+									)
+								),
+								out wildcards
+							))
+                            {
+                                TreeNode a = wildcards['a'];
+                                TreeNode b = wildcards['b'];
+                                TreeNode c = wildcards['c'];
+                                TreeNode d = wildcards['d'];
+
+                                bool ac = TreeUtils.MatchPattern(a, c, out _);
+                                bool bd = TreeUtils.MatchPattern(b, d, out _);
+
+                                if (ac && bd)
+                                {
+                                    coefficientDict[node] = new Cos(new Add(a, b));
+                                }
+                            }
+
+                            if (TreeUtils.MatchPattern(node,
+								  new Ln(new Mult(new Wildcard('b'), new Wildcard('x'))),
+								  out wildcards))
+                            {
+                                TreeNode b = wildcards['b'];
+                                TreeNode x = wildcards['x'];
+								if (b is Constant)
+									coefficientDict[node] = new Mult(x, new Ln(b));
+                            }
+                            if (TreeUtils.MatchPattern(node,
+							  new Ln(new Div(new Wildcard('b'), new Wildcard('c'))),
+							  out wildcards))
+                            {
+                                TreeNode b = wildcards['b'];
+                                TreeNode c = wildcards['c'];
+
+								coefficientDict[node] = new Sub(new Ln(b), new Ln(c));
+                            }
+                            if (TreeUtils.MatchPattern(node,
+							  new Ln(new Mult(new Wildcard('b'), new Wildcard('c'))),
+							  out wildcards))
+                            {
+                                TreeNode b = wildcards['b'];
+                                TreeNode c = wildcards['c'];
+								if (b is Constant && c is Constant)
+	                                coefficientDict[node] = new Add(new Ln(b), new Ln(c));
+                            }
 				}
 
 				if (addToDict == false)
