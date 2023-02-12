@@ -83,7 +83,7 @@ namespace DerivativeCalculatorAPI.Controllers
 
 			Response.Headers.Add("Access-Control-Expose-Headers", "x-exception-type, x-exception-message");
 			Response.Headers.Add("x-exception-type", "PARSING ERROR");
-			Response.Headers.Add("x-exception-message", "Input is empty!");
+			Response.Headers.Add("x-exception-message", "A bemenet üres!");
 
 			Response.StatusCode = (int)HttpStatusCode.BadRequest;
 			return new ResponseData();

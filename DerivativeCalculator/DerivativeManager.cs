@@ -42,7 +42,7 @@ namespace DerivativeCalculator
 				if (nodes.Count == 0)
 				{
 					Console.WriteLine("Input is empty, or the parser is unable to parse it!");
-					throw new ParsingError("Input is empty, or the parser is unable to parse it!");
+					throw new ParsingError("A bemenet üres, vagy a parser nem tudja beolvasni!");
 				}
 
 				tree = Parser.MakeTreeFromList(nodes);
@@ -56,13 +56,13 @@ namespace DerivativeCalculator
 				if (tree == null)
 				{
 					Console.WriteLine("Parsing error: tree is empty!");
-					throw new ParsingError("Parsing error: tree is empty!");
+					throw new ParsingError("Az AAST fa üres!");
 				}
 			}
 			catch (Exception e)
 			{
 				Console.WriteLine("Parsing error!");
-				throw new ParsingError("Parsing error!");
+				throw new ParsingError("Nem sikerült beolvasni!");
 			}
 
 			TreeNode diffTree;
@@ -83,7 +83,7 @@ namespace DerivativeCalculator
 			catch (Exception e)
 			{
 				Console.WriteLine($"An error occured while differentiating! ({e.Message}) {e.StackTrace}");
-				throw new DifferentiationException("An error occured while differentiating!");
+				throw new DifferentiationException("A deriválás sikertelen volt!");
 			}
 
 			return diffTree.ToLatexString();
@@ -115,7 +115,7 @@ namespace DerivativeCalculator
 			catch (Exception e)
 			{
 				Console.WriteLine($"An error occured while differentiating! ({e.Message}) {e.StackTrace}");
-				throw new DifferentiationException("An error occured while differentiating!");
+				throw new DifferentiationException("A deriválás sikertelen volt!");
 			}
 
 			return diffTree.ToLatexString();
