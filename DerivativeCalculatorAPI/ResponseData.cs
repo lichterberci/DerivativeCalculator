@@ -11,7 +11,15 @@ namespace DerivativeCalculatorAPI
 		public List<StepDescription?> stepDescriptions { get; set; }
 		public char varToDiff { get; set; }
 
+		public string? errorType { get; set; }
+		public string? errorMessage { get; set; }
+
 		public ResponseData() { }
+		public ResponseData (string? errorType, string? errorText)
+		{
+			this.errorType = errorType;
+			this.errorMessage = errorMessage;
+		}
 		public ResponseData(string inputAsLatex, string simplifiedInputAsLatex, string outputAsLatex, List<string> stepsAsLatex, List<StepDescription> stepDescriptions, char varToDiff)
 		{
 			this.inputAsLatex = inputAsLatex;
