@@ -15,7 +15,7 @@ namespace DerivativeCalculatorAPI
 		public string? errorMessage { get; set; }
 
 		public ResponseData() { }
-		public ResponseData (string? errorType, string? errorText)
+		public ResponseData (string? errorType, string? errorMessage)
 		{
 			this.errorType = errorType;
 			this.errorMessage = errorMessage;
