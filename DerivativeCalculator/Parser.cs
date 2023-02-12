@@ -368,7 +368,7 @@ namespace DerivativeCalculator
 			if (op.numOperands == 1)
 			{
 				if (rightList.Count == 0)
-					throw new ParsingError($"A(z) '{op}' operatáornak nincs operandusa!");
+					throw new ParsingError($"A(z) '{op.ToPrettyString()}' operátornak nincs operandusa!");
 
 				op.operand1 = MakeTreeFromList(rightList);
 
@@ -377,10 +377,10 @@ namespace DerivativeCalculator
 			else
 			{
 				if (leftList.Count == 0)
-					throw new ParsingError($"A(z) '{op}' operatáornak nincs bal oldali operandusa!");
+					throw new ParsingError($"A(z) '{op.ToPrettyString()}' operátornak nincs bal oldali operandusa!");
 
 				if (rightList.Count == 0)
-					throw new ParsingError($"A(z) '{op}' operatáornak nincs jobb oldali operandusa!");
+					throw new ParsingError($"A(z) '{op.ToPrettyString()}' operátornak nincs jobb oldali operandusa!");
 
 				op.operand1 = MakeTreeFromList(leftList);
 				op.operand2 = MakeTreeFromList(rightList);
