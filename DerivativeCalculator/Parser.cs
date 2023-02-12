@@ -328,7 +328,7 @@ namespace DerivativeCalculator
 			}
 
 			if (priorityOffset != 0)
-				throw new ParsingError($"Parentheses are not alligned correctly! (offset at the end: {priorityOffset})");
+				throw new ParsingError($"Van zárójel, aminek nincs párja! (offset a végén: {priorityOffset})");
 
 			return nodes;
 		}
@@ -357,7 +357,7 @@ namespace DerivativeCalculator
 					if (nodes[0] is Variable || nodes[0] is Constant)
 						return nodes[0] as TreeNode;
 					else
-						throw new ParsingError($"Branch size invalid! (count: {nodes.Count})");
+						throw new ParsingError($"Az ág mérete invalid! (# = {nodes.Count})");
 
 
 			Operator op = nodes[minOpIndex] as Operator;
@@ -368,7 +368,7 @@ namespace DerivativeCalculator
 			if (op.numOperands == 1)
 			{
 				if (rightList.Count == 0)
-					throw new ParsingError($"Parsing error: {op} has no operand!");
+					throw new ParsingError($"A(z) '{op}' operatáornak nincs operandusa!");
 
 				op.operand1 = MakeTreeFromList(rightList);
 
@@ -377,10 +377,10 @@ namespace DerivativeCalculator
 			else
 			{
 				if (leftList.Count == 0)
-					throw new ParsingError($"Parsing error: {op} has no left operand!");
+					throw new ParsingError($"A(z) '{op}' operatáornak nincs bal oldali operandusa!");
 
 				if (rightList.Count == 0)
-					throw new ParsingError($"Parsing error: {op} has no right operand!");
+					throw new ParsingError($"A(z) '{op}' operatáornak nincs jobb oldali operandusa!");
 
 				op.operand1 = MakeTreeFromList(leftList);
 				op.operand2 = MakeTreeFromList(rightList);

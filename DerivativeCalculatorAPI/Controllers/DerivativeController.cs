@@ -140,7 +140,7 @@ namespace DerivativeCalculatorAPI.Controllers
 
 			Response.Headers.Add("Access-Control-Expose-Headers", "x-exception-type, x-exception-message");
 			Response.Headers.Add("x-exception-type", "PARSING ERROR");
-			Response.Headers.Add("x-exception-message", "Input is empty!");
+			Response.Headers.Add("x-exception-message", "A bemenet üres!");
 
 			_logger.LogWarning($"Empty differentiation endpoint called!");
 

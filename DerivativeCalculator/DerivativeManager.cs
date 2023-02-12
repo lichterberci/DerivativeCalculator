@@ -49,7 +49,7 @@ namespace DerivativeCalculator
 				if (tree == null)
 				{
 					Console.WriteLine("Parsing error: tree is empty!");
-					throw new ParsingError("Parsing error: tree is empty!");
+					throw new ParsingError("Az AAST fa üres!");
 				}
 			}
 			catch (ParsingError parsingError)
@@ -59,7 +59,7 @@ namespace DerivativeCalculator
 			catch (Exception e)
 			{
 				Console.WriteLine("Parsing error!");
-				throw new ParsingError($"{e.GetType()}: {e.Message}");
+				throw new ParsingError("Nem sikerült beolvasni!");
 			}
 
 			TreeNode diffTree;
@@ -84,7 +84,7 @@ namespace DerivativeCalculator
 			catch (Exception e)
 			{
 				Console.WriteLine($"An error occured while differentiating! ({e.Message}) {e.StackTrace}");
-				throw new DifferentiationException($"{e.GetType()}: {e.Message}");
+				throw new DifferentiationException("A deriválás sikertelen volt!");
 			}
 
 			return diffTree.ToLatexString();
