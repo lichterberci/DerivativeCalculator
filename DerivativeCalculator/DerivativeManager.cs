@@ -23,7 +23,7 @@ namespace DerivativeCalculator
 
 			input = input.Trim().ToLower();
 
-			if (string.IsNullOrEmpty(inputAsLatex))
+			if (string.IsNullOrEmpty(input))
 				throw new ParsingError("A bemenet üres!");
 
 			char varToDifferentiate = 'x';
