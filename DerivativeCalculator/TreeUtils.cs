@@ -517,6 +517,23 @@
 			rightList = SortNodesByVarNames(rightList, varToLeaveLast);
 
 			return constList.Concat(leftList).Concat(new List<TreeNode> { pivot }).Concat(rightList).Concat(expressionList).ToList();
-		}		
+		}
+
+		public static bool DoesTreeContainNan(TreeNode root)
+		{
+			if (root is null)
+				return false;
+
+			if (root is Constant c)
+				return double.IsNaN(c.value) || double.IsInfinity(c.value);
+
+			if (root is not Operator op)
+				return false;
+
+			if (op.numOperands == 1)
+				return DoesTreeContainNan(op.operand1);
+			else
+				return DoesTreeContainNan(op.operand1) || DoesTreeContainNan(op.operand2);
+		}
 	}
 }

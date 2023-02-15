@@ -23,6 +23,9 @@ namespace DerivativeCalculator
 
 			input = input.Trim().ToLower();
 
+			if (string.IsNullOrEmpty(inputAsLatex))
+				throw new ParsingError("A bemenet üres!");
+
 			char varToDifferentiate = 'x';
 
 			if (Regex.IsMatch(input, "^d/d([a-d]|[f-z])"))
@@ -33,7 +36,6 @@ namespace DerivativeCalculator
 
 			varToDiff = varToDifferentiate;
 
-			List<Node> nodes;
 			TreeNode tree;
 
 			try
@@ -56,38 +58,13 @@ namespace DerivativeCalculator
 			{
 				throw parsingError;
 			}
-			catch (Exception e)
+			catch
 			{
 				Console.WriteLine("Parsing error!");
 				throw new ParsingError("Nem sikerült beolvasni!");
 			}
 
-			TreeNode diffTree;
-
-			//diffTree = tree;
-
-			try
-			{
-				diffTree = Differentiator.DifferentiateWithStepsRecorded(tree, varToDifferentiate, simplificationParams);
-
-				Console.WriteLine(TreeUtils.CollapseTreeToString(diffTree));
-
-				stepsAsLatex = Differentiator.steps;
-				stepDescriptions = Differentiator.stepDescriptions;
-
-				diffTree = TreeUtils.GetSimplestForm(diffTree, simplificationParams);
-			}
-			catch (DifferentiationException differentiationException)
-			{
-				throw differentiationException;
-			}
-			catch (Exception e)
-			{
-				Console.WriteLine($"An error occured while differentiating! ({e.Message}) {e.StackTrace}");
-				throw new DifferentiationException("A deriválás sikertelen volt!");
-			}
-
-			return diffTree.ToLatexString();
+			return DifferentiateTree(tree, varToDifferentiate, out inputAsLatex, out simplifiedInputAsLatex, out stepsAsLatex, out stepDescriptions, simplificationParams);
 		}
 
 		public static string DifferentiateTree (
@@ -112,28 +89,28 @@ namespace DerivativeCalculator
 
 			inputAsLatex = new DerivativeSymbol(tree, varToDifferentiate).ToLatexString();
 
+			if (TreeUtils.DoesTreeContainNan(tree))
+				throw new NotFiniteNumberException("A bemenet invalid értéket tartalmaz!");
+
 			tree = TreeUtils.GetSimplestForm(tree, simplificationParams);
+
+			if (TreeUtils.DoesTreeContainNan(tree))
+				throw new NotFiniteNumberException("Az egyszerűsített bemenet invalid értéket tartalmaz!");
 
 			simplifiedInputAsLatex = new DerivativeSymbol(tree, varToDifferentiate).ToLatexString();
 
-			TreeNode diffTree;
+			var diffTree = Differentiator.DifferentiateWithStepsRecorded(tree, varToDifferentiate, simplificationParams);
 
-			//try
-			//{
-				diffTree = Differentiator.DifferentiateWithStepsRecorded(tree, varToDifferentiate, simplificationParams);
+			if (TreeUtils.DoesTreeContainNan(tree))
+				throw new NotFiniteNumberException("A derivált invalid értéket tartalmaz!");
 
-				//Console.WriteLine(TreeUtils.CollapseTreeToString(diffTree));
+			stepsAsLatex = Differentiator.steps;
+			stepDescriptions = Differentiator.stepDescriptions;
 
-				stepsAsLatex = Differentiator.steps;
-				stepDescriptions = Differentiator.stepDescriptions;
+			diffTree = TreeUtils.GetSimplestForm(diffTree, simplificationParams);
 
-				diffTree = TreeUtils.GetSimplestForm(diffTree, simplificationParams);
-			//}
-			//catch (Exception e)
-			//{
-			//	Console.WriteLine($"An error occured while differentiating! ({e.Message}) {e.StackTrace}");
-			//	throw new DifferentiationException("An error occured while differentiating!");
-			//}
+			if (TreeUtils.DoesTreeContainNan(tree))
+				throw new NotFiniteNumberException("Az egyszerűsített derivált invalid értéket tartalmaz!");
 
 			return diffTree.ToLatexString();
 		}

@@ -751,7 +751,7 @@ namespace DerivativeCalculator
                 else if (diffConstant is Constant { value: 0 } && difficulty.shouldYieldNonZeroDiff)
                     return false;
 
-            if (DoesTreeContainNan(tree) || DoesTreeContainNan(diffTree))
+            if (TreeUtils.DoesTreeContainNan(tree) || TreeUtils.DoesTreeContainNan(diffTree))
                 return false;
 
             if (difficulty.constIsOnlyInt && DoesTreeContainNonInt(tree))
@@ -875,23 +875,6 @@ namespace DerivativeCalculator
 				return DoesTreeContainNonInt(op.operand1);
 			else
 				return DoesTreeContainNonInt(op.operand1) || DoesTreeContainNonInt(op.operand2);
-		}
-
-		private static bool DoesTreeContainNan(TreeNode root)
-		{
-			if (root is null)
-				return false;
-
-			if (root is Constant c)
-				return double.IsNaN(c.value) || double.IsInfinity(c.value);
-
-			if (root is not Operator op)
-				return false;
-
-			if (op.numOperands == 1)
-				return DoesTreeContainNan(op.operand1);
-			else
-				return DoesTreeContainNan(op.operand1) || DoesTreeContainNan(op.operand2);
 		}
 
         private static bool IsMultDivPowDifficultyOk (TreeNode root, DifficultyMetrics difficulty)
