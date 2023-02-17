@@ -1652,7 +1652,8 @@ namespace DerivativeCalculator
 												|| rightOperand is Mult
 												|| leaveRightParenthesisOut == false
 											)
-											&& leftOperand is not DerivativeSymbol && rightOperand is not DerivativeSymbol;
+											&& leftOperand is not DerivativeSymbol && rightOperand is not DerivativeSymbol
+											&& (leftOperand is Constant && rightOperand is Pow { operand1: Constant }) == false;
 
 
 			string leftPart = $"{{{(leaveLeftParenthesisOut ? "" : @"\left(")}" +
