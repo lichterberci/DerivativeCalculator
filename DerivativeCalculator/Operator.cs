@@ -2079,7 +2079,7 @@ namespace DerivativeCalculator
 			}
 
 			Differentiator.AddStepDescription(new StepDescription(
-				$@"\frac{{d}}{{dx}}\sin(f\left(x\right)) = \cos(f\left(x\right))\cdot frac{{d}}{{dx}}f\left(x\right)",
+				$@"\frac{{d}}{{dx}}\sin(f\left(x\right)) = \cos(f\left(x\right))\cdot \frac{{d}}{{dx}}f\left(x\right)",
 				operand1.ToLatexString()
 			));
 
@@ -2130,7 +2130,7 @@ namespace DerivativeCalculator
 			}
 
 			Differentiator.AddStepDescription(new StepDescription(
-				$@"\frac{{d}}{{dx}}\cos(\left(x\right)) = -\sin(f\left(x\right))\cdot frac{{d}}{{dx}}f\left(x\right)",
+				$@"\frac{{d}}{{dx}}\cos(\left(x\right)) = -\sin(f\left(x\right))\cdot \frac{{d}}{{dx}}f\left(x\right)",
 				operand1.ToLatexString()
 			));
 
@@ -2184,7 +2184,7 @@ namespace DerivativeCalculator
 			}
 
 			Differentiator.AddStepDescription(new StepDescription(
-				$@"\frac{{d}}{{dx}}\tan(f\left(x\right)) = \frac{{1}}{{{{\cos\left(f\left(x\right)\right)}}^2}}\cdot frac{{d}}{{dx}}f\left(x\right)",
+				$@"\frac{{d}}{{dx}}\tan(f\left(x\right)) = \frac{{1}}{{{{\cos\left(f\left(x\right)\right)}}^2}}\cdot \frac{{d}}{{dx}}f\left(x\right)",
 				operand1.ToLatexString()
 			));
 
@@ -2246,7 +2246,7 @@ namespace DerivativeCalculator
 			}
 
 			Differentiator.AddStepDescription(new StepDescription(
-				$@"\frac{{d}}{{dx}}\ln(f\left(x\right)) = \frac{{1}}{{\left(x\right)}}\cdot frac{{d}}{{dx}}f\left(x\right)",
+				$@"\frac{{d}}{{dx}}\ln(f\left(x\right)) = \frac{{1}}{{\left(x\right)}}\cdot \frac{{d}}{{dx}}f\left(x\right)",
 				operand1.ToLatexString()
 			));
 
@@ -2320,7 +2320,7 @@ namespace DerivativeCalculator
 			}
 
 			Differentiator.AddStepDescription(new StepDescription(
-				$@"\frac{{d}}{{dx}}\log_{{10}}(f\left(x\right)) = \frac{{1}}{{\ln\left(10\right) \cdot x}}\cdot frac{{d}}{{dx}}f\left(x\right)",
+				$@"\frac{{d}}{{dx}}\log_{{10}}(f\left(x\right)) = \frac{{1}}{{\ln\left(10\right) \cdot x}}\cdot \frac{{d}}{{dx}}f\left(x\right)",
 				operand1.ToLatexString()
 			));
 
@@ -2374,7 +2374,7 @@ namespace DerivativeCalculator
 			}
 
 			Differentiator.AddStepDescription(new StepDescription(
-				$@"\frac{{d}}{{dx}}\cot(f\left(x\right)) = \frac{{-1}}{{{{\sin\left(f\left(x\right)\right)}}^2}}\cdot frac{{d}}{{dx}}f\left(x\right)",
+				$@"\frac{{d}}{{dx}}\cot(f\left(x\right)) = \frac{{-1}}{{{{\sin\left(f\left(x\right)\right)}}^2}}\cdot \frac{{d}}{{dx}}f\left(x\right)",
 				operand1.ToLatexString()
 			));
 
@@ -2431,7 +2431,7 @@ namespace DerivativeCalculator
 			}
 
 			Differentiator.AddStepDescription(new StepDescription(
-				$@"\frac{{d}}{{dx}}\arcsin(f\left(x\right)) = \frac{{1}}{{\sqrt{{1-f\left(x\right)^2}}}}\cdot frac{{d}}{{dx}}f\left(x\right)",
+				$@"\frac{{d}}{{dx}}\arcsin(f\left(x\right)) = \frac{{1}}{{\sqrt{{1-f\left(x\right)^2}}}}\cdot \frac{{d}}{{dx}}f\left(x\right)",
 				operand1.ToLatexString()
 			));
 
@@ -2491,7 +2491,7 @@ namespace DerivativeCalculator
 			}
 
 			Differentiator.AddStepDescription(new StepDescription(
-				$@"\frac{{d}}{{dx}}\arccos(f\left(x\right)) = \frac{{1}}{{\sqrt{{f\left(x\right)^2-1}}}}\cdot frac{{d}}{{dx}}f\left(x\right)",
+				$@"\frac{{d}}{{dx}}\arccos(f\left(x\right)) = \frac{{1}}{{\sqrt{{f\left(x\right)^2-1}}}}\cdot \frac{{d}}{{dx}}f\left(x\right)",
 				operand1.ToLatexString()
 			));
 
@@ -2554,7 +2554,7 @@ namespace DerivativeCalculator
 			}
 
 			Differentiator.AddStepDescription(new StepDescription(
-				$@"\frac{{d}}{{dx}}\arctan(f\left(x\right)) = \frac{{1}}{{f\left(x\right)^2+1}}\cdot frac{{d}}{{dx}}f\left(x\right)",
+				$@"\frac{{d}}{{dx}}\arctan(f\left(x\right)) = \frac{{1}}{{f\left(x\right)^2+1}}\cdot \frac{{d}}{{dx}}f\left(x\right)",
 				operand1.ToLatexString()
 			));
 
@@ -2611,7 +2611,7 @@ namespace DerivativeCalculator
 			}
 
 			Differentiator.AddStepDescription(new StepDescription(
-				$@"\frac{{d}}{{dx}}\arccot(f\left(x\right)) = \frac{{-1}}{{\sqrt{{1-f\left(x\right)^2}}}}\cdot frac{{d}}{{dx}}f\left(x\right)",
+				$@"\frac{{d}}{{dx}}\arccot(f\left(x\right)) = \frac{{-1}}{{\sqrt{{1-f\left(x\right)^2}}}}\cdot \frac{{d}}{{dx}}f\left(x\right)",
 				operand1.ToLatexString()
 			));
 
@@ -2671,7 +2671,7 @@ namespace DerivativeCalculator
 			}
 
 			Differentiator.AddStepDescription(new StepDescription(
-				$@"\frac{{d}}{{dx}}\sinh(f\left(x\right)) = \cosh(f\left(x\right))\cdot frac{{d}}{{dx}}f\left(x\right)",
+				$@"\frac{{d}}{{dx}}\sinh(f\left(x\right)) = \cosh(f\left(x\right))\cdot \frac{{d}}{{dx}}f\left(x\right)",
 				operand1.ToLatexString()
 			));
 
@@ -2722,7 +2722,7 @@ namespace DerivativeCalculator
 			}
 
 			Differentiator.AddStepDescription(new StepDescription(
-				$@"\frac{{d}}{{dx}}\cosh(\left(x\right)) = \sinh(\left(x\right))\cdot frac{{d}}{{dx}}f\left(x\right)",
+				$@"\frac{{d}}{{dx}}\cosh(\left(x\right)) = \sinh(\left(x\right))\cdot \frac{{d}}{{dx}}f\left(x\right)",
 				operand1.ToLatexString()
 			));
 
@@ -2773,7 +2773,7 @@ namespace DerivativeCalculator
 			}
 
 			Differentiator.AddStepDescription(new StepDescription(
-				$@"\frac{{d}}{{dx}}\tanh(f\left(x\right)) = \frac{{1}}{{{{\cosh\left(f\left(x\right)\right)}}^2}}\cdot frac{{d}}{{dx}}f\left(x\right)",
+				$@"\frac{{d}}{{dx}}\tanh(f\left(x\right)) = \frac{{1}}{{{{\cosh\left(f\left(x\right)\right)}}^2}}\cdot \frac{{d}}{{dx}}f\left(x\right)",
 				operand1.ToLatexString()
 			));
 
@@ -2827,7 +2827,7 @@ namespace DerivativeCalculator
 			}
 
 			Differentiator.AddStepDescription(new StepDescription(
-				$@"\frac{{d}}{{dx}}\coth(f\left(x\right)) = \frac{{-1}}{{{{\cosh\left(f\left(x\right)\right)}}^2}}\cdot frac{{d}}{{dx}}f\left(x\right)",
+				$@"\frac{{d}}{{dx}}\coth(f\left(x\right)) = \frac{{-1}}{{{{\cosh\left(f\left(x\right)\right)}}^2}}\cdot \frac{{d}}{{dx}}f\left(x\right)",
 				operand1.ToLatexString()
 			));
 
@@ -2884,7 +2884,7 @@ namespace DerivativeCalculator
 			}
 
 			Differentiator.AddStepDescription(new StepDescription(
-				$@"\frac{{d}}{{dx}}arsinh(f\left(x\right)) = \frac{{1}}{{\sqrt{{f\left(x\right)^2+1}}}}\cdot frac{{d}}{{dx}}f\left(x\right)",
+				$@"\frac{{d}}{{dx}}arsinh(f\left(x\right)) = \frac{{1}}{{\sqrt{{f\left(x\right)^2+1}}}}\cdot \frac{{d}}{{dx}}f\left(x\right)",
 				operand1.ToLatexString()
 			));
 
@@ -2944,7 +2944,7 @@ namespace DerivativeCalculator
 			}
 
 			Differentiator.AddStepDescription(new StepDescription(
-				$@"\frac{{d}}{{dx}}arcosh(f\left(x\right)) = \frac{{1}}{{\sqrt{{f\left(x\right)^2-1}}}}\cdot frac{{d}}{{dx}}f\left(x\right)",
+				$@"\frac{{d}}{{dx}}arcosh(f\left(x\right)) = \frac{{1}}{{\sqrt{{f\left(x\right)^2-1}}}}\cdot \frac{{d}}{{dx}}f\left(x\right)",
 				operand1.ToLatexString()
 			));
 
@@ -3004,7 +3004,7 @@ namespace DerivativeCalculator
 			}
 
 			Differentiator.AddStepDescription(new StepDescription(
-				$@"\frac{{d}}{{dx}}artanh(f\left(x\right)) = \frac{{1}}{{1-f\left(x\right)^2}}\cdot frac{{d}}{{dx}}f\left(x\right)",
+				$@"\frac{{d}}{{dx}}artanh(f\left(x\right)) = \frac{{1}}{{1-f\left(x\right)^2}}\cdot \frac{{d}}{{dx}}f\left(x\right)",
 				operand1.ToLatexString()
 			));
 
@@ -3061,7 +3061,7 @@ namespace DerivativeCalculator
 			}
 
 			Differentiator.AddStepDescription(new StepDescription(
-				$@"\frac{{d}}{{dx}}arcoth(f\left(x\right)) = \frac{{1}}{{1-f\left(x\right)^2}}\cdot frac{{d}}{{dx}}f\left(x\right)",
+				$@"\frac{{d}}{{dx}}arcoth(f\left(x\right)) = \frac{{1}}{{1-f\left(x\right)^2}}\cdot \frac{{d}}{{dx}}f\left(x\right)",
 				operand1.ToLatexString()
 			));
 
@@ -3118,7 +3118,7 @@ namespace DerivativeCalculator
 			}
 
 			Differentiator.AddStepDescription(new StepDescription(
-				$@"\frac{{d}}{{dx}}\lvert f\left(x\right) \rvert = \frac{{\lvert f\left(x\right) \rvert}}{{f\left(x\right)}}\cdot frac{{d}}{{dx}}f\left(x\right)",
+				$@"\frac{{d}}{{dx}}\lvert f\left(x\right) \rvert = \frac{{\lvert f\left(x\right) \rvert}}{{f\left(x\right)}}\cdot \frac{{d}}{{dx}}f\left(x\right)",
 				operand1.ToLatexString()
 			));
 
