@@ -1642,7 +1642,7 @@ namespace DerivativeCalculator
 												|| rightOperand is Operator { basePriority: > 1 }
 											) 
 											&& rightOperand is not Pow { operand1: Constant }
-											&& char.IsDigit(rightOperand.ToLatexString()[0]) == false; // better than check, cuz of layered mult
+											&& char.IsDigit(rightOperand.ToLatexString()[2]) == false; // better than check, cuz of layered mult
 
 			bool leaveMultiplicationSignOut = (
 												(leftOperand is Constant ^ rightOperand is Constant)
