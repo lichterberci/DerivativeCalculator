@@ -1641,7 +1641,8 @@ namespace DerivativeCalculator
 												rightOperand is not Operator 
 												|| rightOperand is Operator { basePriority: > 1 }
 											) 
-											&& rightOperand is not Pow { operand1: Constant };
+											&& rightOperand is not Pow { operand1: Constant }
+											&& char.IsDigit(rightOperand.ToLatexString()[0]) == false; // better than check, cuz of layered mult
 
 			bool leaveMultiplicationSignOut = (
 												(leftOperand is Constant ^ rightOperand is Constant)
@@ -1652,8 +1653,7 @@ namespace DerivativeCalculator
 												|| rightOperand is Mult
 												|| leaveRightParenthesisOut == false
 											)
-											&& leftOperand is not DerivativeSymbol && rightOperand is not DerivativeSymbol
-											&& (leftOperand is Constant && rightOperand is Pow { operand1: Constant }) == false;
+											&& leftOperand is not DerivativeSymbol && rightOperand is not DerivativeSymbol;
 
 
 			string leftPart = $"{{{(leaveLeftParenthesisOut ? "" : @"\left(")}" +
