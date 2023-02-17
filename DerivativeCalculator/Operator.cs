@@ -2246,7 +2246,7 @@ namespace DerivativeCalculator
 			}
 
 			Differentiator.AddStepDescription(new StepDescription(
-				$@"\frac{{d}}{{dx}}\ln(f\left(x\right)) = \frac{{1}}{{\left(x\right)}}\cdot \frac{{d}}{{dx}}f\left(x\right)",
+				$@"\frac{{d}}{{dx}}\ln(f\left(x\right)) = \frac{{1}}{{f\left(x\right)}}\cdot \frac{{d}}{{dx}}f\left(x\right)",
 				operand1.ToLatexString()
 			));
 
@@ -2320,7 +2320,7 @@ namespace DerivativeCalculator
 			}
 
 			Differentiator.AddStepDescription(new StepDescription(
-				$@"\frac{{d}}{{dx}}\log_{{10}}(f\left(x\right)) = \frac{{1}}{{\ln\left(10\right) \cdot x}}\cdot \frac{{d}}{{dx}}f\left(x\right)",
+				$@"\frac{{d}}{{dx}}\log_{{10}}(f\left(x\right)) = \frac{{1}}{{\ln\left(10\right) \cdot f\leftx\right)}}\cdot \frac{{d}}{{dx}}f\left(x\right)",
 				operand1.ToLatexString()
 			));
 
@@ -2722,7 +2722,7 @@ namespace DerivativeCalculator
 			}
 
 			Differentiator.AddStepDescription(new StepDescription(
-				$@"\frac{{d}}{{dx}}\cosh(\left(x\right)) = \sinh(\left(x\right))\cdot \frac{{d}}{{dx}}f\left(x\right)",
+				$@"\frac{{d}}{{dx}}\cosh(f\left(x\right)) = \sinh(f\left(x\right))\cdot \frac{{d}}{{dx}}f\left(x\right)",
 				operand1.ToLatexString()
 			));
 
