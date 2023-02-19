@@ -58,7 +58,7 @@ namespace DerivativeCalculator
 			{
 				throw parsingError;
 			}
-			catch
+			catch (Exception e)
 			{
 				Console.WriteLine("Parsing error!");
 				throw new ParsingError("Nem sikerült beolvasni!");

@@ -17,16 +17,20 @@ public partial class Program
 
 		//return;
 
-		TreeNode tree = new Pow(
-			Constant.E,
-			new Mult(
-				new Mult(
-					  new Ln(new Variable('a')),
-					  new Variable('b')
-				  ),
-				new Variable('x')
-			)
-		);
+		//TreeNode tree = new Pow(
+		//	Constant.E,
+		//	new Mult(
+		//		new Mult(
+		//			  new Ln(new Variable('a')),
+		//			  new Variable('b')
+		//		  ),
+		//		new Variable('x')
+		//	)
+		//);
+
+		//var tree = Parser.ParseString("x^(3x)");
+
+		//Console.WriteLine(tree.ToLatexString());
 
 		//TreeNode tree = new Div(
 		//		new Mult(
@@ -63,10 +67,10 @@ public partial class Program
 		//}
 
 
-		tree = tree.Simplify(SimplificationParams.Default);
-		//tree = tree.GetSimplestForm(SimplificationParams.Default);
+		//tree = tree.Simplify(SimplificationParams.Default);
+		////tree = tree.GetSimplestForm(SimplificationParams.Default);
 
-		tree.PrintToConsole();
+		//tree.PrintToConsole();
 
 
 		//var left = new Mult(
