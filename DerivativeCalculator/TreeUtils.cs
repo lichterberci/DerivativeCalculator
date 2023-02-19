@@ -341,7 +341,7 @@
 
 						TreeNode originalNode = resultWildcards[(char)cleanUpWildcard.name];
 
-						treeOperandList.Add((originalNode, isCleanUpWildcardInverse));
+						treeOperandList.Insert(0, (originalNode, isCleanUpWildcardInverse));
 
 						// build two half trees (one for the type, one for the inverse)
 						List<TreeNode> typeList = new();
