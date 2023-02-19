@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Collections;
+using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Text.RegularExpressions;
 
@@ -11,28 +12,61 @@ public partial class Program
 
 		//DerivativeManager.DifferentiateFromConsole();
 
-		string result = DerivativeManager.DifferentiateString("x|x^2|+abs(2x)", out _, out _, out _, out _, out _);
+		//string result = DerivativeManager.DifferentiateString("x|x^2|+abs(2x)", out _, out _, out _, out _, out _);
 		//Console.WriteLine(result);
 
 		//return;
 
+		TreeNode tree = new Pow(
+			Constant.E,
+			new Mult(
+				new Mult(
+					  new Ln(new Variable('a')),
+					  new Variable('b')
+				  ),
+				new Variable('x')
+			)
+		);
+
 		//TreeNode tree = new Div(
-		//	new Mult(
 		//		new Mult(
-		//			  new Constant(-1),
-		//			  new Constant(2)
+		//			  new Ln(new Variable('x')),
+		//			  new Variable('y')
 		//		  ),
-		//		new Variable('x')
-		//	),	
-		//	new Variable('y')
-		//);
+		//		new Variable('z')
+		//	);
 
 		//tree.PrintToConsole();
 
-		//tree = tree.Simplify(SimplificationParams.Default);
-		////tree = tree.GetSimplestForm(SimplificationParams.Default);
+		//Dictionary<char, TreeNode> wildcards;
 
-		//tree.PrintToConsole();
+		//if (TreeUtils.MatchPattern(
+		//		tree,
+		//		new Div(
+		//			new Ln(new Wildcard('a')),
+		//			new Wildcard('b')
+		//		),
+		//		out wildcards
+		//))
+		//{
+		//	Console.WriteLine("Match");
+
+		//	foreach (var (key, value) in wildcards)
+		//	{
+		//		Console.Write("var '" + key + "' := ");
+		//		value.PrintToConsole();
+		//	}
+		//}
+		//else
+		//{
+		//	Console.WriteLine("No match");
+		//}
+
+
+		tree = tree.Simplify(SimplificationParams.Default);
+		//tree = tree.GetSimplestForm(SimplificationParams.Default);
+
+		tree.PrintToConsole();
 
 
 		//var left = new Mult(

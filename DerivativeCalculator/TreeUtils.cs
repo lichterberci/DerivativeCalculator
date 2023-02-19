@@ -268,6 +268,20 @@
 					var treeOperandList = GetAssociativeOperands(treeOp, treeOp.type, treeOp.inverseType);
 					var patternOperandList = GetAssociativeOperands(patternOp, treeOp.type, treeOp.inverseType);
 
+					patternOperandList = patternOperandList.OrderBy(operand => operand.Item1 is Wildcard ? 1 : 0).ToList();
+
+					Wildcard? cleanUpWildcard = null;
+					char? cleanUpWildcardName = null;
+					bool isCleanUpWildcardInverse = false;					
+
+					// the leftovers will be packed into this one
+					if (patternOperandList.Last() is (Wildcard _cleanUpW, bool _isCleanUpInverse))
+					{
+						cleanUpWildcard = _cleanUpW;
+						isCleanUpWildcardInverse = _isCleanUpInverse;
+						cleanUpWildcardName = cleanUpWildcard.name;
+					}
+
 					Dictionary<char, TreeNode> tempWildcards;
 
 					List<Dictionary<char, TreeNode>> operandWildcards = new();
@@ -298,11 +312,10 @@
 						}
 					}
 
-					// if there are any elements left in the original lists, we don't have a match
-
-					if (treeOperandList.Count != 0 || patternOperandList.Count != 0)
+					if (patternOperandList.Count > 0)
 						return false;
 
+					// there are no wildcards to speak of
 					if (operandWildcards.Count == 0)
 						return true;
 
@@ -315,6 +328,91 @@
 
 						if (wasSuccessful == false)
 							return false;
+					}
+
+					// if there are leftover elements in the tree (but not in the pattern),
+					// and there is a wildcard in the pattern,
+					// we can just put the leftovers in the wildcard
+					// eg.: (tree) ln(a)*b*c <==> (pattern) ln(x)*y
+
+					if (cleanUpWildcard is not null && treeOperandList.Count > 0)
+					{
+						// make tree
+
+						TreeNode originalNode = resultWildcards[(char)cleanUpWildcard.name];
+
+						treeOperandList.Add((originalNode, isCleanUpWildcardInverse));
+
+						// build two half trees (one for the type, one for the inverse)
+						List<TreeNode> typeList = new();
+						List<TreeNode> inverseTypeList = new();
+
+						OperatorType cleanUpBaseType = treeOp.type switch
+						{
+							OperatorType.Add => OperatorType.Add,
+							OperatorType.Sub => OperatorType.Add,
+							OperatorType.Mult => OperatorType.Mult,
+							OperatorType.Div => OperatorType.Mult,
+							_ => throw new ArgumentException("Operator type is not associatve!")
+						};
+						OperatorType cleanUpInverseType = cleanUpBaseType switch
+						{
+							OperatorType.Add => OperatorType.Sub,
+							OperatorType.Mult => OperatorType.Div,
+							_ => throw new ArgumentException("Operator type is not associatve!")
+						};
+
+						foreach (var (node, isInverse) in treeOperandList)
+						{
+							if (isInverse == isCleanUpWildcardInverse)
+								typeList.Add(node);
+							else
+								inverseTypeList.Add(node);
+						}
+
+						TreeNode? typeTree = BuildTreeFromHalfAssociativeList(
+							typeList,
+							cleanUpBaseType
+						);
+						TreeNode? inverseTypeTree = BuildTreeFromHalfAssociativeList(
+							inverseTypeList,
+							cleanUpBaseType
+						);
+
+						if (typeTree is null && inverseTypeTree is null)
+							throw new Exception("Failed to build half trees whilte checking for pattern!");
+
+						if (typeTree is not null && inverseTypeTree is null)
+						{
+							if (isCleanUpWildcardInverse)
+							{
+								if (cleanUpBaseType == OperatorType.Add)
+									resultWildcards[(char)cleanUpWildcardName] = new Mult(new Constant(-1), typeTree);
+								else if (cleanUpBaseType == OperatorType.Mult)
+									resultWildcards[(char)cleanUpWildcardName] = new Div(new Constant(1), typeTree);
+							}
+							else
+								resultWildcards[(char)cleanUpWildcardName] = typeTree;
+						}
+						else if (typeTree is null && inverseTypeTree is not null)
+						{
+							if (isCleanUpWildcardInverse == false)
+							{
+								if (cleanUpBaseType == OperatorType.Add)
+									resultWildcards[(char)cleanUpWildcardName] = new Mult(new Constant(-1), inverseTypeTree);
+								else if (cleanUpBaseType == OperatorType.Mult)
+									resultWildcards[(char)cleanUpWildcardName] = new Div(new Constant(1), inverseTypeTree);
+							}
+							else
+								resultWildcards[(char)cleanUpWildcardName] = inverseTypeTree;
+						}
+						else
+						{
+							Operator op = Operator.GetClassInstanceFromType(cleanUpInverseType);
+							op.operand1 = isCleanUpWildcardInverse ? inverseTypeTree : typeTree;
+							op.operand2 = isCleanUpWildcardInverse ? typeTree : inverseTypeTree;
+							resultWildcards[(char)cleanUpWildcardName] = op;
+						}
 					}
 
 					wildcards = resultWildcards;
@@ -534,6 +632,25 @@
 				return DoesTreeContainNan(op.operand1);
 			else
 				return DoesTreeContainNan(op.operand1) || DoesTreeContainNan(op.operand2);
+		}
+
+		/// <summary>
+		/// DOES NOT SUPPORT INVERSE TYPE
+		/// </summary>
+		public static TreeNode? BuildTreeFromHalfAssociativeList (List<TreeNode> list, OperatorType type)
+		{
+			if (list.Count == 0)
+				return null;
+
+			if (list.Count == 1)
+				return list.First();
+
+			var op = Operator.GetClassInstanceFromType(type);
+
+			op.operand1 = list.First();
+			op.operand2 = BuildTreeFromHalfAssociativeList(list.Where((_, i) => i > 0).ToList(), type);
+
+			return op;
 		}
 	}
 }
