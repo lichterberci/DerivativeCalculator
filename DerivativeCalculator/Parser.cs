@@ -19,6 +19,8 @@ namespace DerivativeCalculator
 
 			input = input.Replace('.', ',');
 
+			input = input.Replace(':', '/');
+
 			input = input.Replace("pi", "P"); // capital P is \pi
 
 			input += ' '; // add a space to the end, so the for-each loop will catch all nodes
