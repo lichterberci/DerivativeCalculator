@@ -1,4 +1,5 @@
 ﻿
+using System.Globalization;
 using System.Xml.Linq;
 
 namespace DerivativeCalculator
@@ -71,7 +72,7 @@ namespace DerivativeCalculator
 
 					if (isInNumber)
 					{
-						double value = double.Parse(tmp);
+						double value = double.Parse(tmp, NumberStyles.Any, CultureInfo.GetCultureInfo("hu"));
 						nodes.Add(new Constant(value));
 						isInNumber = false;
 						tmp = "";
