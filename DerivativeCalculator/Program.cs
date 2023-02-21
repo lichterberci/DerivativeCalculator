@@ -12,7 +12,7 @@ public partial class Program
 
 		//DerivativeManager.DifferentiateFromConsole();
 
-		string result = DerivativeManager.DifferentiateString("x^0.5", out _, out _, out _, out _, out _);
+		string result = DerivativeManager.DifferentiateString("tgx cosx", out _, out _, out _, out _, out _);
 		Console.WriteLine(result);
 
 		//return;
