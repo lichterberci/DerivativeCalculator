@@ -2121,6 +2121,35 @@ namespace DerivativeCalculator
 				);
 			}
 
+			// e^lna
+			if (TreeUtils.MatchPattern(
+				this,
+				new Pow(
+					Constant.E,
+					new Ln(
+						new Wildcard('a')
+					)
+				),
+				out wildcards
+			))
+			{
+				return wildcards['a'];
+			}
+
+			// 10^loga
+			if (TreeUtils.MatchPattern(
+				this,
+				new Pow (
+					new Constant(10),
+					new Log(
+						new Wildcard('a')
+					)
+				),
+				out wildcards
+			))
+			{
+				return wildcards['a'];
+			}
 
 			return this;
 		}
