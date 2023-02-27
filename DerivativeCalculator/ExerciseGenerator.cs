@@ -7,13 +7,14 @@ namespace DerivativeCalculator
     
     public class PlaceHolderLeaf : TreeNode
     {
-        public readonly bool canBeConstant;
-        public readonly bool canBeX;
-        public readonly double minValue;
-        public readonly bool isMinValueInclusive;
-        public readonly double maxValue; // inclusive
+        public bool canBeConstant;
+        public bool canBeX;
+        public double minValue;
+        public bool isMinValueInclusive;
+        public double maxValue; // inclusive
+        public bool cannotBeExpressionOnlyMultipleOfX; // 2x is fine, but 3x-2 or sin(x) are not
 
-        public PlaceHolderLeaf(bool canBeConstant, bool canBeX)
+        public PlaceHolderLeaf(bool canBeConstant, bool canBeX, bool cannotBeExpressionOnlyMultipleOfX = false)
         {
             this.canBeConstant = canBeConstant;
             this.canBeX = canBeX;
@@ -21,9 +22,10 @@ namespace DerivativeCalculator
             this.minValue = double.MinValue;
             this.isMinValueInclusive = true;
             this.maxValue = double.MaxValue;
+            this.cannotBeExpressionOnlyMultipleOfX = cannotBeExpressionOnlyMultipleOfX;
         }
 
-		public PlaceHolderLeaf(bool canBeConstant, bool canBeX, double minValue, bool isMinValueInclusive)
+        public PlaceHolderLeaf(bool canBeConstant, bool canBeX, double minValue, bool isMinValueInclusive, bool cannotBeExpressionOnlyMultipleOfX = false)
 		{
 			this.canBeConstant = canBeConstant;
 			this.canBeX = canBeX;
@@ -31,9 +33,10 @@ namespace DerivativeCalculator
             this.isMinValueInclusive = isMinValueInclusive;
 
 			this.maxValue = double.MaxValue;
+            this.cannotBeExpressionOnlyMultipleOfX = cannotBeExpressionOnlyMultipleOfX;
 		}
 
-		public PlaceHolderLeaf(bool canBeConstant, bool canBeX, double minValue, bool isMinValueInclusive, double maxValue)
+		public PlaceHolderLeaf(bool canBeConstant, bool canBeX, double minValue, bool isMinValueInclusive, double maxValue, bool cannotBeExpressionOnlyMultipleOfX = false)
 		{
 			this.canBeConstant = canBeConstant;
 			this.canBeX = canBeX;
@@ -41,21 +44,34 @@ namespace DerivativeCalculator
 			this.isMinValueInclusive = isMinValueInclusive;
 
 			this.maxValue = maxValue;
+			this.cannotBeExpressionOnlyMultipleOfX = cannotBeExpressionOnlyMultipleOfX;
 		}
 
-        public override string ToString()
+		public override string ToString()
         {
 			string min = minValue == double.MinValue ? "MIN" : minValue.ToString();
 			string max = maxValue == double.MaxValue ? "MAX" : maxValue.ToString();
 
 			string range = $"{(isMinValueInclusive ? "[" : "(")}{min}; {max}]";
 
-			if (canBeX && canBeConstant)
-                return $"Placeholder(x | c {range})";
-            else if (canBeX)
-                return "Placeholder(x)";
+            if (cannotBeExpressionOnlyMultipleOfX)
+            {
+			    if (canBeX && canBeConstant)
+                    return $"Placeholder(x | c {range})";
+                else if (canBeX)
+                    return "Placeholder(x)";
+                else
+                    return $"Placeholder(c {range})";
+            }
             else
-                return $"Placeholder(c {range})";
+            {
+				if (canBeX && canBeConstant)
+					return $"Placeholder(f(x) | c {range})";
+				else if (canBeX)
+					return "Placeholder(f(x))";
+				else
+					return $"Placeholder(c {range})";
+			}
         }
 
         public bool IsConstantValid (TreeNode root)
@@ -125,8 +141,29 @@ namespace DerivativeCalculator
 
             operatorTypesThatCountAsComposition = new OperatorType[]
             {
-                OperatorType.Sin, OperatorType.Cos, OperatorType.Tan, OperatorType.Ln, OperatorType.Log, OperatorType.Pow // pow is special !!!
-            };
+                OperatorType.Mult,
+                OperatorType.Div,
+				OperatorType.Pow,
+                OperatorType.Ln, 
+                OperatorType.Log, 
+                OperatorType.Sin, 
+                OperatorType.Cos, 
+                OperatorType.Tan, 
+                OperatorType.Cot,
+				OperatorType.Arcsin,
+				OperatorType.Arccos,
+				OperatorType.Arctan,
+				OperatorType.Arccot,
+				OperatorType.Sinh,
+				OperatorType.Cosh,
+				OperatorType.Tanh,
+				OperatorType.Coth,
+				OperatorType.Arsinh,
+				OperatorType.Arcosh,
+				OperatorType.Artanh,
+				OperatorType.Arcoth,
+				OperatorType.Abs
+			};
 		}
 
         private static List<OperatorType> GenerateOperatorList (DifficultyMetrics difficulty)
@@ -155,7 +192,7 @@ namespace DerivativeCalculator
 
                 foreach ((OperatorType key, int value) in numOperandsRemainingFromType)
                 {
-                    if (runningSum + value >= randomIndex)
+                    if (runningSum + value > randomIndex)
                     {
                         // we have found it
                         result.Add(key);
@@ -185,16 +222,16 @@ namespace DerivativeCalculator
                     (newOp.operand1, newOp.operand2) = difficulty.difficultyOfPower switch
                     {
                         DifficultyOfPower.Polinom => (new PlaceHolderLeaf(false, true), new PlaceHolderLeaf(true, false)),
-                        DifficultyOfPower.PolinomOrExponential => random.Next() % 2 == 0 ?
+                        DifficultyOfPower.PolinomOrSimpleExponential => random.Next() % 2 == 0 ?
                                                                     (new PlaceHolderLeaf(false, true), new PlaceHolderLeaf(true, false)) :
-                                                                    (new PlaceHolderLeaf(true, false, 0, false), new PlaceHolderLeaf(false, true)),
+                                                                    (new PlaceHolderLeaf(true, false, 0, false), new PlaceHolderLeaf(false, true, true)),
                         _ => (new PlaceHolderLeaf(true, true, 0, false), new PlaceHolderLeaf(true, true))
                     };
                     break;
                 case OperatorType.Mult:
                     (newOp.operand1, newOp.operand2) = difficulty.difficultyOfMultiplication switch
                     {
-                        DifficultyOfMultiplication.OnlyConstant => (new PlaceHolderLeaf(true, false), new PlaceHolderLeaf(false, true)),
+                        DifficultyOfMultiplication.OnlyConstant => (new PlaceHolderLeaf(true, true, true), new PlaceHolderLeaf(false, true)),
                         _ => (new PlaceHolderLeaf(true, true), new PlaceHolderLeaf(false, true))
                     };
                     break;
@@ -205,7 +242,10 @@ namespace DerivativeCalculator
 				default:
                     if (newOp.numOperands == 1)
                     {
-                        newOp.operand1 = new PlaceHolderLeaf(false, true);
+                        if (difficulty.absTrigHypLogFunctionsCanOnlyContainMultiplesOfXOrX)
+                            newOp.operand1 = new PlaceHolderLeaf(false, true, true);
+                        else
+                            newOp.operand1 = new PlaceHolderLeaf(false, true);
                     }
                     else
                     {
@@ -244,6 +284,18 @@ namespace DerivativeCalculator
 
 				if (op.operand1 is PlaceHolderLeaf { canBeX: true })
                 {
+                    // can only place c*x, so everything elso must not be considered
+                    if (op.operand1 is PlaceHolderLeaf { cannotBeExpressionOnlyMultipleOfX: true })
+                    {
+                        if (newOp is not Mult)
+                            return (root, false);
+
+						// regardless of the current configuration, it will be a c*x
+
+						newOp.operand1 = new PlaceHolderLeaf(true, false, false);
+						newOp.operand2 = new PlaceHolderLeaf(false, true, true);
+					}
+
                     op.operand1 = newOp;
                     return (root, true);
                 }
@@ -266,11 +318,22 @@ namespace DerivativeCalculator
                         }
                     }
 
-                    if (op.operand2 is PlaceHolderLeaf { canBeX: true })
+                    if (op.operand2 is PlaceHolderLeaf { canBeX: true, cannotBeExpressionOnlyMultipleOfX: false })
                     {
                         op.operand2 = newOp;
                         return (root, true);
-                    }
+					}
+
+                    if (op.operand2 is PlaceHolderLeaf { canBeX: true, cannotBeExpressionOnlyMultipleOfX: true } && newOp is Mult)
+                    {
+						// regardless of the current configuration, it will be a c*x
+
+						newOp.operand1 = new PlaceHolderLeaf(true, false, false);
+						newOp.operand2 = new PlaceHolderLeaf(false, true, true);
+
+						op.operand2 = newOp;
+                        return (root, true);
+					}
                 }
 
                 if (op.operand1 is Operator)
@@ -284,13 +347,24 @@ namespace DerivativeCalculator
                     }
                 }
 
-				if (op.operand1 is PlaceHolderLeaf { canBeX: true })
+				if (op.operand1 is PlaceHolderLeaf { canBeX: true, cannotBeExpressionOnlyMultipleOfX: false })
 				{
-                    op.operand1 = newOp;
-                    return (root, true);
-                }
+					op.operand1 = newOp;
+					return (root, true);
+				}
 
-                if (op.operand2 is Operator)
+				if (op.operand1 is PlaceHolderLeaf { canBeX: true, cannotBeExpressionOnlyMultipleOfX: true } && newOp is Mult)
+				{
+                    // regardless of the current configuration, it will be a c*x
+
+                    newOp.operand1 = new PlaceHolderLeaf(true, false, false);
+                    newOp.operand2 = new PlaceHolderLeaf(false, true, true);
+
+					op.operand1  = newOp;
+					return (root, true);
+				}
+
+				if (op.operand2 is Operator)
                 {
                     (var tree, bool wasSuccessful) = AddOperatorToTree(op.operand2, type, difficulty);
 
@@ -301,16 +375,28 @@ namespace DerivativeCalculator
                     }
                 }
 
-				if (op.operand2 is PlaceHolderLeaf { canBeX: true })
+				if (op.operand2 is PlaceHolderLeaf { canBeX: true, cannotBeExpressionOnlyMultipleOfX: false })
 				{
-                    op.operand2 = newOp;
-                    return (root, true);
-                }
-            }
+					op.operand2 = newOp;
+					return (root, true);
+				}
+
+				if (op.operand2 is PlaceHolderLeaf { canBeX: true, cannotBeExpressionOnlyMultipleOfX: true } && newOp is Mult)
+				{
+					// regardless of the current configuration, it will be a c*x
+
+					newOp.operand1 = new PlaceHolderLeaf(true, false, false);
+					newOp.operand2 = new PlaceHolderLeaf(false, true, true);
+
+					op.operand2 = newOp;
+					return (root, true);
+				}
+			}
+
 			return (root, false);
 		}
-
-        private static int MaxLevelOfComposition (TreeNode root, int depth = 0)
+    
+		private static int MaxLevelOfComposition (TreeNode root, int depth = 0)
         {
             if (root is null)
                 return depth;
@@ -322,7 +408,20 @@ namespace DerivativeCalculator
 
             if (operatorTypesThatCountAsComposition.Contains(op.type))
             {
-			    newDepth = depth + 1;
+                if (op.type == OperatorType.Mult)
+                {   
+                    if (op.operand1 is Operator && op.operand2 is Operator)
+						newDepth = depth + 1;
+                }
+                else if (op.type == OperatorType.Div)
+                {
+                    if (op.operand2 is not Constant && op.operand2 is not PlaceHolderLeaf { canBeX: false, canBeConstant: true })
+                        newDepth = depth + 1;
+                }
+                else
+                {
+			        newDepth = depth + 1;
+                }
 			}
 
 			if (op.numOperands == 1)
@@ -345,12 +444,13 @@ namespace DerivativeCalculator
                 if (root is not PlaceHolderLeaf ph)
                     throw new ExerciseCouldNotBeGeneratedException("root is of invalid type!");
 
-                return (ph.canBeConstant, ph.canBeX) switch
+                return (ph.canBeConstant, ph.canBeX, ph.cannotBeExpressionOnlyMultipleOfX) switch
                 {
-                    (false, true ) => (0, 1, 0),
-                    (true,  false) => (0, 0, 1),
-                    (true,  true ) => (1, 0, 0),
-                    (false, false) => (0, 0, 0)
+                    (_,     _,     true ) => (0, 1, 0),
+                    (false, true,  false) => (0, 1, 0),
+                    (true,  false, false) => (0, 0, 1),
+                    (true,  true,  false) => (1, 0, 0),
+                    (false, false, false) => (0, 0, 0)
 				};
             }
 
@@ -469,7 +569,10 @@ namespace DerivativeCalculator
 
                     if (onlyX)
                     {
-						if (ph1.canBeX && ph1.canBeConstant == false && leafIsX)
+						if (
+                            (ph1.canBeX && ph1.canBeConstant == false && leafIsX)
+                            || (ph1.cannotBeExpressionOnlyMultipleOfX && leafIsX)
+                        )
 						{
 							//Console.WriteLine($"{ph1} -> {leafNode}");
 							op.operand1 = leafNode;
@@ -485,6 +588,14 @@ namespace DerivativeCalculator
 							return (root, true);
 						}
                     }
+                    else if (ph1.cannotBeExpressionOnlyMultipleOfX)
+                    {
+                        if (leafIsX)
+                        {
+                            op.operand1 = leafNode;
+                            return (root, true);
+                        }
+					}
                     else
                     {
 						if (
@@ -496,7 +607,7 @@ namespace DerivativeCalculator
 							op.operand1 = leafNode;
 							return (root, true);
 						}
-					}
+                    }
 				}
             }
             else
@@ -509,7 +620,10 @@ namespace DerivativeCalculator
 
 					if (onlyX)
 					{
-						if (ph1.canBeX && ph1.canBeConstant == false && leafIsX)
+						if (
+                            (ph1.canBeX && ph1.canBeConstant == false && leafIsX)
+							|| (ph1.cannotBeExpressionOnlyMultipleOfX && leafIsX)
+						)
 						{
 							//Console.WriteLine($"{ph1} -> {leafNode}");
 							op.operand1 = leafNode;
@@ -521,6 +635,14 @@ namespace DerivativeCalculator
 						if (ph1.canBeConstant && ph1.canBeX == false && leafIsX == false)
 						{
 							//Console.WriteLine($"{ph1} -> {leafNode}");
+							op.operand1 = leafNode;
+							return (root, true);
+						}
+					}
+					else if (ph1.cannotBeExpressionOnlyMultipleOfX)
+					{
+						if (leafIsX)
+						{
 							op.operand1 = leafNode;
 							return (root, true);
 						}
@@ -547,7 +669,10 @@ namespace DerivativeCalculator
 
 					if (onlyX)
 					{
-						if (ph2.canBeX && ph2.canBeConstant == false && leafIsX)
+						if (
+                            (ph2.canBeX && ph2.canBeConstant == false && leafIsX)
+                            || (ph2.cannotBeExpressionOnlyMultipleOfX && leafIsX)
+						)
 						{
 							//Console.WriteLine($"{ph2} -> {leafNode}");
 							op.operand2 = leafNode;
@@ -559,6 +684,14 @@ namespace DerivativeCalculator
 						if (ph2.canBeConstant && ph2.canBeX == false && leafIsX == false)
 						{
 							//Console.WriteLine($"{ph2} -> {leafNode}");
+							op.operand2 = leafNode;
+							return (root, true);
+						}
+					}
+					else if (ph2.cannotBeExpressionOnlyMultipleOfX)
+					{
+						if (leafIsX)
+						{
 							op.operand2 = leafNode;
 							return (root, true);
 						}
@@ -602,11 +735,196 @@ namespace DerivativeCalculator
             return (root, false);
         }
 
-        public static TreeNode GenerateRandomTree (DifficultyMetrics difficulty, SimplificationParams simplificationParams)
+        private static bool IsTreeOk (TreeNode tree, DifficultyMetrics difficulty, SimplificationParams simplificationParams)
+        {
+            if (DoesTreeContainNull(tree))
+                return false;
+
+			var diffTree = TreeUtils.GetSimplestForm(tree.Diff('x'), simplificationParams);
+
+            if (DoesTreeContainNull(diffTree))
+                return false;
+
+            if (diffTree is Constant diffConstant)
+                if (difficulty.shouldYieldNonConstDiff)
+                    return false;
+                else if (diffConstant is Constant { value: 0 } && difficulty.shouldYieldNonZeroDiff)
+                    return false;
+
+            if (TreeUtils.DoesTreeContainNan(tree) || TreeUtils.DoesTreeContainNan(diffTree))
+                return false;
+
+            if (difficulty.constIsOnlyInt && DoesTreeContainNonInt(tree))
+                return false;
+
+            if (DoesTreeConstainBadConstant(tree, difficulty.minConstValue, difficulty.maxConstValue))
+                return false;
+
+            int compLevel = MaxLevelOfComposition(tree);
+
+            if (compLevel < difficulty.numMinLevelOfComposition || compLevel > difficulty.numMaxLevelOfComposition)
+                return false;
+
+            // copy, because it is a sideeffect
+            var tempDict = new Dictionary<OperatorType, int>(difficulty.numAllowedFromEachOperatorType);
+
+			if (DoesTreeContainInvalidOp(tree, ref tempDict))
+                return false;
+
+            int operatorCount = OperatorCountOfTree(tree);
+
+            if (operatorCount > difficulty.numMaxOperators || operatorCount < difficulty.numMinOperators)
+                return false;
+
+            if (IsMultDivPowDifficultyOk(tree, difficulty) == false)
+                return false;
+
+			return true;
+		}
+
+		private static int OperatorCountOfTree(TreeNode root)
+		{
+			if (root is not Operator op)
+				return 0;
+
+			if (op.numOperands == 1)
+			{
+				return 1 + OperatorCountOfTree(op.operand1);
+			}
+			else
+			{
+				return 1 + OperatorCountOfTree(op.operand1) + OperatorCountOfTree(op.operand2);
+			}
+		}
+
+		private static bool DoesTreeContainInvalidOp(TreeNode tree, ref Dictionary<OperatorType, int> numAllowedOps)
+		{
+			if (tree is not Operator)
+				return false;
+
+			Operator op = tree as Operator;
+
+			if (numAllowedOps.ContainsKey(op.type) == false)
+				return true;
+
+			if (numAllowedOps[op.type] <= 0)
+				return true;
+
+			numAllowedOps[op.type] -= 1;
+
+			if (op.numOperands == 1)
+			{
+				return DoesTreeContainInvalidOp(op.operand1, ref numAllowedOps);
+			}
+			else
+			{
+				return DoesTreeContainInvalidOp(op.operand1, ref numAllowedOps) || DoesTreeContainInvalidOp(op.operand2, ref numAllowedOps);
+			}
+		}
+
+		private static bool DoesTreeConstainBadConstant(TreeNode root, double min, double max)
+		{
+			if (root is null)
+				return false;
+
+			if (root is Constant c)
+				return c.value < min || c.value > max;
+
+			if (root is not Operator op)
+				return false;
+
+			if (op.numOperands == 1)
+			{
+				return DoesTreeConstainBadConstant(op.operand1, min, max);
+			}
+			else
+			{
+				return DoesTreeConstainBadConstant(op.operand1, min, max) || DoesTreeConstainBadConstant(op.operand2, min, max);
+			}
+		}
+
+		private static bool DoesTreeContainNull(TreeNode root)
+		{
+			if (root is null)
+				return true;
+
+			if (root is Constant { value: Double.NaN })
+				return false;
+
+			if (root is not Operator op)
+				return false;
+
+			if (op.numOperands == 1)
+				return DoesTreeContainNull(op.operand1);
+			else
+				return DoesTreeContainNull(op.operand1) || DoesTreeContainNull(op.operand2);
+		}
+
+		private static bool DoesTreeContainNonInt(TreeNode root)
+		{
+			if (root is null)
+				return false;
+
+			if (root is Constant c)
+				return c.value != Math.Floor(c.value);
+
+			if (root is not Operator op)
+				return false;
+
+			if (op.numOperands == 1)
+				return DoesTreeContainNonInt(op.operand1);
+			else
+				return DoesTreeContainNonInt(op.operand1) || DoesTreeContainNonInt(op.operand2);
+		}
+
+        private static bool IsMultDivPowDifficultyOk (TreeNode root, DifficultyMetrics difficulty)
+        {
+            if (root is not Operator op)
+                return true;
+
+            if (op is Mult)
+                return (difficulty.difficultyOfMultiplication, op.operand1.IsConstant('x'), op.operand2.IsConstant('x')) switch
+                {
+                    (DifficultyOfMultiplication.OnlyConstant, true, false) => true,
+                    (DifficultyOfMultiplication.OnlyConstant, false, true) => true,
+                    (DifficultyOfMultiplication.OnlyConstant, _, _) => false,
+                    (DifficultyOfMultiplication.BothCanBeDependent, _, _) => true
+				};
+
+            if (op is Div)
+				return (difficulty.difficultyOfMultiplication, op.operand1.IsConstant('x'), op.operand2.IsConstant('x')) switch
+				{
+					(DifficultyOfMultiplication.OnlyConstant, _, true) => true,
+					(DifficultyOfMultiplication.OnlyConstant, _, _) => false,
+					(DifficultyOfMultiplication.BothCanBeDependent, _, _) => true
+				};
+
+            if (op is Pow)
+				return (difficulty.difficultyOfPower, op.operand1.IsConstant('x'), op.operand2.IsConstant('x')) switch
+				{
+					(DifficultyOfPower.Polinom, _, true) => true,
+					(DifficultyOfPower.Polinom, _, _) => false,
+					(DifficultyOfPower.PolinomOrSimpleExponential, false, true) => true,
+					(DifficultyOfPower.PolinomOrSimpleExponential, true, false) => true,
+					(DifficultyOfPower.PolinomOrSimpleExponential, true, true) => true,
+					(DifficultyOfPower.PolinomOrSimpleExponential, false, false) => false,
+					(DifficultyOfPower.BothCanBeDependent, _, _) => true,
+				};
+
+            if (op.numOperands == 1)
+                return IsMultDivPowDifficultyOk(op.operand1, difficulty);
+            else
+                return IsMultDivPowDifficultyOk(op.operand1, difficulty) && IsMultDivPowDifficultyOk(op.operand2, difficulty);
+		}
+
+		public static TreeNode GenerateRandomTree (DifficultyMetrics difficulty, SimplificationParams simplificationParams)
         {
             bool isTreeGenerationSuccessfull = false;
 
 			TreeNode tree = null;
+
+            const int loopIterLimit = 200;
+            int loopCounter = 0; // for safety
 
             simplificationParams = simplificationParams with
             {
@@ -620,7 +938,8 @@ namespace DerivativeCalculator
                 //Console.WriteLine("Generating tree...");
 
                 var opTypeList = GenerateOperatorList(difficulty);
-                
+
+                loopCounter = 0;
                 while (opTypeList.Count > 0)
                 {
                     int chosenOpIndex = random.Next() % opTypeList.Count;
@@ -629,7 +948,15 @@ namespace DerivativeCalculator
 
                     if (wasSuccessful)
                         opTypeList.RemoveAt(chosenOpIndex);
+
+                    if (++loopCounter > loopIterLimit)
+                        break;
                 }
+
+                if (loopCounter > loopIterLimit)
+                    continue;
+                else
+                    loopCounter = 0;
 
                 int compositionLevel = MaxLevelOfComposition(tree);
 
@@ -669,6 +996,7 @@ namespace DerivativeCalculator
 
                 List<TreeNode> remainingList = xList.Concat(constList).ToList();
 
+                loopCounter = 0;
                 while (remainingList.Count > 0)
                 {
                     int chosenLeafIndex = random.Next() % remainingList.Count;
@@ -677,37 +1005,24 @@ namespace DerivativeCalculator
 
                     if (wasSuccessful)
                         remainingList.RemoveAt(chosenLeafIndex);
+
+                    if (++loopCounter > loopIterLimit)
+                        break;
                 }
 
+				if (loopCounter > loopIterLimit)
+					continue;
+				else
+					loopCounter = 0;
 
-                if (TreeUtils.DoesTreeContainNull(tree))
+				if (DoesTreeContainNull(tree))
                     continue;
 
                 try
                 {
                     tree = TreeUtils.GetSimplestForm(tree, simplificationParams);
 
-                    if (TreeUtils.DoesTreeContainNull(tree))
-						continue;
-
-					var diffTree = TreeUtils.GetSimplestForm(tree.Diff('x'), simplificationParams);
-
-                    if (TreeUtils.DoesTreeContainNull(diffTree))
-						continue;
-
-					if (diffTree is Constant diffConstant)
-                        if (difficulty.shouldYieldNonConstDiff)
-							continue;
-						else if (diffConstant is Constant { value: 0 } && difficulty.shouldYieldNonZeroDiff)
-							continue;
-
-					if (TreeUtils.DoesTreeContainNan(tree) || TreeUtils.DoesTreeContainNan(diffTree))
-						continue;
-
-					if (difficulty.constIsOnlyInt && TreeUtils.DoesTreeContainNonInt(tree))
-						continue;
-
-                    if (TreeUtils.DoesTreeConstainBadConstant(tree, difficulty.minConstValue, difficulty.maxConstValue))
+                    if (IsTreeOk(tree, difficulty, simplificationParams) == false)
                         continue;
 				}
                 catch (Exception e) // x/0 or something random

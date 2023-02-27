@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System.Collections;
+using System.Diagnostics;
 using System.Linq.Expressions;
 using System.Text.RegularExpressions;
 
@@ -9,24 +10,67 @@ public partial class Program
 	public static void Main()
 	{
 
-		DerivativeManager.DifferentiateFromConsole();
+		//DerivativeManager.DifferentiateFromConsole();
 
-		return;
+		string result = DerivativeManager.DifferentiateString("tgx cosx", out _, out _, out _, out _, out _);
+		Console.WriteLine(result);
 
-		TreeNode tree = new Div(
-			new Mult(
-				new Abs(new Variable('x')),
-				new Pow(new Variable('x'), new Constant(3))
-			),
-			new Pow(new Variable('x'), new Constant(2))
-		);
+		//return;
 
-		tree.PrintToConsole();
+		//TreeNode tree = new Pow(
+		//	Constant.E,
+		//	new Mult(
+		//		new Mult(
+		//			  new Ln(new Variable('a')),
+		//			  new Variable('b')
+		//		  ),
+		//		new Variable('x')
+		//	)
+		//);
 
-		tree = tree.Simplify(SimplificationParams.Default);
-		//tree = tree.GetSimplestForm(SimplificationParams.Default);
+		//var tree = Parser.ParseString("x^(3x)");
 
-		tree.PrintToConsole();
+		//Console.WriteLine(tree.ToLatexString());
+
+		//TreeNode tree = new Div(
+		//		new Mult(
+		//			  new Ln(new Variable('x')),
+		//			  new Variable('y')
+		//		  ),
+		//		new Variable('z')
+		//	);
+
+		//tree.PrintToConsole();
+
+		//Dictionary<char, TreeNode> wildcards;
+
+		//if (TreeUtils.MatchPattern(
+		//		tree,
+		//		new Div(
+		//			new Ln(new Wildcard('a')),
+		//			new Wildcard('b')
+		//		),
+		//		out wildcards
+		//))
+		//{
+		//	Console.WriteLine("Match");
+
+		//	foreach (var (key, value) in wildcards)
+		//	{
+		//		Console.Write("var '" + key + "' := ");
+		//		value.PrintToConsole();
+		//	}
+		//}
+		//else
+		//{
+		//	Console.WriteLine("No match");
+		//}
+
+
+		//tree = tree.Simplify(SimplificationParams.Default);
+		////tree = tree.GetSimplestForm(SimplificationParams.Default);
+
+		//tree.PrintToConsole();
 
 
 		//var left = new Mult(
@@ -58,7 +102,7 @@ public partial class Program
 		//		Console.WriteLine($"{i}/{maxIter}");
 
 		//	var exercise = ExerciseGenerator.GenerateRandomTree(
-		//		DifficultyMetrics.Hardcore, 
+		//		DifficultyMetrics.Easy,
 		//		new SimplificationParams(
 		//			  'x'
 		//			)
@@ -66,7 +110,8 @@ public partial class Program
 
 		//	DerivativeManager.DifferentiateTree(exercise, 'x', out _, out _, out _, out _, null);
 
-		//	//Console.WriteLine(exercise.ToLatexString() + " = " + exercise.Diff('x').ToLatexString());
+		//	exercise.PrintToConsole();
+		//	//exercise.Diff('x').PrintToConsole();
 		//}
 
 		//var list = new List<TreeNode>()

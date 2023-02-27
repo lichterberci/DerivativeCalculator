@@ -16,7 +16,10 @@
 			if (root is DerivativeSymbol)
 				return false;
 
-			return IsExpressionConstant((root as Operator).operand1, varToDiff) && IsExpressionConstant((root as Operator).operand2, varToDiff);
+			if (root is not Operator op)
+				return false;
+
+			return IsExpressionConstant(op.operand1, varToDiff) && IsExpressionConstant(op.operand2, varToDiff);
 		}
 
 		public static void PrintTree(TreeNode root, int depth = 0)
@@ -171,7 +174,7 @@
 
 			if (left is null && right is null)
 			{
-				return (null, false);
+				return (null, true);
 			}
 			if (left is null)
 			{
@@ -181,6 +184,9 @@
 			{
 				return (left, true);
 			}
+
+			if (left.Keys.Count == 0 && right.Keys.Count == 0)
+				return (null, true);
 
 			foreach (var key in left.Keys.Concat(right.Keys).Distinct())
 			{
@@ -262,6 +268,20 @@
 					var treeOperandList = GetAssociativeOperands(treeOp, treeOp.type, treeOp.inverseType);
 					var patternOperandList = GetAssociativeOperands(patternOp, treeOp.type, treeOp.inverseType);
 
+					patternOperandList = patternOperandList.OrderBy(operand => operand.Item1 is Wildcard ? 1 : 0).ToList();
+
+					Wildcard? cleanUpWildcard = null;
+					char? cleanUpWildcardName = null;
+					bool isCleanUpWildcardInverse = false;					
+
+					// the leftovers will be packed into this one
+					if (patternOperandList.Last() is (Wildcard _cleanUpW, bool _isCleanUpInverse))
+					{
+						cleanUpWildcard = _cleanUpW;
+						isCleanUpWildcardInverse = _isCleanUpInverse;
+						cleanUpWildcardName = cleanUpWildcard.name;
+					}
+
 					Dictionary<char, TreeNode> tempWildcards;
 
 					List<Dictionary<char, TreeNode>> operandWildcards = new();
@@ -292,11 +312,10 @@
 						}
 					}
 
-					// if there are any elements left in the original lists, we don't have a match
-
-					if (treeOperandList.Count != 0 || patternOperandList.Count != 0)
+					if (patternOperandList.Count > 0)
 						return false;
 
+					// there are no wildcards to speak of
 					if (operandWildcards.Count == 0)
 						return true;
 
@@ -309,6 +328,91 @@
 
 						if (wasSuccessful == false)
 							return false;
+					}
+
+					// if there are leftover elements in the tree (but not in the pattern),
+					// and there is a wildcard in the pattern,
+					// we can just put the leftovers in the wildcard
+					// eg.: (tree) ln(a)*b*c <==> (pattern) ln(x)*y
+
+					if (cleanUpWildcard is not null && treeOperandList.Count > 0)
+					{
+						// make tree
+
+						TreeNode originalNode = resultWildcards[(char)cleanUpWildcard.name];
+
+						treeOperandList.Insert(0, (originalNode, isCleanUpWildcardInverse));
+
+						// build two half trees (one for the type, one for the inverse)
+						List<TreeNode> typeList = new();
+						List<TreeNode> inverseTypeList = new();
+
+						OperatorType cleanUpBaseType = treeOp.type switch
+						{
+							OperatorType.Add => OperatorType.Add,
+							OperatorType.Sub => OperatorType.Add,
+							OperatorType.Mult => OperatorType.Mult,
+							OperatorType.Div => OperatorType.Mult,
+							_ => throw new ArgumentException("Operator type is not associatve!")
+						};
+						OperatorType cleanUpInverseType = cleanUpBaseType switch
+						{
+							OperatorType.Add => OperatorType.Sub,
+							OperatorType.Mult => OperatorType.Div,
+							_ => throw new ArgumentException("Operator type is not associatve!")
+						};
+
+						foreach (var (node, isInverse) in treeOperandList)
+						{
+							if (isInverse == isCleanUpWildcardInverse)
+								typeList.Add(node);
+							else
+								inverseTypeList.Add(node);
+						}
+
+						TreeNode? typeTree = BuildTreeFromHalfAssociativeList(
+							typeList,
+							cleanUpBaseType
+						);
+						TreeNode? inverseTypeTree = BuildTreeFromHalfAssociativeList(
+							inverseTypeList,
+							cleanUpBaseType
+						);
+
+						if (typeTree is null && inverseTypeTree is null)
+							throw new Exception("Failed to build half trees whilte checking for pattern!");
+
+						if (typeTree is not null && inverseTypeTree is null)
+						{
+							if (isCleanUpWildcardInverse)
+							{
+								if (cleanUpBaseType == OperatorType.Add)
+									resultWildcards[(char)cleanUpWildcardName] = new Mult(new Constant(-1), typeTree);
+								else if (cleanUpBaseType == OperatorType.Mult)
+									resultWildcards[(char)cleanUpWildcardName] = new Div(new Constant(1), typeTree);
+							}
+							else
+								resultWildcards[(char)cleanUpWildcardName] = typeTree;
+						}
+						else if (typeTree is null && inverseTypeTree is not null)
+						{
+							if (isCleanUpWildcardInverse == false)
+							{
+								if (cleanUpBaseType == OperatorType.Add)
+									resultWildcards[(char)cleanUpWildcardName] = new Mult(new Constant(-1), inverseTypeTree);
+								else if (cleanUpBaseType == OperatorType.Mult)
+									resultWildcards[(char)cleanUpWildcardName] = new Div(new Constant(1), inverseTypeTree);
+							}
+							else
+								resultWildcards[(char)cleanUpWildcardName] = inverseTypeTree;
+						}
+						else
+						{
+							Operator op = Operator.GetClassInstanceFromType(cleanUpInverseType);
+							op.operand1 = isCleanUpWildcardInverse ? inverseTypeTree : typeTree;
+							op.operand2 = isCleanUpWildcardInverse ? typeTree : inverseTypeTree;
+							resultWildcards[(char)cleanUpWildcardName] = op;
+						}
 					}
 
 					wildcards = resultWildcards;
@@ -394,78 +498,6 @@
 				return ContainsNullOperand(op.operand1);
 			else
 				return ContainsNullOperand(op.operand1) || ContainsNullOperand(op.operand2);
-		}
-
-		public static bool DoesTreeContainNan(TreeNode root)
-		{
-			if (root is null)
-				return false;
-
-			if (root is Constant c)
-				return double.IsNaN(c.value) || double.IsInfinity(c.value);
-
-			if (root is not Operator op)
-				return false;
-
-			if (op.numOperands == 1)
-				return DoesTreeContainNan(op.operand1);
-			else
-				return DoesTreeContainNan(op.operand1) || DoesTreeContainNan(op.operand2);
-		}
-
-		public static bool DoesTreeContainNonInt(TreeNode root)
-		{
-			if (root is null)
-				return false;
-
-			if (root is Constant c)
-				return c.value != Math.Floor(c.value);
-
-			if (root is not Operator op)
-				return false;
-
-			if (op.numOperands == 1)
-				return DoesTreeContainNonInt(op.operand1);
-			else
-				return DoesTreeContainNonInt(op.operand1) || DoesTreeContainNonInt(op.operand2);
-		}
-
-		public static bool DoesTreeContainNull(TreeNode root)
-		{
-			if (root is null)
-				return true;
-
-			if (root is Constant { value: Double.NaN })
-				return false;
-
-			if (root is not Operator op)
-				return false;
-
-			if (op.numOperands == 1)
-				return DoesTreeContainNull(op.operand1);
-			else
-				return DoesTreeContainNull(op.operand1) || DoesTreeContainNull(op.operand2);
-		}
-
-		public static bool DoesTreeConstainBadConstant(TreeNode root, double min, double max)
-		{
-			if (root is null)
-				return false;
-
-			if (root is Constant c)
-				return c.value < min || c.value > max;
-
-			if (root is not Operator op)
-				return false;
-
-			if (op.numOperands == 1)
-			{
-				return DoesTreeConstainBadConstant(op.operand1, min, max);
-			}
-			else
-			{
-				return DoesTreeConstainBadConstant(op.operand1, min, max) || DoesTreeConstainBadConstant(op.operand2, min, max);
-			}
 		}
 
 		public static List<TreeNode> SortNodesByVarNames(List<TreeNode> list, char? varToLeaveLast = null)
@@ -583,6 +615,42 @@
 			rightList = SortNodesByVarNames(rightList, varToLeaveLast);
 
 			return constList.Concat(leftList).Concat(new List<TreeNode> { pivot }).Concat(rightList).Concat(expressionList).ToList();
+		}
+
+		public static bool DoesTreeContainNan(TreeNode root)
+		{
+			if (root is null)
+				return false;
+
+			if (root is Constant c)
+				return double.IsNaN(c.value) || double.IsInfinity(c.value);
+
+			if (root is not Operator op)
+				return false;
+
+			if (op.numOperands == 1)
+				return DoesTreeContainNan(op.operand1);
+			else
+				return DoesTreeContainNan(op.operand1) || DoesTreeContainNan(op.operand2);
+		}
+
+		/// <summary>
+		/// DOES NOT SUPPORT INVERSE TYPE
+		/// </summary>
+		public static TreeNode? BuildTreeFromHalfAssociativeList (List<TreeNode> list, OperatorType type)
+		{
+			if (list.Count == 0)
+				return null;
+
+			if (list.Count == 1)
+				return list.First();
+
+			var op = Operator.GetClassInstanceFromType(type);
+
+			op.operand1 = list.First();
+			op.operand2 = BuildTreeFromHalfAssociativeList(list.Where((_, i) => i > 0).ToList(), type);
+
+			return op;
 		}
 	}
 }

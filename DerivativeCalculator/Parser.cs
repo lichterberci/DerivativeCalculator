@@ -1,4 +1,5 @@
 ﻿
+using System.Globalization;
 using System.Xml.Linq;
 
 namespace DerivativeCalculator
@@ -10,11 +11,16 @@ namespace DerivativeCalculator
 			if (string.IsNullOrWhiteSpace(input))
 				throw new ParsingError("Input is empty or whitespace!");
 
+			if (input.Count(c => c == '|') > 2)
+				throw new ParsingError("The number of vertical bars ('|') should not exceed 2, because it would be ambiguous! Use abs() instead!");
+
 			input = input.Trim();
 
 			input = input.ToLower();
 
 			input = input.Replace('.', ',');
+
+			input = input.Replace(':', '/');
 
 			input = input.Replace("pi", "P"); // capital P is \pi
 
@@ -66,7 +72,7 @@ namespace DerivativeCalculator
 
 					if (isInNumber)
 					{
-						double value = double.Parse(tmp);
+						double value = double.Parse(tmp, NumberStyles.Any, CultureInfo.GetCultureInfo("hu"));
 						nodes.Add(new Constant(value));
 						isInNumber = false;
 						tmp = "";
@@ -167,7 +173,9 @@ namespace DerivativeCalculator
 				nodes[i] = new Parenthesis('(');
 				nodes[j] = new Parenthesis(')');
 				
-				nodes.Insert(i, new Abs());
+				nodes.Insert(j, new Parenthesis(')'));
+				nodes.Insert(i, new Abs(null, 5));
+				nodes.Insert(i, new Parenthesis('('));
 				j++; // necessary, because the insert added an item to the list
 			}
 
@@ -317,10 +325,13 @@ namespace DerivativeCalculator
 				}
 				else if (node is Operator op)
 					op.prioirty += priorityOffset;
+
+				if (priorityOffset < 0)
+					throw new ParsingError("Parenthesis are not facing correctly!");
 			}
 
 			if (priorityOffset != 0)
-				throw new ParsingError($"Parentheses are not alligned correctly! (offset at the end: {priorityOffset})");
+				throw new ParsingError($"Van zárójel, aminek nincs párja! (offset a végén: {priorityOffset})");
 
 			return nodes;
 		}
@@ -349,7 +360,7 @@ namespace DerivativeCalculator
 					if (nodes[0] is Variable || nodes[0] is Constant)
 						return nodes[0] as TreeNode;
 					else
-						throw new ParsingError($"Branch size invalid! (count: {nodes.Count})");
+						throw new ParsingError($"Az ág mérete invalid! (# = {nodes.Count})");
 
 
 			Operator op = nodes[minOpIndex] as Operator;
@@ -360,7 +371,7 @@ namespace DerivativeCalculator
 			if (op.numOperands == 1)
 			{
 				if (rightList.Count == 0)
-					throw new ParsingError($"Parsing error: {op} has no operand!");
+					throw new ParsingError($"A(z) '{op.ToPrettyString()}' operátornak nincs operandusa!");
 
 				op.operand1 = MakeTreeFromList(rightList);
 
@@ -369,10 +380,10 @@ namespace DerivativeCalculator
 			else
 			{
 				if (leftList.Count == 0)
-					throw new ParsingError($"Parsing error: {op} has no left operand!");
+					throw new ParsingError($"A(z) '{op.ToPrettyString()}' operátornak nincs bal oldali operandusa!");
 
 				if (rightList.Count == 0)
-					throw new ParsingError($"Parsing error: {op} has no right operand!");
+					throw new ParsingError($"A(z) '{op.ToPrettyString()}' operátornak nincs jobb oldali operandusa!");
 
 				op.operand1 = MakeTreeFromList(leftList);
 				op.operand2 = MakeTreeFromList(rightList);

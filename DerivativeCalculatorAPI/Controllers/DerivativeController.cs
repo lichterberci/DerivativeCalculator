@@ -8,6 +8,13 @@ namespace DerivativeCalculatorAPI.Controllers
 	[Route("/")]
 	public class DerivativeController : ControllerBase
 	{
+		private readonly ILogger<DerivativeController> _logger;
+
+		public DerivativeController(ILogger<DerivativeController> logger)
+		{
+			_logger = logger;
+		}
+
 		/// <summary>
 		/// A general query for differentiating custom input
 		/// </summary>
@@ -28,13 +35,15 @@ namespace DerivativeCalculatorAPI.Controllers
 			{
 				Console.WriteLine("Input is null when using body!");
 				Response.StatusCode = (int)HttpStatusCode.BadRequest;
-				return new ResponseData();
+				return new ResponseData("PARSING ERROR", "A bemenet null!");
 			}
 
 			string inputAsLatex, simplifiedInputAsLatex, outputAsLatex;
 			List<string> stepsAsLatex;
 			List<StepDescription> stepDescriptions;
 			char varToDiff;
+
+			_logger.LogInformation($"Differentiating from body! input: {input}");
 
 			try
 			{
@@ -52,57 +61,49 @@ namespace DerivativeCalculatorAPI.Controllers
 			{
 				Console.WriteLine(e.Message);
 
-				Response.Headers.Add("Access-Control-Expose-Headers", "x-exception-type, x-exception-message");
-				Response.Headers.Add("x-exception-type", "PARSING ERROR");
-				Response.Headers.Add("x-exception-message", e.Message);
+				_logger.LogWarning($"Parsing error: {e.Message}\nStacktrace: {e.StackTrace}");
 
 				Response.StatusCode = (int)HttpStatusCode.BadRequest;
-				return new ResponseData();
+				return new ResponseData("PARSING ERROR", e.Message);
 			}
 			catch (DifferentiationException e)
 			{
 				Console.WriteLine(e.Message);
 
-				Response.Headers.Add("Access-Control-Expose-Headers", "x-exception-type, x-exception-message");
-				Response.Headers.Add("x-exception-type", "DIFFERENTIATION ERROR");
-				Response.Headers.Add("x-exception-message", e.Message);
+				_logger.LogWarning($"Differentiation error: {e.Message}\nStacktrace: {e.StackTrace}");
 
 				Response.StatusCode = (int)HttpStatusCode.BadRequest;
-				return new ResponseData();
+				return new ResponseData("DIFFERENTIATION ERROR", e.Message);
 			}
 			catch (SimplificationException e)
 			{
 				Console.WriteLine(e.Message);
 
-				Response.Headers.Add("Access-Control-Expose-Headers", "x-exception-type, x-exception-message");
-				Response.Headers.Add("x-exception-type", "SIMPLIFICATION ERROR");
-				Response.Headers.Add("x-exception-message", e.Message);
+				_logger.LogWarning($"Simplification error: {e.Message}\nStacktrace: {e.StackTrace}");
 
 				Response.StatusCode = (int)HttpStatusCode.BadRequest;
-				return new ResponseData();
+				return new ResponseData("SIMPLIFICATION ERROR", e.Message);
 			}
 			catch (NotFiniteNumberException e)
 			{
 				Console.WriteLine(e.Message);
 
-				Response.Headers.Add("Access-Control-Expose-Headers", "x-exception-type, x-exception-message");
-				Response.Headers.Add("x-exception-type", "EVALUATION ERROR");
-				Response.Headers.Add("x-exception-message", e.Message);
+				_logger.LogWarning($"NotFinitNumberException: {e.Message}\nStacktrace: {e.StackTrace}");
 
 				Response.StatusCode = (int)HttpStatusCode.BadRequest;
-				return new ResponseData();
+				return new ResponseData("EVALUATION ERROR", e.Message);
 			}
 			catch (Exception e)
 			{
 				Console.WriteLine(e.Message);
 
-				Response.Headers.Add("Access-Control-Expose-Headers", "x-exception-type, x-exception-message");
-				Response.Headers.Add("x-exception-type", "UNKNOWN ERROR");
-				Response.Headers.Add("x-exception-message", e.Message);
+				_logger.LogError($"Unkown error: {e.Message}\nStacktrace: {e.StackTrace}");
 
-				Response.StatusCode = (int)HttpStatusCode.BadRequest;
-				return new ResponseData();
+				Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+				return new ResponseData("UNKNOWN ERROR", e.Message);
 			}
+
+			_logger.LogInformation($"Differentiation was successfull! (input={input}, outputAsLatex={outputAsLatex})");
 
 			return new ResponseData(inputAsLatex, simplifiedInputAsLatex, outputAsLatex, stepsAsLatex, stepDescriptions, varToDiff);
 		}
@@ -117,12 +118,10 @@ namespace DerivativeCalculatorAPI.Controllers
 		{
 			Console.WriteLine("differenatiate endpoint called without input!");
 
-			Response.Headers.Add("Access-Control-Expose-Headers", "x-exception-type, x-exception-message");
-			Response.Headers.Add("x-exception-type", "PARSING ERROR");
-			Response.Headers.Add("x-exception-message", "Input is empty!");
+			_logger.LogWarning($"Empty differentiation endpoint called!");
 
 			Response.StatusCode = (int)HttpStatusCode.BadRequest;
-			return new ResponseData();
+			return new ResponseData("PARSING ERROR", "A bemenet üres!");
 		}
 
 		/// <summary>
@@ -144,6 +143,8 @@ namespace DerivativeCalculatorAPI.Controllers
 			List<StepDescription> stepDescriptions;
 			char varToDiff;
 
+			_logger.LogInformation($"Differentiating from URI! input: {input}");
+
 			try
 			{
 				outputAsLatex = DerivativeManager.DifferentiateString(
@@ -160,57 +161,49 @@ namespace DerivativeCalculatorAPI.Controllers
 			{
 				Console.WriteLine(e.Message);
 
-				Response.Headers.Add("Access-Control-Expose-Headers", "x-exception-type, x-exception-message");
-				Response.Headers.Add("x-exception-type", "PARSING ERROR");
-				Response.Headers.Add("x-exception-message", e.Message);
+				_logger.LogWarning($"ParsingError: {e.Message}\nStacktrace: {e.StackTrace}");
 
 				Response.StatusCode = (int)HttpStatusCode.BadRequest;
-				return new ResponseData();
+				return new ResponseData("PARSING ERROR", e.Message);
 			}
 			catch (DifferentiationException e)
 			{
 				Console.WriteLine(e.Message);
 
-				Response.Headers.Add("Access-Control-Expose-Headers", "x-exception-type, x-exception-message");
-				Response.Headers.Add("x-exception-type", "DIFFERENTIATION ERROR");
-				Response.Headers.Add("x-exception-message", e.Message);
+				_logger.LogWarning($"DifferentiationError: {e.Message}\nStacktrace: {e.StackTrace}");
 
 				Response.StatusCode = (int)HttpStatusCode.BadRequest;
-				return new ResponseData();
+				return new ResponseData("DIFFERENTIATION ERROR", e.Message);
 			}
 			catch (SimplificationException e)
 			{
 				Console.WriteLine(e.Message);
 
-				Response.Headers.Add("Access-Control-Expose-Headers", "x-exception-type, x-exception-message");
-				Response.Headers.Add("x-exception-type", "SIMPLIFICATION ERROR");
-				Response.Headers.Add("x-exception-message", e.Message);
+				_logger.LogWarning($"SimplificationError: {e.Message}\nStacktrace: {e.StackTrace}");
 
 				Response.StatusCode = (int)HttpStatusCode.BadRequest;
-				return new ResponseData();
+				return new ResponseData("SIMPLIFICATION ERROR", e.Message);
 			}
 			catch (NotFiniteNumberException e)
 			{
 				Console.WriteLine(e.Message);
 
-				Response.Headers.Add("Access-Control-Expose-Headers", "x-exception-type, x-exception-message");
-				Response.Headers.Add("x-exception-type", "EVALUATION ERROR");
-				Response.Headers.Add("x-exception-message", e.Message);
+				_logger.LogWarning($"NotFiniteNumberException: {e.Message}\nStacktrace: {e.StackTrace}");
 
 				Response.StatusCode = (int)HttpStatusCode.BadRequest;
-				return new ResponseData();
+				return new ResponseData("EVALUATION ERROR", e.Message);
 			}
 			catch (Exception e)
 			{
 				Console.WriteLine(e.Message);
 
-				Response.Headers.Add("Access-Control-Expose-Headers", "x-exception-type, x-exception-message");
-				Response.Headers.Add("x-exception-type", "UNKNOWN ERROR");
-				Response.Headers.Add("x-exception-message", e.Message);
+				_logger.LogWarning($"Unknown error: {e.Message}\nStacktrace: {e.StackTrace}");
 
-				Response.StatusCode = (int)HttpStatusCode.BadRequest;
-				return new ResponseData();
+				Response.StatusCode = (int)HttpStatusCode.InternalServerError;
+				return new ResponseData("UNKNOWN ERROR", e.Message);
 			}
+
+			_logger.LogInformation($"Differentiation was successfull! (input={input}, outputAsLatex={outputAsLatex})");
 
 			return new ResponseData(inputAsLatex, simplifiedInputAsLatex, outputAsLatex, stepsAsLatex, stepDescriptions, varToDiff);
 		}
