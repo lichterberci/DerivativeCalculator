@@ -1470,13 +1470,13 @@ namespace DerivativeCalculator
 
 						// sina / cosa = tana
 						if (
-							node is Operator { type: OperatorType.Cos } opCos
+							node is Operator { type: OperatorType.Cos } opCos1
 							&&
-							otherNode is Operator { type: OperatorType.Sin } opSin
+							otherNode is Operator { type: OperatorType.Sin } opSin1
 							&&
 							TreeUtils.MatchPattern(
-								opCos.operand1,
-								opSin.operand1,
+								opCos1.operand1,
+								opSin1.operand1,
 								out _
 							)
 						)
@@ -1489,7 +1489,94 @@ namespace DerivativeCalculator
 
 							powerDict.Add(
 									new Tan(
-										opSin.operand1
+										opSin1.operand1
+									),
+									new Constant(1)
+								);
+
+							break;
+						}
+
+						// cosa / sina = cota
+						if (
+							node is Operator { type: OperatorType.Sin } opSin2
+							&&
+							otherNode is Operator { type: OperatorType.Cos } opCos2
+							&&
+							TreeUtils.MatchPattern(
+								opCos2.operand1,
+								opSin2.operand1,
+								out _
+							)
+						)
+						{
+							// cot(a)
+
+							powerDict.Remove(otherNode);
+
+							addToDict = false;
+
+							powerDict.Add(
+									new Cot(
+										opSin2.operand1
+									),
+									new Constant(1)
+								);
+
+							break;
+						}
+
+						// sinha / cosha = tanha
+						if (
+							node is Operator { type: OperatorType.Cosh } opCosh1
+							&&
+							otherNode is Operator { type: OperatorType.Sinh } opSinh1
+							&&
+							TreeUtils.MatchPattern(
+								opCosh1.operand1,
+								opSinh1.operand1,
+								out _
+							)
+						)
+						{
+							// tanh(a)
+
+							powerDict.Remove(otherNode);
+
+							addToDict = false;
+
+							powerDict.Add(
+									new Tanh(
+										opSinh1.operand1
+									),
+									new Constant(1)
+								);
+
+							break;
+						}
+
+						// cosha / sinha = tnha
+						if (
+							node is Operator { type: OperatorType.Sinh } opSinh2
+							&&
+							otherNode is Operator { type: OperatorType.Cosh } opCosh2
+							&&
+							TreeUtils.MatchPattern(
+								opCosh2.operand1,
+								opSinh2.operand1,
+								out _
+							)
+						)
+						{
+							// tan(a)
+
+							powerDict.Remove(otherNode);
+
+							addToDict = false;
+
+							powerDict.Add(
+									new Coth(
+										opSinh2.operand1
 									),
 									new Constant(1)
 								);
@@ -2034,6 +2121,35 @@ namespace DerivativeCalculator
 				);
 			}
 
+			// e^lna
+			if (TreeUtils.MatchPattern(
+				this,
+				new Pow(
+					Constant.E,
+					new Ln(
+						new Wildcard('a')
+					)
+				),
+				out wildcards
+			))
+			{
+				return wildcards['a'];
+			}
+
+			// 10^loga
+			if (TreeUtils.MatchPattern(
+				this,
+				new Pow (
+					new Constant(10),
+					new Log(
+						new Wildcard('a')
+					)
+				),
+				out wildcards
+			))
+			{
+				return wildcards['a'];
+			}
 
 			return this;
 		}
@@ -2109,6 +2225,9 @@ namespace DerivativeCalculator
 				operand1 = operand1.Simplify(simplificationParams);
 			}
 
+			if (this.operand1 is Arcsin arcsin)
+				return arcsin.operand1;
+
 			return this;
 		}
 	}
@@ -2163,6 +2282,9 @@ namespace DerivativeCalculator
 				operand1 = operand1.Simplify(simplificationParams);
 			}
 
+			if (operand1 is Arccos arccos)
+				return arccos.operand1;
+
 			return this;
 		}
 	}
@@ -2216,6 +2338,9 @@ namespace DerivativeCalculator
 			{
 				operand1 = operand1.Simplify(simplificationParams);
 			}
+
+			if (operand1 is Arctan arctan)
+				return arctan.operand1;
 
 			return this;
 		}
@@ -2353,6 +2478,9 @@ namespace DerivativeCalculator
 				operand1 = operand1.Simplify(simplificationParams);
 			}
 
+			if (operand1 is Pow { operand1: Constant { value: 10 } } pow)
+				return pow.operand2;
+
 			return this;
 		}
 	}
@@ -2409,6 +2537,9 @@ namespace DerivativeCalculator
 			{
 				operand1 = operand1.Simplify(simplificationParams);
 			}
+
+			if (operand1 is Arccot arccot)
+				return arccot.operand1;
 
 			return this;
 		}
@@ -2469,6 +2600,9 @@ namespace DerivativeCalculator
 			{
 				operand1 = operand1.Simplify(simplificationParams);
 			}
+
+			if (operand1 is Sin sin)
+				return sin.operand1;
 
 			return this;
 		}
@@ -2533,6 +2667,9 @@ namespace DerivativeCalculator
 				operand1 = operand1.Simplify(simplificationParams);
 			}
 
+			if (operand1 is Cos cos)
+				return cos.operand1;
+
 			return this;
 		}
 	}
@@ -2589,6 +2726,9 @@ namespace DerivativeCalculator
 			{
 				operand1 = operand1.Simplify(simplificationParams);
 			}
+
+			if (operand1 is Tan tan)
+				return tan.operand1;
 
 			return this;
 		}
@@ -2650,6 +2790,9 @@ namespace DerivativeCalculator
 				operand1 = operand1.Simplify(simplificationParams);
 			}
 
+			if (operand1 is Cot cot)
+				return cot.operand1;
+
 			return this;
 		}
 	}
@@ -2701,6 +2844,9 @@ namespace DerivativeCalculator
 				operand1 = operand1.Simplify(simplificationParams);
 			}
 
+			if (operand1 is Arsinh arsinh)
+				return arsinh.operand1;
+
 			return this;
 		}
 	}
@@ -2751,6 +2897,9 @@ namespace DerivativeCalculator
 			{
 				operand1 = operand1.Simplify(simplificationParams);
 			}
+
+			if (operand1 is Arcosh arcosh)
+				return arcosh.operand1;
 
 			return this;
 		}
@@ -2805,6 +2954,9 @@ namespace DerivativeCalculator
 			{
 				operand1 = operand1.Simplify(simplificationParams);
 			}
+
+			if (operand1 is Artanh artanh)
+				return artanh.operand1;
 
 			return this;
 		}
@@ -2862,6 +3014,9 @@ namespace DerivativeCalculator
 			{
 				operand1 = operand1.Simplify(simplificationParams);
 			}
+
+			if (operand1 is Arcoth arcoth)
+				return arcoth.operand1;
 
 			return this;
 		}
@@ -2923,6 +3078,9 @@ namespace DerivativeCalculator
 				operand1 = operand1.Simplify(simplificationParams);
 			}
 
+			if (operand1 is Sinh sinh)
+				return sinh.operand1;
+
 			return this;
 		}
 	}
@@ -2983,6 +3141,9 @@ namespace DerivativeCalculator
 				operand1 = operand1.Simplify(simplificationParams);
 			}
 
+			if (operand1 is Cosh cosh)
+				return cosh.operand1;
+
 			return this;
 		}
 	}
@@ -3040,6 +3201,9 @@ namespace DerivativeCalculator
 				operand1 = operand1.Simplify(simplificationParams);
 			}
 
+			if (operand1 is Tanh tanh)
+				return tanh.operand1;
+
 			return this;
 		}
 	}
@@ -3096,6 +3260,9 @@ namespace DerivativeCalculator
 			{
 				operand1 = operand1.Simplify(simplificationParams);
 			}
+
+			if (operand1 is Coth coth)
+				return coth.operand1;
 
 			return this;
 		}
