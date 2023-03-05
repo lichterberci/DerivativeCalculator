@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DerivativeCalculatorWebsite
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DerivativeCalculatorAPI", "DerivativeCalculatorAPI\DerivativeCalculatorAPI.csproj", "{909C070D-F819-4DA9-B6C6-B11C91C77FF1}"
 EndProject
+Project("{E53339B2-1760-4266-BCC7-CA923CBCF16C}") = "docker-compose", "docker-compose.dcproj", "{7507BFB2-5261-4B3D-9509-6E3A3712FB0C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{909C070D-F819-4DA9-B6C6-B11C91C77FF1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{909C070D-F819-4DA9-B6C6-B11C91C77FF1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{909C070D-F819-4DA9-B6C6-B11C91C77FF1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7507BFB2-5261-4B3D-9509-6E3A3712FB0C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7507BFB2-5261-4B3D-9509-6E3A3712FB0C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7507BFB2-5261-4B3D-9509-6E3A3712FB0C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7507BFB2-5261-4B3D-9509-6E3A3712FB0C}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

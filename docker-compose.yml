@@ -1,0 +1,8 @@
+version: '3.4'
+
+services:
+  derivativecalculatorapi:
+    image: lichterbertalan/derivative-calculator:release
+    build:
+      context: .
+      dockerfile: DerivativeCalculatorAPI/Dockerfile
