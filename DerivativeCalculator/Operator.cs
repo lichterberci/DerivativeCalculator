@@ -582,11 +582,14 @@ namespace DerivativeCalculator
 							out wildcards
 						))
 						{
-							coefficientDict.Remove(otherNode);
 							coefficientDict[node] = new Add(
-										wildcards['c'],
+										new Mult(
+											wildcards['c'],
+											coefficientDict[otherNode]
+										),
 										new Constant(1)
 									);
+							coefficientDict.Remove(otherNode);
 							addToDict = false;
 							break;
 						}
@@ -709,11 +712,14 @@ namespace DerivativeCalculator
 							out wildcards
 						))
 						{
-							coefficientDict.Remove(otherNode);
 							coefficientDict[node] = new Sub(
-										wildcards['c'],
+										new Mult(
+												wildcards['c'],
+												coefficientDict[otherNode]
+											),
 										new Constant(1)
 									);
+							coefficientDict.Remove(otherNode);
 							addToDict = false;
 							break;
 						}

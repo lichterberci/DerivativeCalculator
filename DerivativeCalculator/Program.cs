@@ -12,7 +12,7 @@ public partial class Program
 
 		//DerivativeManager.DifferentiateFromConsole();
 
-		string result = DerivativeManager.DifferentiateString("sinx^2+cosx^2", out _, out _, out _, out _, out _);
+		string result = DerivativeManager.DifferentiateString("x^x^x", out _, out _, out _, out _, out _);
 		Console.WriteLine(result);
 
 		//return;
