@@ -315,6 +315,9 @@
 					if (patternOperandList.Count > 0)
 						return false;
 
+					if (treeOperandList.Count > 0 && cleanUpWildcard is null)
+						return false;
+
 					// there are no wildcards to speak of
 					if (operandWildcards.Count == 0)
 						return true;
