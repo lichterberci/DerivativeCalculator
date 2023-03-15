@@ -342,15 +342,31 @@ namespace DerivativeCalculator
 			int minOpIndex = -1;
 			int minOpPriority = int.MaxValue;
 
+			// Note:
+			// while we usually evaluate operations from left to right, thus we get the rightmost operator from 
+			// the list (given equal priority),
+			// x^x^x should be evaluated from right to left
+			// --> if the rightmost operator is a pow, we try to go left until we cannot find an operator
+			// that is a pow with the same priority
+
+			// this is the prioirity of the last pow
+			// but if there is an operator inbetween, this priority is reset
+			int lastPowPriority = int.MaxValue;
+
 			for (int i = nodes.Count - 1; i >= 0; i--)
 			{
 				Node node = nodes[i];
 				if (node is Operator nodeOp)
 				{
-					if (nodeOp.prioirty < minOpPriority)
+					if (
+						nodeOp.prioirty < minOpPriority
+						|| (nodeOp is Pow && nodeOp.prioirty == lastPowPriority)	
+					) 
 					{
 						minOpPriority = nodeOp.prioirty;
 						minOpIndex = i;
+
+						lastPowPriority = nodeOp is Pow ? nodeOp.prioirty : int.MaxValue;
 					}
 				}
 			}
