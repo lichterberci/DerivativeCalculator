@@ -2167,7 +2167,9 @@ namespace DerivativeCalculator
 
 			bool leaveBaseParenthesisOut = operand1 is not Operator
 										|| operand1 is Operator { numOperands: 1 };
-			bool leavePowerParenthesisOut = operand2 is not Pow;
+			bool leavePowerParenthesisOut = operand2 is not Operator 
+										|| operand2 is Operator { numOperands: 1 } 
+										|| operand2 is Pow;
 
 			string operand1String = operand1.ToLatexString();
 
